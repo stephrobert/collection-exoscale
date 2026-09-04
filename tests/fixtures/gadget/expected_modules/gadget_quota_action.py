@@ -7,30 +7,26 @@
 # Do not edit manually.
 #
 # Contrat    : tests/fixtures/gadget/input/exoscale.v2.json
-# Opérations : start-gadget-maintenance
+# Opérations : reset-gadget-quota
 # Régénérer  : mise run generate
 
 from __future__ import annotations
 
 DOCUMENTATION = r"""
-module: gadget_gadget_maintenance_action
-short_description: Perform an action on an Exoscale gadget maintenance
+module: gadget_quota_action
+short_description: Perform an action on an Exoscale gadget quota
 version_added: 9.9.9
 description:
-- 'Trigger one of the following actions on an existing gadget maintenance: C(start).'
+- 'Trigger one of the following actions on an existing gadget quota: C(reset).'
 author:
 - Contrat de laboratoire (@lab)
 options:
   action:
-    description: The action to trigger on the gadget maintenance.
+    description: The action to trigger on the gadget quota.
     type: str
     required: true
     choices:
-    - start
-  id:
-    description: Not documented by the Exoscale API contract.
-    type: str
-    required: true
+    - reset
 extends_documentation_fragment:
 - lab.gadget.exoscale
 - lab.gadget.exoscale.wait
@@ -40,11 +36,10 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Run start on a gadget maintenance
-  lab.gadget.gadget_gadget_maintenance_action:
+- name: Run reset on a gadget quota
+  lab.gadget.gadget_quota_action:
     zone: ch-gva-2
-    action: start
-    id: 11111111-2222-3333-4444-555555555555
+    action: reset
 """
 
 RETURN = r"""
@@ -71,9 +66,8 @@ MODULE_ARGUMENT_SPEC = {
     "action": {
         "type": "str",
         "required": True,
-        "choices": ["start"],
+        "choices": ["reset"],
     },
-    "id": {"type": "str", "required": True},
 }
 
 #: Ce que le contrat exige pour une action et pas pour une autre.
@@ -87,15 +81,15 @@ ARGUMENT_SPEC.update(MODULE_ARGUMENT_SPEC)
 
 #: Ce que le module exécute, et les décisions que le générateur a prises.
 MODULE = ActionModule(
-    resource="gadget_maintenance",
-    selector="id",
+    resource="gadget_quota",
+    selector=None,
     actions=(
         Action(
-            name="start",
+            name="reset",
             operation=Operation(
-                id="start-gadget-maintenance",
-                method="start_gadget_maintenance",
-                path_params={"id": "id"},
+                id="reset-gadget-quota",
+                method="reset_gadget_quota",
+                path_params={},
                 is_async=True,
             ),
         ),

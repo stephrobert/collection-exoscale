@@ -53,7 +53,7 @@ operations:
     plan = plan_service(gadget_service, load_overrides("gadget", root=tmp_path))
     reveal = next(item for item in plan.operations if item.operation.id == "reveal-gadget-password")
     assert reveal.resource == "gadget_password"
-    assert reveal.module == "gadget_gadget_password_info"
+    assert reveal.module == "gadget_password_info"
 
 
 def test_un_champ_inconnu_est_refuse(tmp_path: Path) -> None:

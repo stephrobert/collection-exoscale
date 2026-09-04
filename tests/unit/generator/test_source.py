@@ -56,12 +56,12 @@ def test_le_recensement_compte_chaque_operation_une_fois() -> None:
     """Ce que l'index n'indexe pas n'est pas perdu : il est compté ici."""
     document = VendoredSpecSource(root=GADGET_SPECS).load_document("v2")
     recensement = census(document)
-    assert recensement.by_root["gadget"] == 17
+    assert recensement.by_root["gadget"] == 20
     assert recensement.by_root["other"] == 1
     assert recensement.by_root["stray"] == 1
     assert recensement.undeclared_tags == ("stray",)
     assert recensement.untagged == ("get-orphan",)
-    assert recensement.total == 20
+    assert recensement.total == 23
 
 
 def test_un_produit_absent_de_lindex_est_refuse() -> None:

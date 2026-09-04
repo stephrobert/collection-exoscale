@@ -47,3 +47,16 @@ def test_le_nom_dune_action_retire_les_mots_de_la_ressource() -> None:
     assert action_name("reset-instance-pool-field", "instance_pool") == "reset_field"
     assert action_name("evict-instance-pool-members", "instance_pool") == "evict_members"
     assert action_name("enable-tpm", "instance") == "enable_tpm"
+
+
+def test_les_noms_propres_finissant_par_s_restent_entiers() -> None:
+    """Mesuré sur les chemins : `dbaas` devenait `dbaa`, `postgres` `postgre`.
+
+    Treize vrais pluriels existent aussi (`rules`, `rotations`), donc la
+    singularisation reste, et les noms propres sont déclarés un par un.
+    """
+    assert singularize("dbaas") == "dbaas"
+    assert singularize("postgres") == "postgres"
+    assert singularize("prometheus") == "prometheus"
+    assert singularize("thanos") == "thanos"
+    assert singularize("rotations") == "rotation"

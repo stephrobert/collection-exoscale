@@ -53,6 +53,12 @@ UNDOCUMENTED = "Not documented by the Exoscale API contract."
 #: Identifiant d'exemple. Un exemple montre une forme, pas une ressource.
 EXAMPLE_ID = "11111111-2222-3333-4444-555555555555"
 
+#: Préfixes d'`operationId` dont la valeur rendue est un secret. `reveal-*`
+#: par construction ; `generate-*` mesuré sur le contrat :
+#: `generate-sks-cluster-kubeconfig` rend des identifiants signés par le
+#: cluster, `generate-data-key` du matériel de clé.
+SENSITIVE_READ_PREFIXES: tuple[str, ...] = ("reveal-", "generate-")
+
 
 class ModuleModelError(ValueError):
     """Le plan ne permet pas de construire un module cohérent."""
@@ -139,6 +145,12 @@ class AnsibleModuleSpec:
         return any(action.operation.is_async for action in self.actions)
 
     @property
+    def has_synchronous(self) -> bool:
+        """Vrai quand une action répond tout de suite, par sa réponse et non par
+        une opération : `enable-kms-key`, `resize-block-storage-volume`."""
+        return any(not action.operation.is_async for action in self.actions)
+
+    @property
     def resource_words(self) -> str:
         return self.resource.replace("_", " ")
 
@@ -169,11 +181,22 @@ class AnsibleModuleSpec:
             options[name] = option
 
         notes: list[str] = []
-        if self.kind is OperationKind.ACTION:
+        if self.kind is OperationKind.ACTION and self.waitable and not self.has_synchronous:
             notes.append(
                 "Every action is asynchronous on the Exoscale API: the module waits for "
                 "the returned operation to reach C(success) when I(wait) is true, and "
                 "returns the operation as accepted otherwise."
+            )
+        elif self.kind is OperationKind.ACTION and self.waitable:
+            notes.append(
+                "Actions that answer with an operation are waited for until C(success) "
+                "when I(wait) is true, and returned as accepted otherwise; the other "
+                "actions answer at once, and their response is returned under RV(result)."
+            )
+        elif self.kind is OperationKind.ACTION:
+            notes.append(
+                "Every action of this module answers at once: the API response is "
+                "returned under RV(result), and there is nothing to wait for."
             )
         if self.sensitive_return:
             notes.append("The returned value is a secret: do not log the task output.")
@@ -205,6 +228,15 @@ class AnsibleModuleSpec:
 
     def long_description(self) -> str:
         if self.kind is OperationKind.INFO:
+            if self.list_operation is None:
+                return (
+                    f"Read one Exoscale {self.resource_words}. This module never changes anything."
+                )
+            if self.get_operation is None:
+                return (
+                    f"List Exoscale {pluralize_phrase(self.resource)}. "
+                    "This module never changes anything."
+                )
             return (
                 f"Read one Exoscale {self.resource_words} by its identifier, "
                 f"or list them. This module never changes anything."
@@ -226,49 +258,72 @@ class AnsibleModuleSpec:
                         "register": "result",
                     }
                 )
-            if self.get_operation is not None and self.selector is not None:
+            if self.get_operation is not None:
+                # Le sélecteur quand il y en a un, sinon chaque identifiant de
+                # chemin de la lecture : ils sont tous obligatoires.
+                identifiers = (
+                    [self.selector]
+                    if self.selector is not None
+                    else sorted(self.get_operation.path_params)
+                )
                 examples.append(
                     {
                         "name": f"Read one {self.resource_words}",
-                        fqcn: {"zone": "ch-gva-2", self.selector: EXAMPLE_ID},
+                        fqcn: {"zone": "ch-gva-2", **{name: EXAMPLE_ID for name in identifiers}},
                         "register": "result",
                     }
                 )
             return examples
         first = self.actions[0]
         task: dict[str, Any] = {"zone": "ch-gva-2", "action": first.name}
-        if self.selector is not None:
-            task[self.selector] = EXAMPLE_ID
+        for name, entry in self.options.items():
+            if name != "action" and entry.get("required"):
+                task[name] = EXAMPLE_ID
         return [{"name": f"Run {first.name} on a {self.resource_words}", fqcn: task}]
 
     def return_documentation(self) -> dict[str, Any]:
         if self.kind is OperationKind.INFO:
             plural = pluralize_phrase(self.resource).replace(" ", "_")
             returned: dict[str, Any] = {}
+            both = self.get_operation is not None and self.list_operation is not None
             if self.get_operation is not None:
                 returned[self.resource] = {
-                    "description": f"The {self.resource_words}, when a selector is given.",
-                    "returned": "when the selector is given",
+                    "description": (
+                        f"The {self.resource_words}, when a selector is given."
+                        if both
+                        else f"The {self.resource_words}."
+                    ),
+                    "returned": "when the selector is given" if both else "always",
                     "type": "dict",
                 }
             if self.list_operation is not None:
                 returned[plural] = {
                     "description": f"The {pluralize_phrase(self.resource)}.",
-                    "returned": "when no selector is given",
+                    "returned": "when no selector is given" if both else "always",
                     "type": "list",
                     "elements": "dict",
                 }
             return returned
-        return {
-            "operation": {
+        returned = {}
+        if self.waitable:
+            returned["operation"] = {
                 "description": (
                     "The Exoscale operation object: its C(state) is C(success) once "
                     "the work is done, C(pending) when the module did not wait."
                 ),
-                "returned": "always",
+                "returned": "for asynchronous actions" if self.has_synchronous else "always",
                 "type": "dict",
             }
-        }
+        if self.has_synchronous:
+            returned["result"] = {
+                "description": (
+                    "The API response of an action that answers at once, with its "
+                    "result rather than with an operation to wait for."
+                ),
+                "returned": "for synchronous actions" if self.waitable else "always",
+                "type": "dict",
+            }
+        return returned
 
 
 def build_module_specs(
@@ -333,22 +388,42 @@ def _build_info_spec(
             _collect_options(item, plan.overrides, options, docs, limits, required_allowed=False)
 
     selector: str | None = None
-    if get is not None:
+    if get is not None and listing is None:
+        # Sans liste, rien ne bascule : la lecture unitaire est inconditionnelle
+        # et ses identifiants de chemin sont tous obligatoires. C'est le cas de
+        # `get-organization` (aucun identifiant), des huit `get-dbaas-settings-*`
+        # et de `get-load-balancer-service` (deux identifiants). Exiger un
+        # sélecteur unique écartait ces lectures que le runtime sait exécuter,
+        # puisqu'il prend le GET dès qu'il n'y a pas de liste.
+        if get.operation.id.startswith("list-"):
+            # Une opération nommée `list-*` dont la réponse n'est pas vue comme
+            # une liste est une forme de réponse que le parser ne connaît pas,
+            # pas une lecture unitaire : la rendre sous un nom singulier
+            # ferait passer une liste pour un objet, en silence.
+            raise AmbiguousModule(
+                f"{name} : {get.operation.id} n'est pas vue comme une liste par le "
+                "parser, une forme de réponse reste à mesurer"
+            )
+        get_override = plan.overrides.get(get.operation.key)
+        for path_option in sorted(
+            _resolved_option(p, get_override)
+            for p in get.operation.parameters
+            if _is_selector_candidate(p)
+        ):
+            if path_option in options:
+                options[path_option]["required"] = True
+    elif get is not None and listing is not None:
         get_override = plan.overrides.get(get.operation.key)
         get_paths = {
             _resolved_option(p, get_override)
             for p in get.operation.parameters
             if _is_selector_candidate(p)
         }
-        list_paths = (
-            {
-                _resolved_option(p, plan.overrides.get(listing.operation.key))
-                for p in listing.operation.parameters
-                if _is_selector_candidate(p)
-            }
-            if listing is not None
-            else set()
-        )
+        list_paths = {
+            _resolved_option(p, plan.overrides.get(listing.operation.key))
+            for p in listing.operation.parameters
+            if _is_selector_candidate(p)
+        }
         candidates = sorted(get_paths - list_paths)
         if len(candidates) != 1:
             raise AmbiguousModule(
@@ -366,7 +441,12 @@ def _build_info_spec(
     primary = get if get is not None else listing
     if primary is None:
         raise AmbiguousModule(f"{name} : aucune opération de lecture")
-    sensitive = any(item.operation.id.startswith("reveal-") for item in (get, listing) if item)
+    # `reveal-*` rend un secret par construction. `generate-*` aussi, mesuré :
+    # `generate-sks-cluster-kubeconfig` rend des identifiants signés par le
+    # cluster, `generate-data-key` du matériel de clé.
+    sensitive = any(
+        item.operation.id.startswith(SENSITIVE_READ_PREFIXES) for item in (get, listing) if item
+    )
     return AnsibleModuleSpec(
         name=name,
         kind=OperationKind.INFO,
@@ -419,12 +499,27 @@ def _build_action_spec(
         for item in operations
     ]
     shared = set.intersection(*per_operation) if per_operation else set()
-    if len(shared) != 1:
+    # Tout identifiant de chemin commun à toutes les actions est obligatoire.
+    # Il y en a un le plus souvent (`{id}`), deux pour une ressource imbriquée
+    # (`/sks-cluster/{id}/nodepool/{sks-nodepool-id}:scale`, sept
+    # `reset-dbaas-*-user-password`), zéro pour un singleton
+    # (`/iam-organization-policy:reset`). Exiger exactement un sélecteur
+    # écartait neuf modules d'action que le runtime sait exécuter, puisqu'il ne
+    # lit pas le sélecteur : il envoie chaque option sous le nom du contrat. Un
+    # identifiant que toutes ne partagent pas reste une option propre à
+    # l'action qui le porte, exigée par `required_if`.
+    if not shared and any(per_operation):
+        # Aucun identifiant commun alors que des actions en portent : ce sont
+        # deux noms pour un même sélecteur (`{gadget-id}` chez l'une, `{id}`
+        # chez les autres), et seul un override sait le dire. Zéro identifiant
+        # partagé n'est légitime que si aucune action n'en porte.
         raise AmbiguousModule(
-            f"{name} : les actions partagent {sorted(shared)} comme identifiant(s) de chemin, "
-            "il faut exactement un sélecteur commun"
+            f"{name} : les actions ne partagent aucun identifiant de chemin alors que "
+            f"certaines en portent {sorted(set.union(*per_operation))} ; un override "
+            "`option` doit unifier le sélecteur"
         )
-    selector = shared.pop()
+    shared_ids = tuple(sorted(shared))
+    selector = shared_ids[0] if len(shared_ids) == 1 else None
 
     for item in sorted(operations, key=lambda entry: entry.operation.id):
         action = action_name(item.operation.id, resource)
@@ -440,7 +535,8 @@ def _build_action_spec(
         required.extend(
             _resolved_option(p, override)
             for p in item.operation.parameters
-            if p.location is ParameterLocation.PATH and _resolved_option(p, override) != selector
+            if p.location is ParameterLocation.PATH
+            and _resolved_option(p, override) not in shared_ids
         )
         expected = None
         if override is not None and override.wait is not None:
@@ -449,12 +545,14 @@ def _build_action_spec(
             ActionBinding(
                 name=action,
                 operation=_binding(item.operation, override),
-                required=tuple(sorted({option for option in required if option != selector})),
+                required=tuple(sorted({option for option in required if option not in shared_ids})),
                 expected_state=expected,
             )
         )
 
-    options[selector]["required"] = True
+    for shared_id in shared_ids:
+        if shared_id in options:
+            options[shared_id]["required"] = True
     options = {
         "action": {"type": "str", "required": True, "choices": [a.name for a in actions]},
         **options,

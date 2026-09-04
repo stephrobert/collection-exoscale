@@ -151,6 +151,17 @@ Une garde dont la suppression laisse tous les tests verts est un commentaire.
   et le rapport le montre parce qu'il affiche la ressource de chaque
   opération. Corrigé par override, pas par une règle qui regarderait le
   milieu du chemin.
+* **Un segment d'action à plusieurs mots.** `/kms-key/{id}/schedule-deletion`
+  et `/sks-cluster/{id}/rotate-ccm-credentials` finissent par un segment qui
+  nomme l'action en plusieurs mots ; une règle qui ne reconnaissait qu'un
+  segment **égal** au verbe en faisait des ressources, donc douze modules
+  fantômes (`kms_key_schedule_deletion_action`). La règle regarde le premier
+  mot du segment. Mesuré en indexant les treize autres produits, et vu parce
+  que deux overrides sont devenus orphelins.
+* **Le générateur écrit sans retirer.** Les douze fantômes sont restés sur le
+  disque après la correction, dans l'archive et dans le README.
+  `scripts/generate_all.py` retire les modules de la génération précédente
+  avant de régénérer, et le dit.
 * **Un identifiant qui change de nom.** `revert-instance-to-snapshot` dit
   `{instance-id}` là où treize actions disent `{id}`, et son corps porte un
   `id` qui est celui du snapshot. Le champ d'override `option` existe pour ça.

@@ -29,6 +29,9 @@ def test_toutes_les_operations_du_produit_sont_dans_lir(gadget_service: ApiServi
         "get-widget",
         "reset-widget-field",
         "get-usage-report",
+        "get-gadget-quota",
+        "reset-gadget-quota",
+        "restart-gadget-gizmo",
     }
 
 
@@ -194,3 +197,58 @@ def test_le_parsing_est_deterministe() -> None:
     premier = parse_document(source.load("gadget", "v2")).to_json()
     second = parse_document(source.load("gadget", "v2")).to_json()
     assert premier == second
+
+
+def test_une_enveloppe_de_liste_nommee_est_une_liste(gadget_service: ApiService) -> None:
+    """Neuf `list-*` du contrat réel répondent par une référence vers un schéma
+    qui n'est pas la ressource mais son enveloppe (`list-kms-keys-response`).
+
+    Sans cette forme, `list-kms-keys` passait pour une lecture unitaire et
+    `kms_key_info` était refusé comme ambigu. Le laboratoire la reproduit sur
+    `list-widgets`.
+    """
+    operation = next(op for op in gadget_service.operations if op.id == "list-widgets")
+    assert operation.response is not None
+    assert operation.response.is_list
+    assert operation.response.schema == "list-widgets-response"
+    assert operation.response.payload_field == "widgets"
+    assert operation.response.payload_schema == "widget"
+
+
+def test_une_reference_vers_une_ressource_nest_pas_une_liste(gadget_service: ApiService) -> None:
+    """Le cas voisin : `gadget` porte des propriétés, dont aucune n'est seule."""
+    operation = next(op for op in gadget_service.operations if op.id == "get-gadget")
+    assert operation.response is not None
+    assert not operation.response.is_list
+    assert operation.response.payload_schema == "gadget"
+
+
+def test_un_segment_daction_a_plusieurs_mots_nest_pas_une_ressource() -> None:
+    """`/kms-key/{id}/schedule-deletion` donnait `kms_key_schedule_deletion`.
+
+    Douze chemins de kms et sks portent un segment d'action à plusieurs mots
+    dont le premier est le verbe de l'`operationId` ; l'égalité stricte en
+    faisait des ressources, donc des modules fantômes.
+    """
+    assert (
+        derive_resource("/kms-key/{id}/schedule-deletion", "schedule-kms-key-deletion") == "kms_key"
+    )
+    assert (
+        derive_resource("/sks-cluster/{id}/rotate-ccm-credentials", "rotate-sks-ccm-credentials")
+        == "sks_cluster"
+    )
+    assert (
+        derive_resource("/kms-key/{id}/list-key-rotations", "list-kms-key-rotations") == "kms_key"
+    )
+
+
+def test_un_segment_unique_nest_jamais_retire(gadget_service: ApiService) -> None:
+    """Le cas voisin : `/gadget-quota` sous `get-gadget-quota` reste une ressource,
+    et un segment dont le premier mot n'est pas le verbe aussi."""
+    assert derive_resource("/gadget-quota", "get-gadget-quota") == "gadget_quota"
+    assert derive_resource("/dbaas-postgres/{name}/migration/stop", "stop-dbaas-pg-migration") == (
+        "dbaas_postgres_migration"
+    )
+    assert derive_resource("/reverse-dns/instance/{id}", "get-reverse-dns-instance") == (
+        "reverse_dns_instance"
+    )

@@ -50,9 +50,19 @@ identifier. It is the key of the overrides and of the report.
 ### 3. The resource is derived from the path
 
 First and last meaningful segment, once identifiers, the `:verb` suffix and
-the trailing action segment are removed. Measured: 165 resources on the whole
-document, zero `unknown`. The case where two collections share a name
+the trailing action segment are removed. A trailing segment is an action
+segment when its **first word is the verb** of the `operationId`, not only
+when it equals it: `/kms-key/{id}/schedule-deletion` and
+`/sks-cluster/{id}/rotate-ccm-credentials` carry multi-word action segments,
+and strict equality turned twelve of them into resources, hence into phantom
+modules (`kms_key_schedule_deletion_action`). Measured while indexing the
+other thirteen products. The case where two collections share a name
 (`vpc_route`) is corrected by an override, and the report shows it.
+
+The module name does not repeat the product when the path already carries
+it: `/sks-cluster` under `sks` gives the resource `sks_cluster` and the
+module `sks_cluster_info`, not `sks_sks_cluster_info`. The override key and
+the report keep the resource as derived; only the file name changes.
 
 ### 4. The classification rules are Exoscale's
 
@@ -87,7 +97,19 @@ becomes a `required_if`.
 
 `ApiResponse.is_operation` carries the fact; the plan counts asynchronous
 operations; the runtime waits for the operation when `wait` is true and
-returns the object in every case, with its `state`.
+returns the object in every case, with its `state`. An action that answers
+at once (`enable-kms-key`, `resize-block-storage-volume`: nineteen of them
+across the products) returns its response under `result`, never under
+`operation`, and the module's `RETURN` documents which key each kind of
+action fills.
+
+Two kinds of write are set aside by override rather than rendered, each with
+its reason in the report: the operations that **compute a value without
+changing anything** (`encrypt`, `decrypt`, `generate-data-key`,
+`assume-iam-role`, the Karpenter manifests), for which an action module would
+report `changed` on nothing; and the operations that **schedule or cancel a
+deletion**, which are the resource's lifecycle. The SKS kubeconfig, which has
+its own resource in the path, is reclassified as a sensitive read.
 
 ### 7. Coverage names its denominator
 

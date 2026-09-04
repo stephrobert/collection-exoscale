@@ -13,6 +13,8 @@ déjà un `_`, et rien ne dit laquelle des deux formes une propriété emploie.
 
 from __future__ import annotations
 
+import re
+
 from generator.ir.enums import ApiType, OperationKind
 from generator.ir.models import ApiParameter
 from generator.parser.naming import option_name as _option_name
@@ -72,10 +74,22 @@ def module_name(product: str, resource: str, kind: OperationKind) -> str | None:
 
     Le nom suit `<produit>_<ressource>[_info|_action]` et ne contient jamais un
     verbe HTTP : `compute_instance_info`, jamais `compute_get_instance`.
+
+    **Le produit n'est pas redoublé.** Chez Exoscale, la plupart des produits
+    préfixent leurs chemins de leur propre nom : `/sks-cluster`, `/kms-key`,
+    `/iam-role`, `/dbaas-postgres`, `/block-storage-snapshot`. La ressource
+    dérivée s'appelle donc `sks_cluster`, et la concaténation naïve donnait
+    `sks_sks_cluster_info`, mesuré sur 11 des 13 produits non indexés. Quand
+    la ressource commence par le nom du produit, le nom du module est la
+    ressource seule : `sks_cluster_info`, ce qu'un opérateur aurait écrit.
+    La clé d'override et le rapport gardent la ressource telle quelle ; seul
+    le nom du fichier change.
     """
     suffix = _MODULE_SUFFIX.get(kind)
     if suffix is None:
         return None
+    if resource == product or resource.startswith(product + "_"):
+        return f"{resource}{suffix}"
     return f"{product}_{resource}{suffix}"
 
 
@@ -93,6 +107,20 @@ def sdk_method(operation_id: str) -> str:
     SDK installé expose bien chaque méthode qu'un module généré appelle.
     """
     return operation_id.replace("-", "_")
+
+
+#: Ce qu'`ansible-test sanity` soupçonne d'être un secret, recopié de
+#: `validate_modules/constants.py` (`NO_LOG_REGEX`). Un nom qui y correspond
+#: sans `no_log` fait échouer `validate-modules` en `no-log-needed`, mesuré
+#: sur `key` dans `sos_presigned_url_info`, qui est la clé d'un objet S3.
+#: Quand le mapping a décidé que ce n'est pas un secret, il le **dit**, par
+#: `no_log: False`, plutôt que de laisser sanity le supposer.
+_SANITY_SUSPECTS = re.compile(r"(?:pass(?!ive)|secret|token|key)", re.IGNORECASE)
+
+
+def looks_secret_to_sanity(name: str) -> bool:
+    """Vrai quand `validate-modules` exigerait un `no_log` explicite sur ce nom."""
+    return _SANITY_SUSPECTS.search(name) is not None
 
 
 def is_sensitive(parameter: ApiParameter) -> bool:
@@ -134,4 +162,6 @@ def argument_spec_entry(parameter: ApiParameter) -> dict[str, object]:
         entry["default"] = parameter.default
     if is_sensitive(parameter):
         entry["no_log"] = True
+    elif looks_secret_to_sanity(option_name(parameter)):
+        entry["no_log"] = False
     return entry

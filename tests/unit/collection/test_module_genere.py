@@ -42,6 +42,22 @@ def _arguments(module: ModuleType, **extra: object) -> None:
     basic._ANSIBLE_PROFILE = "legacy"
 
 
+def _valeur_acceptable(entry: dict[str, object]) -> object:
+    """Une valeur que l'argument_spec accepte : du type déclaré, ou un choix du contrat.
+
+    `scale-deployment` exige `replicas`, un entier : la chaîne `x` que le test
+    posait partout faisait refuser le module par ansible-core avant même
+    l'appel, et le vert de ce test ne portait que sur les modules à options
+    textuelles.
+    """
+    choices = entry.get("choices")
+    if choices:
+        return choices[0]
+    return {"int": 1, "float": 1.0, "bool": True, "list": [], "dict": {}}.get(
+        str(entry.get("type", "str")), "x"
+    )
+
+
 @pytest.fixture(autouse=True)
 def _reset_ansible_args() -> None:
     basic._ANSIBLE_ARGS = None
@@ -59,20 +75,20 @@ def test_le_module_simporte_et_son_argument_spec_est_accepte(path: Path) -> None
     if hasattr(module.MODULE, "actions"):
         first = module.MODULE.actions[0]
         extra["action"] = first.name
-        extra[module.MODULE.selector] = "11111111-2222-3333-4444-555555555555"
+        # Le sélecteur peut être absent : un singleton n'a aucun identifiant,
+        # une ressource imbriquée en a deux, tous exigés par l'argument_spec.
+        if module.MODULE.selector is not None:
+            extra[module.MODULE.selector] = "11111111-2222-3333-4444-555555555555"
         for option in module.REQUIRED_IF:
             if option[1] == first.name:
                 for name in option[2]:
-                    # Une option à choix fermé (`field`) veut une valeur du contrat.
-                    choices = module.ARGUMENT_SPEC[name].get("choices") or ["x"]
-                    extra.setdefault(name, choices[0])
+                    extra.setdefault(name, _valeur_acceptable(module.ARGUMENT_SPEC[name]))
     # Ce que le module exige en dehors du sélecteur : `vpc_id` pour un
-    # sous-réseau, par exemple. Une option à choix fermé prend une valeur du
-    # contrat.
+    # sous-réseau, par exemple.
     communs = {"api_key", "api_secret", "zone"}
     for name, entry in module.ARGUMENT_SPEC.items():
         if entry.get("required") and name not in extra and name not in communs:
-            extra[name] = (entry.get("choices") or ["x"])[0]
+            extra[name] = _valeur_acceptable(entry)
     _arguments(module, **extra)
     ansible_module = basic.AnsibleModule(
         argument_spec=module.ARGUMENT_SPEC,
@@ -91,7 +107,16 @@ def test_un_module_daction_refuse_une_action_sans_ses_options(path: Path) -> Non
     if not exigeantes:
         pytest.skip("aucune action n'exige d'option")
     _, action, _ = exigeantes[0]
-    _arguments(module, action=action, **{module.MODULE.selector: "x"})
+    # Tout ce que le module exige au niveau du module (les identifiants
+    # partagés, qu'il y en ait zéro, un ou deux), et rien de ce que l'action
+    # exige : c'est ce manque-là que le test mesure.
+    communs = {"api_key", "api_secret", "zone", "action"}
+    identifiants = {
+        name: _valeur_acceptable(entry)
+        for name, entry in module.ARGUMENT_SPEC.items()
+        if entry.get("required") and name not in communs
+    }
+    _arguments(module, action=action, **identifiants)
     with pytest.raises(SystemExit):
         basic.AnsibleModule(
             argument_spec=module.ARGUMENT_SPEC,

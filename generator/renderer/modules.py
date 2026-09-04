@@ -166,10 +166,14 @@ def _info_module_literal(spec: AnsibleModuleSpec) -> str:
 
 
 def _action_module_literal(spec: AnsibleModuleSpec) -> str:
-    if not spec.actions or spec.selector is None:
-        raise RenderError(f"{spec.name} : module d'action sans action ou sans sélecteur")
+    if not spec.actions:
+        raise RenderError(f"{spec.name} : module d'action sans action")
     lines = ["ActionModule(", f"    resource={quote(spec.resource)},"]
-    lines.append(f"    selector={quote(spec.selector)},")
+    # `None` quand les actions partagent zéro ou plusieurs identifiants : le
+    # runtime ne lit pas ce champ, il envoie chaque option sous le nom du
+    # contrat, et les identifiants partagés sont déjà obligatoires.
+    selector = quote(spec.selector) if spec.selector is not None else "None"
+    lines.append(f"    selector={selector},")
     lines.append("    actions=(")
     for action in spec.actions:
         lines.append(f"        {_action_literal(action, indent=8)},")
