@@ -195,10 +195,12 @@ def _titre_du_produit(entree: ProductEntry, document: dict[str, Any]) -> str:
     """
     for tag in document.get("tags", ()):
         if tag.get("name") == entree.tag:
-            description = str(tag.get("description") or "").strip()
-            premiere = description.split(". ")[0].rstrip(".")
-            return premiere or entree.tag
-    return entree.tag
+            # Les blancs du contrat sont repliés : la description de
+            # `block-storage` porte un retour à la ligne suivi de vingt espaces,
+            # qui atterrissait tel quel dans un README publié.
+            description = " ".join(str(tag.get("description") or "").split())
+            return description.split(". ")[0].rstrip(".")
+    return ""
 
 
 def _pourcent(valeur: float | None) -> str:
@@ -276,12 +278,15 @@ def table_des_modules() -> str:
     entrees = {entree.product: entree for entree in _produits()}
     lignes: list[str] = []
     for produit, modules in sorted(_modules_par_produit(collection).items()):
+        titre = _titre_du_produit(entrees[produit], document)
+        pluriel = "module" if len(modules) == 1 else "modules"
         lignes += [
             "",
-            f"### {produit} ({len(modules)} modules)",
+            f"### {produit} ({len(modules)} {pluriel})",
             "",
-            f"{_titre_du_produit(entrees[produit], document)}.",
-            "",
+            # Un tag employé sans être déclaré (`ccm`) n'a pas de description :
+            # rien plutôt qu'une phrase vide.
+            *([f"{titre}.", ""] if titre else []),
             "| module | what it does |",
             "|---|---|",
             *(f"| `{nom}` | {courte} |" for nom, courte in modules),

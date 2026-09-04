@@ -254,6 +254,46 @@
       "find": "    elif looks_secret_to_sanity(option_name(parameter)):",
       "replace": "    elif looks_secret_to_sanity(option_name(parameter)) and False:",
       "test": "tests/unit/generator/test_mapping.py::test_un_nom_que_sanity_soupconne_sans_etre_un_secret_le_dit_explicitement"
+    },
+    {
+      "name": "inventaire-collision-de-noms",
+      "why": "Deux machines du même nom : sans désambiguïsation, la seconde écrase la première dans l'inventaire, sans un mot.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/inventory/hostname.py",
+      "find": "        if nom not in pris:\n            pris.add(nom)",
+      "replace": "        if nom not in pris or True:\n            pris.add(nom)",
+      "test": "tests/unit/inventory/test_hostname.py::test_deux_machines_du_meme_nom_ne_secrasent_pas"
+    },
+    {
+      "name": "inventaire-authentification-par-la-classe",
+      "why": "Le SDK dit « authentification » par la classe de l'exception, en 403 : sans la lire, un jeton révoqué passe pour un droit manquant et l'inventaire vide sort en 0.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/inventory/errors.py",
+      "find": "    if type(error).__name__ == \"ExoscaleAPIAuthException\":",
+      "replace": "    if type(error).__name__ == \"ExoscaleAPIAuthException\" and False:",
+      "test": "tests/unit/inventory/test_errors.py::test_le_sdk_dit_authentification_par_la_classe_meme_en_403"
+    },
+    {
+      "name": "inventaire-labels-all",
+      "why": "`labels_match: all` doit exiger chaque label ; sans la branche, `all` se comporte comme `any` et l'inventaire est silencieusement plus large.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/inventory/filtering.py",
+      "find": "        if filters.labels_match == \"all\":",
+      "replace": "        if filters.labels_match == \"all\" and False:",
+      "test": "tests/unit/inventory/test_filtering.py::test_all_exige_tous_les_labels_et_nomme_les_manquants"
+    },
+    {
+      "name": "inventaire-empreinte-du-compte",
+      "why": "Sans l'empreinte de la clé dans la clé de cache, deux comptes partagent le même parc en cache.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/inventory/config.py",
+      "find": "            \"identity\": hashlib.sha256((api_key or \"\").encode(\"utf-8\")).hexdigest()[:16],",
+      "replace": "            \"identity\": hashlib.sha256(b\"\").hexdigest()[:16],",
+      "test": "tests/unit/inventory/test_config.py::test_la_cle_de_cache_change_avec_le_compte_et_les_filtres"
+    },
+    {
+      "name": "inventaire-zones-du-contrat",
+      "why": "Les zones sont recopiées du contrat : une zone retirée de la liste doit rougir la CI plutôt que manquer à l'inventaire en silence.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/inventory/providers/base.py",
+      "find": "    \"bg-sof-1\",\n    \"hr-zag-1\",\n)",
+      "replace": "    \"bg-sof-1\",\n)",
+      "test": "tests/unit/inventory/test_providers.py::test_les_zones_du_provider_sont_celles_du_contrat"
     }
   ]
 }

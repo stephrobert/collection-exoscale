@@ -48,6 +48,20 @@ the operation as accepted when `wait` is false, with `operation.state` saying
 `pending`. A module never reports `changed` for work it did not see finish
 unless it says it did not wait.
 
+## Dynamic inventory
+
+```yaml
+# production.exoscale.yml
+plugin: stephrobert.exoscale.compute
+states: [running]
+group_by: [product, zone, labels, manager]
+```
+
+`stephrobert.exoscale.compute` discovers instances zone by zone, gives each
+machine its private addresses from the leases of its private networks, and
+never lets two machines with the same name overwrite each other. The full
+guide is in the repository under `docs/guides/dynamic-inventory.md`.
+
 ## Modules
 
 The table below is **derived** from the produced modules, product by
@@ -70,7 +84,7 @@ Exoscale AI services provide GPU-powered infrastructure for running machine lear
 | `ai_model_info` | Gather information about Exoscale ai models |
 | `ai_quota_info` | Gather information about Exoscale ai quotas |
 
-### audit_trail (1 modules)
+### audit_trail (1 module)
 
 The Exoscale audit-trail provides a mechanism to query past events performing mutations on resources which happened on an organization.
 
@@ -80,8 +94,7 @@ The Exoscale audit-trail provides a mechanism to query past events performing mu
 
 ### block_storage (3 modules)
 
-Exoscale's Block Storage offers persistent externally
-                   attached volumes for your Compute instances.
+Exoscale's Block Storage offers persistent externally attached volumes for your Compute instances.
 
 | module | what it does |
 |---|---|
@@ -89,9 +102,7 @@ Exoscale's Block Storage offers persistent externally
 | `block_storage_info` | Gather information about Exoscale block storages |
 | `block_storage_snapshot_info` | Gather information about Exoscale block storage snapshots |
 
-### ccm (1 modules)
-
-ccm.
+### ccm (1 module)
 
 | module | what it does |
 |---|---|
@@ -217,8 +228,6 @@ DNS zone hosting and records management.
 
 ### general (2 modules)
 
-general.
-
 | module | what it does |
 |---|---|
 | `general_operation_info` | Gather information about Exoscale operations |
@@ -248,8 +257,6 @@ Exoscale Key Management Service is a managed security service that lets you crea
 
 ### organization (4 modules)
 
-organization.
-
 | module | what it does |
 |---|---|
 | `organization_env_impact_info` | Gather information about Exoscale env impacts |
@@ -257,9 +264,7 @@ organization.
 | `organization_live_balance_info` | Gather information about Exoscale live balances |
 | `organization_usage_report_info` | Gather information about Exoscale usage reports |
 
-### quotas (1 modules)
-
-quotas.
+### quotas (1 module)
 
 | module | what it does |
 |---|---|
@@ -267,9 +272,7 @@ quotas.
 
 ### sks (10 modules)
 
-SKS is Exoscale's scalable Kubernetes service which provides
-                   managed Kubernetes control planes with integrated support for
-                   Exoscale instance pools ands network load balancers.
+SKS is Exoscale's scalable Kubernetes service which provides managed Kubernetes control planes with integrated support for Exoscale instance pools ands network load balancers.
 
 | module | what it does |
 |---|---|
@@ -292,6 +295,12 @@ Exoscale Simple Object Storage (SOS) is an S3-compatible object storage service.
 |---|---|
 | `sos_bucket_usage_info` | Gather information about Exoscale sos bucket usages |
 | `sos_presigned_url_info` | Gather information about Exoscale sos presigned urls |
+
+### Inventory plugins
+
+| plugin | what it discovers |
+|---|---|
+| `compute` | Exoscale compute dynamic inventory |
 <!-- counters:end -->
 
 ## State

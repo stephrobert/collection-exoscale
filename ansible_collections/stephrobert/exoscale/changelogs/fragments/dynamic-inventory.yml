@@ -1,0 +1,13 @@
+---
+minor_changes:
+  - >-
+    New inventory plugin ``stephrobert.exoscale.compute``. It discovers
+    instances zone by zone with one API client per zone, reads the leases of
+    every private network to give each machine its private addresses, names
+    hosts from a chosen source (``name``, ``id``, an address family or
+    ``label:KEY``) without ever letting two machines overwrite each other,
+    chooses ``ansible_host`` by address family or by a named private network,
+    builds ``exo_*`` groups by product, zone, state, label, private network,
+    manager and instance type, and says why a machine was set aside. A refused
+    credential fails the inventory; a missing permission on private networks
+    is a warning.
