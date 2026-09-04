@@ -19,6 +19,14 @@ from __future__ import annotations
 
 #: Mots qui finissent par `s` sans être des pluriels, ou dont le pluriel est
 #: irrégulier. Ceux mesurés dans les chemins du contrat, et rien de plus.
+#:
+#: Mesuré le 4 septembre 2026 sur les 24 mots de chemin qui finissent par `s` :
+#: treize sont de vrais pluriels (`buckets`, `rules`, `rotations`, `types`...),
+#: donc la singularisation reste nécessaire ; et quatre noms propres y
+#: perdaient leur dernière lettre, `dbaas` (104 chemins) devenait `dbaa`,
+#: `postgres` devenait `postgre`, `prometheus` `prometheu` et `thanos` `thano`.
+#: Un nom de module s'écrit avec ces mots, et `dbaas_dbaa_postgre` n'est pas
+#: un nom qu'un opérateur reconnaît.
 IRREGULAR_SINGULARS: dict[str, str] = {
     "dns": "dns",
     "sos": "sos",
@@ -26,6 +34,10 @@ IRREGULAR_SINGULARS: dict[str, str] = {
     "sks": "sks",
     "tls": "tls",
     "ssh": "ssh",
+    "dbaas": "dbaas",
+    "postgres": "postgres",
+    "prometheus": "prometheus",
+    "thanos": "thanos",
     "settings": "settings",
     "status": "status",
     "data": "data",

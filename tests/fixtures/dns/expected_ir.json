@@ -1,0 +1,378 @@
+{
+  "product": "dns",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "dns.v2.DnsDomain.create-dns-domain",
+      "id": "create-dns-domain",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain",
+      "http_method": "POST",
+      "path": "/dns-domain",
+      "summary": "Create DNS domain",
+      "tags": [
+        "domain"
+      ],
+      "parameters": [
+        {
+          "name": "unicode-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Domain name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainRecord.create-dns-domain-record",
+      "id": "create-dns-domain-record",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_record",
+      "http_method": "POST",
+      "path": "/dns-domain/{domain-id}/record",
+      "summary": "Create DNS domain record",
+      "tags": [
+        "record"
+      ],
+      "parameters": [
+        {
+          "name": "domain-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "DNS domain record name"
+        },
+        {
+          "name": "type",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "DNS domain record type",
+          "enum_values": [
+            "NS",
+            "CAA",
+            "NAPTR",
+            "POOL",
+            "A",
+            "HINFO",
+            "CNAME",
+            "SSHFP",
+            "SRV",
+            "AAAA",
+            "MX",
+            "TXT",
+            "ALIAS",
+            "URL"
+          ]
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "DNS domain record content"
+        },
+        {
+          "name": "ttl",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record TTL",
+          "format": "int64"
+        },
+        {
+          "name": "priority",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record priority",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomain.delete-dns-domain",
+      "id": "delete-dns-domain",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain",
+      "http_method": "DELETE",
+      "path": "/dns-domain/{id}",
+      "summary": "Delete DNS Domain",
+      "tags": [
+        "domain"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainRecord.delete-dns-domain-record",
+      "id": "delete-dns-domain-record",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_record",
+      "http_method": "DELETE",
+      "path": "/dns-domain/{domain-id}/record/{record-id}",
+      "summary": "Delete DNS domain record",
+      "tags": [
+        "record"
+      ],
+      "parameters": [
+        {
+          "name": "domain-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "record-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomain.get-dns-domain",
+      "id": "get-dns-domain",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain",
+      "http_method": "GET",
+      "path": "/dns-domain/{id}",
+      "summary": "Retrieve DNS domain details",
+      "tags": [
+        "domain"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dns-domain",
+        "payload_schema": "dns-domain"
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainRecord.get-dns-domain-record",
+      "id": "get-dns-domain-record",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_record",
+      "http_method": "GET",
+      "path": "/dns-domain/{domain-id}/record/{record-id}",
+      "summary": "Retrieve DNS domain record details",
+      "tags": [
+        "record"
+      ],
+      "parameters": [
+        {
+          "name": "domain-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "record-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dns-domain-record",
+        "payload_schema": "dns-domain-record"
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainZone.get-dns-domain-zone-file",
+      "id": "get-dns-domain-zone-file",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_zone",
+      "http_method": "GET",
+      "path": "/dns-domain/{id}/zone",
+      "summary": "Retrieve DNS domain zone file",
+      "tags": [
+        "domain"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "zone-file"
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainRecord.list-dns-domain-records",
+      "id": "list-dns-domain-records",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_record",
+      "http_method": "GET",
+      "path": "/dns-domain/{domain-id}/record",
+      "summary": "List DNS domain records",
+      "tags": [
+        "record"
+      ],
+      "parameters": [
+        {
+          "name": "domain-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "dns-domain-records",
+        "payload_schema": "dns-domain-record",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomain.list-dns-domains",
+      "id": "list-dns-domains",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain",
+      "http_method": "GET",
+      "path": "/dns-domain",
+      "summary": "List DNS domains",
+      "tags": [
+        "domain"
+      ],
+      "response": {
+        "payload_field": "dns-domains",
+        "payload_schema": "dns-domain",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dns.v2.DnsDomainRecord.update-dns-domain-record",
+      "id": "update-dns-domain-record",
+      "product": "dns",
+      "version": "v2",
+      "resource": "dns_domain_record",
+      "http_method": "PUT",
+      "path": "/dns-domain/{domain-id}/record/{record-id}",
+      "summary": "Update DNS domain record",
+      "tags": [
+        "record"
+      ],
+      "parameters": [
+        {
+          "name": "domain-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "record-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record name"
+        },
+        {
+          "name": "content",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record content"
+        },
+        {
+          "name": "ttl",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record TTL",
+          "format": "int64"
+        },
+        {
+          "name": "priority",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "DNS domain record priority",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

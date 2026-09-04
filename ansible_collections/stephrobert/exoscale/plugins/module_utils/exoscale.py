@@ -199,6 +199,12 @@ def run_action_module(module, spec):
     client = build_client(module)
     result = call(module, client, operation, kwargs)
 
+    if not operation.is_async:
+        # Une action synchrone rend sa réponse, pas une opération : `enable-kms-key`
+        # rend `success-response`, `resize-block-storage-volume` rend le volume.
+        # La ranger sous `operation` ferait chercher un `state` qui n'existe pas.
+        module.exit_json(changed=True, result=result)
+
     if operation.is_async and isinstance(result, dict) and module.params.get("wait", True):
         try:
             result = client.wait(result["id"], max_wait_time=module.params.get("wait_timeout"))

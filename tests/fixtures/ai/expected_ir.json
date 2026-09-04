@@ -1,0 +1,787 @@
+{
+  "product": "ai",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "enums": [
+    {
+      "name": "inference-engine-version",
+      "values": [
+        "0.12.0",
+        "0.15.1",
+        "0.16.0",
+        "0.17.0",
+        "0.18.0",
+        "0.18.1",
+        "0.19.0",
+        "0.19.1",
+        "0.20.0",
+        "0.20.1",
+        "0.20.2",
+        "0.21.0",
+        "0.22.0",
+        "0.22.1",
+        "0.23.0",
+        "0.24.0",
+        "0.25.0",
+        "0.25.1",
+        "0.26.0"
+      ],
+      "default": "0.26.0",
+      "description": "Inference engine version"
+    }
+  ],
+  "operations": [
+    {
+      "key": "ai.v2.AiApiKey.create-ai-api-key",
+      "id": "create-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "POST",
+      "path": "/ai/api-key",
+      "summary": "[BETA] Create AI API Key",
+      "description": "Create a new AI API key",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Human-readable name for the AI API key"
+        },
+        {
+          "name": "scope",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Key scope: 'public' for all deployments, or a specific deployment UUID"
+        }
+      ],
+      "response": {
+        "schema": "create-ai-api-key-response",
+        "payload_schema": "create-ai-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.create-deployment",
+      "id": "create-deployment",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "POST",
+      "path": "/ai/deployment",
+      "summary": "Create Deployment",
+      "description": "Deploy a model on an inference server",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "gpu-count",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of GPUs (1-8)",
+          "format": "int64"
+        },
+        {
+          "name": "inference-engine-version",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "enum_name": "inference-engine-version",
+          "enum_values": [
+            "0.12.0",
+            "0.15.1",
+            "0.16.0",
+            "0.17.0",
+            "0.18.0",
+            "0.18.1",
+            "0.19.0",
+            "0.19.1",
+            "0.20.0",
+            "0.20.1",
+            "0.20.2",
+            "0.21.0",
+            "0.22.0",
+            "0.22.1",
+            "0.23.0",
+            "0.24.0",
+            "0.25.0",
+            "0.25.1",
+            "0.26.0"
+          ],
+          "default": "0.26.0",
+          "ref": "inference-engine-version"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Deployment name"
+        },
+        {
+          "name": "gpu-type",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "GPU type family (e.g., gpua5000, gpu3080ti)"
+        },
+        {
+          "name": "product-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Billing identifier for this deployment. Used by the Router for usage counters and Kafka events."
+        },
+        {
+          "name": "replicas",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of replicas (>=1)",
+          "format": "int64"
+        },
+        {
+          "name": "inference-engine-parameters",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Optional extra inference engine server CLI args",
+          "item_type": "string"
+        },
+        {
+          "name": "model",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "ref": "model-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiModel.create-model",
+      "id": "create-model",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_model",
+      "http_method": "POST",
+      "path": "/ai/model",
+      "summary": "Create Model",
+      "description": "Model files will be downloaded from Huggingface.",
+      "tags": [
+        "model"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Model name"
+        },
+        {
+          "name": "huggingface-token",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Huggingface Token"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.delete-ai-api-key",
+      "id": "delete-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "DELETE",
+      "path": "/ai/api-key/{id}",
+      "summary": "[BETA] Delete AI API Key",
+      "description": "Delete AI API key",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.delete-deployment",
+      "id": "delete-deployment",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "DELETE",
+      "path": "/ai/deployment/{id}",
+      "summary": "Delete Deployment",
+      "description": "Delete Deployment",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiModel.delete-model",
+      "id": "delete-model",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_model",
+      "http_method": "DELETE",
+      "path": "/ai/model/{id}",
+      "summary": "Delete Model",
+      "description": "Delete Model",
+      "tags": [
+        "model"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.get-ai-api-key",
+      "id": "get-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "GET",
+      "path": "/ai/api-key/{id}",
+      "summary": "[BETA] Get AI API Key",
+      "description": "Get AI API key metadata",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "get-ai-api-key-response",
+        "payload_schema": "get-ai-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.get-deployment",
+      "id": "get-deployment",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "GET",
+      "path": "/ai/deployment/{id}",
+      "summary": "Get Deployment",
+      "description": "Get Deployment details",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "get-deployment-response",
+        "payload_schema": "get-deployment-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiLog.get-deployment-logs",
+      "id": "get-deployment-logs",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_log",
+      "http_method": "GET",
+      "path": "/ai/deployment/{id}/logs",
+      "summary": "Get Deployment Logs",
+      "description": "Return logs for the vLLM deployment (deploy/<release-name>--deployment-vllm). Optional ?stream=true to request streaming (may not be supported).",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "stream",
+          "type": "boolean",
+          "required": false,
+          "location": "query"
+        },
+        {
+          "name": "tail",
+          "type": "integer",
+          "required": false,
+          "location": "query",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "get-deployment-logs-response",
+        "payload_field": "logs",
+        "payload_schema": "get-deployment-logs-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiInferenceEngineParameter.get-inference-engine-help",
+      "id": "get-inference-engine-help",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_inference_engine_parameter",
+      "http_method": "GET",
+      "path": "/ai/help/inference-engine-parameters",
+      "summary": "Get inference-engine Help",
+      "description": "Get list of allowed inference engine parameters with their descriptions and allowed values",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "schema": "get-inference-engine-help-response",
+        "payload_field": "parameters",
+        "payload_schema": "inference-engine-parameter-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiModel.get-model",
+      "id": "get-model",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_model",
+      "http_method": "GET",
+      "path": "/ai/model/{id}",
+      "summary": "Get Model",
+      "description": "Get Model details",
+      "tags": [
+        "model"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "get-model-response",
+        "payload_schema": "get-model-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiQuota.get-user-org-consumption-quota",
+      "id": "get-user-org-consumption-quota",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_quota",
+      "http_method": "GET",
+      "path": "/ai/quota",
+      "summary": "[BETA] Get Organization Consumption Quota",
+      "description": "Get per-org Unit Of Measurement (UOM) consumption quota (UOM/min). Null means unlimited. UOM represents weighted units across different AI workloads (e.g., tokens for LLMs, minutes for TTS, pages for OCR).",
+      "tags": [
+        "ai-api-key"
+      ],
+      "response": {
+        "schema": "org-consumption-quota-response",
+        "payload_schema": "org-consumption-quota-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.list-ai-api-keys",
+      "id": "list-ai-api-keys",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "GET",
+      "path": "/ai/api-key",
+      "summary": "[BETA] List AI API Keys",
+      "description": "List AI API keys for an organization",
+      "tags": [
+        "ai-api-key"
+      ],
+      "response": {
+        "schema": "list-ai-api-keys-response",
+        "payload_field": "ai-api-keys",
+        "payload_schema": "list-ai-api-keys-response-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiInstanceType.list-ai-instance-types",
+      "id": "list-ai-instance-types",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_instance_type",
+      "http_method": "GET",
+      "path": "/ai/instance-type",
+      "summary": "List Instance Types",
+      "description": "List available instance types with authorization status based on GPU availability",
+      "tags": [
+        "deployment"
+      ],
+      "response": {
+        "schema": "list-ai-instance-types-response",
+        "payload_field": "instance-types",
+        "payload_schema": "instance-type-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.list-deployments",
+      "id": "list-deployments",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "GET",
+      "path": "/ai/deployment",
+      "summary": "List Deployments",
+      "description": "List Deployments",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "visibility",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "schema": "list-deployments-response",
+        "payload_field": "deployments",
+        "payload_schema": "list-deployments-response-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiModel.list-models",
+      "id": "list-models",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_model",
+      "http_method": "GET",
+      "path": "/ai/model",
+      "summary": "List Models",
+      "description": "List Models",
+      "tags": [
+        "model"
+      ],
+      "response": {
+        "schema": "list-models-response",
+        "payload_field": "models",
+        "payload_schema": "list-models-response-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.reveal-ai-api-key",
+      "id": "reveal-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "GET",
+      "path": "/ai/api-key/{id}/reveal",
+      "summary": "[BETA] Reveal AI API Key",
+      "description": "Reveal AI API key plaintext value",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "reveal-ai-api-key-response",
+        "payload_schema": "reveal-ai-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.reveal-deployment-api-key",
+      "id": "reveal-deployment-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "GET",
+      "path": "/ai/deployment/{id}/api-key",
+      "summary": "Reveal Deployment API Key",
+      "description": "Get Deployment API Key",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "reveal-deployment-api-key-response",
+        "payload_schema": "reveal-deployment-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.rotate-ai-api-key",
+      "id": "rotate-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "POST",
+      "path": "/ai/api-key/{id}/rotate",
+      "summary": "[BETA] Rotate AI API Key",
+      "description": "Rotate AI API key value",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "rotate-ai-api-key-response",
+        "payload_schema": "rotate-ai-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.scale-deployment",
+      "id": "scale-deployment",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "POST",
+      "path": "/ai/deployment/{id}/scale",
+      "summary": "Scale Deployment",
+      "description": "Scale Deployment",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "replicas",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of replicas (>=0)",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "ai.v2.AiApiKey.update-ai-api-key",
+      "id": "update-ai-api-key",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_api_key",
+      "http_method": "PATCH",
+      "path": "/ai/api-key/{id}",
+      "summary": "[BETA] Update AI API Key",
+      "description": "Update AI API key name and/or scope",
+      "tags": [
+        "ai-api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Human-readable name for the AI API key"
+        },
+        {
+          "name": "scope",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Key scope: 'public' for all deployments, or a specific deployment UUID"
+        }
+      ],
+      "response": {
+        "schema": "update-ai-api-key-response",
+        "payload_schema": "update-ai-api-key-response"
+      }
+    },
+    {
+      "key": "ai.v2.AiDeployment.update-deployment",
+      "id": "update-deployment",
+      "product": "ai",
+      "version": "v2",
+      "resource": "ai_deployment",
+      "http_method": "PATCH",
+      "path": "/ai/deployment/{id}",
+      "summary": "Update Deployment",
+      "description": "Update AI deployment",
+      "tags": [
+        "deployment"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "inference-engine-version",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "enum_name": "inference-engine-version",
+          "enum_values": [
+            "0.12.0",
+            "0.15.1",
+            "0.16.0",
+            "0.17.0",
+            "0.18.0",
+            "0.18.1",
+            "0.19.0",
+            "0.19.1",
+            "0.20.0",
+            "0.20.1",
+            "0.20.2",
+            "0.21.0",
+            "0.22.0",
+            "0.22.1",
+            "0.23.0",
+            "0.24.0",
+            "0.25.0",
+            "0.25.1",
+            "0.26.0"
+          ],
+          "default": "0.26.0",
+          "ref": "inference-engine-version"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Deployment name"
+        },
+        {
+          "name": "inference-engine-parameters",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Optional extra inference engine server CLI args",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

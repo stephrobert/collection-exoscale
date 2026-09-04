@@ -66,3 +66,43 @@ def test_un_identifiant_nest_jamais_le_secret_quil_designe() -> None:
 def test_un_type_inconnu_leve_plutot_que_de_devenir_une_chaine() -> None:
     with pytest.raises(UnmappedType):
         argument_spec_entry(_parameter("name", ApiType.UNKNOWN))
+
+
+def test_le_produit_nest_pas_redouble_dans_le_nom_du_module() -> None:
+    """`/sks-cluster` sous le produit `sks` donnait `sks_sks_cluster_info`.
+
+    Mesuré sur 11 des 13 produits non indexés. Le nom du module est celui
+    qu'un opérateur aurait écrit ; la ressource, donc la clé d'override, ne
+    change pas.
+    """
+    assert module_name("sks", "sks_cluster", OperationKind.INFO) == "sks_cluster_info"
+    assert module_name("block_storage", "block_storage", OperationKind.MANAGE) == "block_storage"
+    assert module_name("dbaas", "dbaas_postgres", OperationKind.ACTION) == "dbaas_postgres_action"
+
+
+def test_un_produit_qui_ne_prefixe_pas_ses_chemins_garde_son_nom() -> None:
+    """Le cas voisin : `instance` sous `compute` reste `compute_instance_info`,
+    et un préfixe partiel (`sksa`) ne compte pas."""
+    assert module_name("compute", "instance", OperationKind.INFO) == "compute_instance_info"
+    assert module_name("sks", "sksa_thing", OperationKind.INFO) == "sks_sksa_thing_info"
+
+
+def test_un_nom_que_sanity_soupconne_sans_etre_un_secret_le_dit_explicitement() -> None:
+    """`key` dans `get-sos-presigned-url` est la clé d'un objet S3, pas un secret.
+
+    `validate-modules` refuse tout nom qui ressemble à un secret sans `no_log`
+    explicite (`no-log-needed`), mesuré sur `sos_presigned_url_info`. Le
+    mapping dit donc `no_log: False` là où il a décidé que ce n'en est pas un,
+    et ne dit rien là où le nom ne ressemble à rien.
+    """
+    from generator.ir.enums import ApiType, ParameterLocation
+    from generator.ir.models import ApiParameter
+
+    def parametre(nom: str) -> ApiParameter:
+        return ApiParameter(
+            name=nom, type=ApiType.STRING, required=False, location=ParameterLocation.QUERY
+        )
+
+    assert argument_spec_entry(parametre("key")) == {"type": "str", "no_log": False}
+    assert argument_spec_entry(parametre("api-secret")) == {"type": "str", "no_log": True}
+    assert argument_spec_entry(parametre("disk-size")) == {"type": "str"}

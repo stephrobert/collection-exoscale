@@ -388,6 +388,25 @@ def _resolve_type(
     return _ResolvedType(ApiType.UNKNOWN)
 
 
+def _named_list_envelope(schema: dict[str, Any]) -> tuple[str, str | None] | None:
+    """Le champ et la ressource d'un schéma-enveloppe nommé, ou `None`.
+
+    Une enveloppe est un objet à **une seule** propriété, qui est un tableau.
+    Un schéma à plusieurs propriétés est une ressource, même s'il porte un
+    tableau : `instance` porte `security-groups` et n'est pas une liste.
+    """
+    if schema.get("type", "object") != "object":
+        return None
+    properties: dict[str, Any] = schema.get("properties", {})
+    if len(properties) != 1:
+        return None
+    ((field_name, property_schema),) = properties.items()
+    if property_schema.get("type") != "array":
+        return None
+    items_ref = property_schema.get("items", {}).get("$ref", "")
+    return str(field_name), (items_ref.rsplit("/", 1)[-1] or None)
+
+
 def _parse_response(
     operation: dict[str, Any],
     schemas: dict[str, Any],
@@ -396,10 +415,16 @@ def _parse_response(
 ) -> ApiResponse | None:
     """Décrit la réponse de succès, et le champ qui porte réellement la ressource.
 
-    Trois formes mesurées sur les 135 GET du contrat :
+    Quatre formes mesurées sur les 135 GET du contrat :
 
     * 81 réponses par référence : la réponse **est** la ressource, sauf quand
       la référence est `operation`, auquel cas c'est un travail asynchrone ;
+    * parmi elles, 9 références vers un schéma qui n'est pas la ressource mais
+      son **enveloppe nommée** (`list-kms-keys-response`,
+      `dbaas-clickhouse-roles`) : un objet à une seule propriété, tableau
+      d'une ressource. Elles ne sont pas dans compute, et c'est en indexant
+      ai, dbaas et kms qu'elles sont apparues : sans cette forme, `list-kms-keys`
+      passait pour une lecture unitaire et `kms_key_info` était refusé ;
     * 50 objets inline à une seule propriété : une enveloppe, dont la
       propriété porte la liste (`instances`) ou l'objet utile ;
     * 2 tableaux nus (`list-events`).
@@ -421,6 +446,12 @@ def _parse_response(
         name = ref.rsplit("/", 1)[-1]
         if name == OPERATION_SCHEMA:
             return ApiResponse(schema=name, is_operation=True)
+        envelope = _named_list_envelope(schemas.get(name, {}))
+        if envelope is not None:
+            field_name, items_schema = envelope
+            return ApiResponse(
+                schema=name, payload_field=field_name, payload_schema=items_schema, is_list=True
+            )
         return ApiResponse(schema=name, payload_schema=name)
 
     if schema.get("type") == "array":
@@ -466,13 +497,21 @@ def derive_resource(path: str, operation_id: str) -> str:
       suffixe est retiré du segment, qui redevient un identifiant ;
     * **un segment terminal qui nomme l'action n'est pas une ressource.**
       `/dbaas-postgres/{name}/maintenance/start` finit par `start`, qui est le
-      verbe de `start-dbaas-pg-maintenance`. La règle : un dernier segment égal
-      au verbe, ou qui commence l'`operationId`, est un segment d'action.
+      verbe de `start-dbaas-pg-maintenance`. La règle : un dernier segment
+      **dont le premier mot est le verbe** de l'`operationId`, ou qui commence
+      l'`operationId`, est un segment d'action. « Dont le premier mot » et non
+      « égal » : `/kms-key/{id}/schedule-deletion` et
+      `/sks-cluster/{id}/rotate-ccm-credentials` portent un segment d'action à
+      plusieurs mots, et l'égalité stricte en faisait des ressources
+      (`kms_key_schedule_deletion`, `sks_cluster_rotate_ccm_credential`), donc
+      des modules fantômes. Mesuré en indexant les treize autres produits :
+      douze chemins, dans kms et sks.
 
     * `/instance/{id}:scale` -> `instance`
     * `/security-group/{id}/rules/{rule-id}` -> `security_group_rule`
     * `/instance/{id}/{field}` -> `instance`
     * `/reverse-dns/instance/{id}` -> `reverse_dns_instance`
+    * `/kms-key/{id}/schedule-deletion` -> `kms_key`
 
     Mesuré sur le contrat entier : 165 ressources, zéro `unknown`.
     """
@@ -484,9 +523,14 @@ def derive_resource(path: str, operation_id: str) -> str:
         if not segment or segment.startswith("{"):
             continue
         bearing.append(segment)
-    if bearing:
+    if len(bearing) > 1:
         last = bearing[-1]
-        if last == verb or operation_id == last or operation_id.startswith(last + "-"):
+        last_words = split_words(last)
+        if (
+            (last_words and last_words[0] == verb)
+            or operation_id == last
+            or operation_id.startswith(last + "-")
+        ):
             bearing = bearing[:-1]
     if not bearing:
         return "unknown"

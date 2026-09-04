@@ -1,0 +1,41 @@
+{
+  "product": "ccm",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "ccm.v2.Quota.list-quotas",
+      "id": "list-quotas",
+      "product": "ccm",
+      "version": "v2",
+      "resource": "quota",
+      "http_method": "GET",
+      "path": "/quota",
+      "summary": "List Organization Quotas",
+      "tags": [
+        "quotas",
+        "ccm"
+      ],
+      "response": {
+        "payload_field": "quotas",
+        "payload_schema": "quota",
+        "is_list": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

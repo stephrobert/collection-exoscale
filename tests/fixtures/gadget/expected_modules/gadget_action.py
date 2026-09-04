@@ -13,7 +13,7 @@
 from __future__ import annotations
 
 DOCUMENTATION = r"""
-module: gadget_gadget_action
+module: gadget_action
 short_description: Perform an action on an Exoscale gadget
 version_added: 9.9.9
 description:
@@ -63,7 +63,7 @@ notes:
 
 EXAMPLES = r"""
 - name: Run reset_field on a gadget
-  lab.gadget.gadget_gadget_action:
+  lab.gadget.gadget_action:
     zone: ch-gva-2
     action: reset_field
     id: 11111111-2222-3333-4444-555555555555

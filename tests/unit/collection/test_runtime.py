@@ -150,3 +150,36 @@ def test_une_methode_absente_du_sdk_echoue_en_le_nommant(client: _Client) -> Non
         runtime.run_info_module(module, spec)
     assert module.failed is not None
     assert module.failed["sdk_method"] == "list_things"
+
+
+def test_une_action_synchrone_rend_sa_reponse_sous_result(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`enable-kms-key` répond `success-response`, pas une opération : la ranger
+    sous `operation` ferait chercher un `state` qui n'existe pas."""
+
+    class _SyncClient(_Client):
+        def enable_kms_key(self, **kwargs: object) -> dict[str, object]:
+            self.calls.append(("enable_kms_key", kwargs))
+            return {"success": True}
+
+    fake = _SyncClient()
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    spec = runtime.ActionModule(
+        resource="kms_key",
+        selector="id",
+        actions=(
+            runtime.Action(
+                "enable",
+                runtime.Operation(
+                    id="enable-kms-key",
+                    method="enable_kms_key",
+                    path_params={"id": "id"},
+                    is_async=False,
+                ),
+            ),
+        ),
+    )
+    module = _Module({"action": "enable", "id": "key-1"})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, spec)
+    assert fake.waited == []
+    assert module.exited == {"changed": True, "result": {"success": True}}

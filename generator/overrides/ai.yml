@@ -1,0 +1,21 @@
+# Décisions humaines sur le produit ai de l'API v2 d'Exoscale.
+
+operations:
+
+  # Mesuré le 4 septembre 2026 : le SDK Python `exoscale` 0.16.4, celui du
+  # verrou et de l'environnement d'exécution, n'expose ni `rotate_ai_api_key`
+  # ni `reveal_ai_api_key`. Ce sont les deux chemins que le contrat de
+  # `openapi-v2.exoscale.com` porte et que la copie embarquée par le SDK n'a
+  # pas encore (`/ai/api-key/{id}/rotate`, `/ai/api-key/{id}/reveal`). Le
+  # module échouerait à l'appel avec « the installed exoscale SDK does not
+  # expose this operation », et la garde de test qui compare chaque module au
+  # SDK installé l'a dit avant.
+  #
+  # À retirer le jour où le SDK suit le contrat : l'override devient alors une
+  # décision que rien ne justifie, et le rapport continuera de la publier.
+  ai.v2.AiApiKey.rotate-ai-api-key:
+    generation: ignore
+    reason: >-
+      Le SDK Python 0.16.4 n'expose pas rotate_ai_api_key : le contrat est en
+      avance sur la copie que le SDK embarque. Un module qui l'appellerait
+      échouerait à chaque exécution. À réactiver quand le SDK suivra.

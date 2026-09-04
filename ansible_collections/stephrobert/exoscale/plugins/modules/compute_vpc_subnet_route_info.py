@@ -17,8 +17,7 @@ module: compute_vpc_subnet_route_info
 short_description: Gather information about Exoscale vpc subnet routes
 version_added: 0.1.0
 description:
-- Read one Exoscale vpc subnet route by its identifier, or list them. This module never changes
-  anything.
+- List Exoscale vpc subnet routes. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -42,7 +41,7 @@ EXAMPLES = r"""
 RETURN = r"""
 vpc_subnet_routes:
   description: The vpc subnet routes.
-  returned: when no selector is given
+  returned: always
   type: list
   elements: dict
 """
