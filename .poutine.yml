@@ -1,0 +1,22 @@
+# Configuration de poutine, scanner de chaînes d'exploitation CI/CD.
+#
+# La règle `github_action_from_unverified_creator_used` signale toute action
+# dont l'auteur n'est pas un « verified creator » de la Marketplace. Ce signal
+# est utile et reste ACTIF pour toutes les autres actions : c'est lui qui
+# attrape une action typosquattée ou fraîchement réenregistrée qui se
+# glisserait dans le pipeline.
+#
+# L'entrée ci-dessous est acquittée seule, jamais en désactivant la règle.
+# Elle nomme les workflows qui l'exécutent, pour qu'un lecteur puisse vérifier
+# l'affirmation au lieu de la croire. Une exemption qui survivrait à l'action
+# qu'elle exempte accorderait une confiance que plus personne n'utilise ni ne
+# relit, donc elle se relit quand un workflow change.
+skip:
+  - rule: github_action_from_unverified_creator_used
+    purl:
+      # Le lanceur de tâches, exécuté par les trois jobs de ci.yml, par
+      # drift.yml et par release.yml. Épinglé par SHA de commit, et sa propre
+      # version de mise est épinglée par l'entrée `version:` : sans elle,
+      # l'action télécharge la dernière release publiée, ce qui annulerait
+      # l'épinglage de tout le reste.
+      - pkg:githubactions/jdx/mise-action
