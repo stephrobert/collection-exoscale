@@ -17,14 +17,14 @@ module: compute_reverse_dns_elastic_ip_info
 short_description: Gather information about Exoscale reverse dns elastic ips
 version_added: 0.1.0
 description:
-- Read one Exoscale reverse dns elastic ip by its identifier, or list them. This module never
-  changes anything.
+- Read one Exoscale reverse dns elastic ip. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
   id:
     description: Not documented by the Exoscale API contract.
     type: str
+    required: true
 extends_documentation_fragment:
 - stephrobert.exoscale.exoscale
 """
@@ -39,8 +39,8 @@ EXAMPLES = r"""
 
 RETURN = r"""
 reverse_dns_elastic_ip:
-  description: The reverse dns elastic ip, when a selector is given.
-  returned: when the selector is given
+  description: The reverse dns elastic ip.
+  returned: always
   type: dict
 """
 
@@ -55,7 +55,7 @@ from ansible_collections.stephrobert.exoscale.plugins.module_utils.exoscale impo
 
 #: Options propres au module, traduites depuis le contrat.
 MODULE_ARGUMENT_SPEC = {
-    "id": {"type": "str"},
+    "id": {"type": "str", "required": True},
 }
 
 #: Ce que le contrat exige pour une action et pas pour une autre.
@@ -74,7 +74,6 @@ MODULE = InfoModule(
         method="get_reverse_dns_elastic_ip",
         path_params={"id": "id"},
     ),
-    selector="id",
 )
 
 

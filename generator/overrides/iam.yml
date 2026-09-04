@@ -1,0 +1,12 @@
+# Décisions humaines sur le produit iam de l'API v2 d'Exoscale.
+
+operations:
+
+  iam.v2.IamRole.assume-iam-role:
+    generation: ignore
+    reason: >-
+      Rend des identifiants temporaires pour le rôle, sans rien changer au
+      rôle : une valeur calculée, ni une lecture de la ressource ni une action
+      Day-2. Rangée dans un module d'information, elle entrerait en collision
+      avec get-iam-role ; dans un module d'action, elle rendrait `changed` sur
+      rien. Le générateur n'a pas de modèle pour une valeur calculée.

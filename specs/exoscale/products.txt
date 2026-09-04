@@ -14,9 +14,29 @@
 # son nombre d'opérations, nomme les tags employés sans être déclarés (mesuré :
 # ccm, organization, quotas) et les opérations sans aucun tag (mesuré : 2).
 #
-# `compute` sert de premier produit : c'est la plus grande famille (111
-# opérations sur 374, 17 tags) et celle où les actions Day-2 sont les plus
-# nombreuses (start, stop, reboot, scale, resize, reset). La chaîne complète
-# doit fonctionner sur lui avant qu'un second produit n'arrive.
+# Le nom du produit est le préfixe des modules et le nom du fichier
+# d'overrides : un tag à tiret (`block-storage`) reçoit un nom en snake_case,
+# parce qu'un nom de module Ansible n'accepte pas de tiret.
+#
+# Les quatorze racines du document sont indexées, `ccm`, `organization` et
+# `quotas` compris, qui sont employées sans être déclarées : les règles de
+# classification laissent zéro UNKNOWN sur chacune, mesuré par
+# `mise run products`. Les deux opérations sans aucun tag
+# (`get-impact-estimate`, `get-impact-report`) n'appartiennent à aucune
+# famille : le recensement les nomme à chaque exécution, et elles ne sont
+# portées par aucun module.
 
 compute v2
+ai v2
+audit-trail audit_trail v2
+block-storage block_storage v2
+ccm v2
+dbaas v2
+dns v2
+general v2
+iam v2
+kms v2
+organization v2
+quotas v2
+sks v2
+sos v2

@@ -1,0 +1,31 @@
+# Décisions humaines sur le produit sks de l'API v2 d'Exoscale.
+#
+# Trois opérations `generate-*` rendent une valeur calculée depuis le cluster
+# sans rien y changer. Une seule a sa propre ressource dans le chemin et vaut
+# une lecture : le kubeconfig, que tout opérateur demande avant de toucher au
+# cluster. Les deux manifestes Karpenter partagent la ressource du cluster et
+# entreraient en collision avec get-sks-cluster.
+
+operations:
+
+  sks.v2.SksClusterKubeconfig.generate-sks-cluster-kubeconfig:
+    generation: info
+    reason: >-
+      Rend un kubeconfig signé par l'autorité du cluster, sans rien changer au
+      cluster : c'est une lecture portée par POST, dont le corps dit
+      l'utilisateur, les groupes et la durée. La valeur rendue est un secret,
+      et le module le dit.
+
+  sks.v2.SksCluster.generate-sks-karpenter-exoscale-nodeclass:
+    generation: ignore
+    reason: >-
+      Rend un manifeste Karpenter calculé depuis le cluster, sans rien changer.
+      Sur la ressource du cluster, une lecture entrerait en collision avec
+      get-sks-cluster ; un module d'action rendrait `changed` sur rien. Le
+      générateur n'a pas de modèle pour une valeur calculée.
+
+  sks.v2.SksCluster.generate-sks-karpenter-nodepool:
+    generation: ignore
+    reason: >-
+      Rend un manifeste Karpenter calculé depuis le cluster, sans rien changer.
+      Même raison que generate-sks-karpenter-exoscale-nodeclass.

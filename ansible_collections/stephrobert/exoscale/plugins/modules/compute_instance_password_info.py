@@ -17,14 +17,14 @@ module: compute_instance_password_info
 short_description: Gather information about Exoscale instance passwords
 version_added: 0.1.0
 description:
-- Read one Exoscale instance password by its identifier, or list them. This module never changes
-  anything.
+- Read one Exoscale instance password. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
   id:
     description: Not documented by the Exoscale API contract.
     type: str
+    required: true
 extends_documentation_fragment:
 - stephrobert.exoscale.exoscale
 notes:
@@ -41,8 +41,8 @@ EXAMPLES = r"""
 
 RETURN = r"""
 instance_password:
-  description: The instance password, when a selector is given.
-  returned: when the selector is given
+  description: The instance password.
+  returned: always
   type: dict
 """
 
@@ -57,7 +57,7 @@ from ansible_collections.stephrobert.exoscale.plugins.module_utils.exoscale impo
 
 #: Options propres au module, traduites depuis le contrat.
 MODULE_ARGUMENT_SPEC = {
-    "id": {"type": "str"},
+    "id": {"type": "str", "required": True},
 }
 
 #: Ce que le contrat exige pour une action et pas pour une autre.
@@ -76,7 +76,6 @@ MODULE = InfoModule(
         method="reveal_instance_password",
         path_params={"id": "id"},
     ),
-    selector="id",
 )
 
 

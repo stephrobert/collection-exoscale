@@ -1,0 +1,599 @@
+{
+  "product": "iam",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "iam.v2.IamRole.assume-iam-role",
+      "id": "assume-iam-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "POST",
+      "path": "/iam-role/{id}/assume",
+      "summary": "[BETA] Request generation of key/secret that allow caller to assume target role",
+      "description": "[BETA] Request generation of key/secret that allow caller to assume target role",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "ttl",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "TTL in seconds for the generated access key (cannot exceed the max TTL defined in the targeted assume role)",
+          "format": "int64"
+        }
+      ],
+      "response": {}
+    },
+    {
+      "key": "iam.v2.ApiKey.create-api-key",
+      "id": "create-api-key",
+      "product": "iam",
+      "version": "v2",
+      "resource": "api_key",
+      "http_method": "POST",
+      "path": "/api-key",
+      "summary": "Create a new API key",
+      "tags": [
+        "api-key"
+      ],
+      "parameters": [
+        {
+          "name": "role-id",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "IAM API Key Role ID",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "IAM API Key Name"
+        }
+      ],
+      "response": {
+        "schema": "iam-api-key-created",
+        "payload_schema": "iam-api-key-created"
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.create-iam-role",
+      "id": "create-iam-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "POST",
+      "path": "/iam-role",
+      "summary": "Create IAM Role",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "IAM Role name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role description"
+        },
+        {
+          "name": "permissions",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role permissions",
+          "item_type": "enum"
+        },
+        {
+          "name": "editable",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Sets if the IAM Role Policy is editable or not (default: true). This setting cannot be changed after creation"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role labels",
+          "ref": "labels"
+        },
+        {
+          "name": "policy",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role policy",
+          "ref": "iam-policy"
+        },
+        {
+          "name": "assume-role-policy",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "IAM Assume role policy",
+          "ref": "iam-assume-role-policy"
+        },
+        {
+          "name": "max-session-ttl",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Maximum TTL requester is allowed to ask for when assuming a role",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.User.create-user",
+      "id": "create-user",
+      "product": "iam",
+      "version": "v2",
+      "resource": "user",
+      "http_method": "POST",
+      "path": "/user",
+      "summary": "Create a User",
+      "tags": [
+        "user"
+      ],
+      "parameters": [
+        {
+          "name": "email",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "User Email"
+        },
+        {
+          "name": "role",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role",
+          "ref": "iam-role"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.ApiKey.delete-api-key",
+      "id": "delete-api-key",
+      "product": "iam",
+      "version": "v2",
+      "resource": "api_key",
+      "http_method": "DELETE",
+      "path": "/api-key/{id}",
+      "summary": "Delete an API key",
+      "tags": [
+        "api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.delete-iam-role",
+      "id": "delete-iam-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "DELETE",
+      "path": "/iam-role/{id}",
+      "summary": "Delete IAM Role",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.User.delete-user",
+      "id": "delete-user",
+      "product": "iam",
+      "version": "v2",
+      "resource": "user",
+      "http_method": "DELETE",
+      "path": "/user/{id}",
+      "summary": "Delete User",
+      "tags": [
+        "user"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.ApiKey.get-api-key",
+      "id": "get-api-key",
+      "product": "iam",
+      "version": "v2",
+      "resource": "api_key",
+      "http_method": "GET",
+      "path": "/api-key/{id}",
+      "summary": "Get API key",
+      "tags": [
+        "api-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "iam-api-key",
+        "payload_schema": "iam-api-key"
+      }
+    },
+    {
+      "key": "iam.v2.IamOrganizationPolicy.get-iam-organization-policy",
+      "id": "get-iam-organization-policy",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_organization_policy",
+      "http_method": "GET",
+      "path": "/iam-organization-policy",
+      "summary": "Retrieve IAM Organization Policy",
+      "tags": [
+        "organization-policy"
+      ],
+      "response": {
+        "schema": "iam-policy",
+        "payload_schema": "iam-policy"
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.get-iam-role",
+      "id": "get-iam-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "GET",
+      "path": "/iam-role/{id}",
+      "summary": "Retrieve IAM Role",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "iam-role",
+        "payload_schema": "iam-role"
+      }
+    },
+    {
+      "key": "iam.v2.ApiKey.list-api-keys",
+      "id": "list-api-keys",
+      "product": "iam",
+      "version": "v2",
+      "resource": "api_key",
+      "http_method": "GET",
+      "path": "/api-key",
+      "summary": "List API keys",
+      "tags": [
+        "api-key"
+      ],
+      "response": {
+        "payload_field": "api-keys",
+        "payload_schema": "iam-api-key",
+        "is_list": true
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.list-iam-roles",
+      "id": "list-iam-roles",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "GET",
+      "path": "/iam-role",
+      "summary": "List IAM Roles",
+      "tags": [
+        "role"
+      ],
+      "response": {
+        "payload_field": "iam-roles",
+        "payload_schema": "iam-role",
+        "is_list": true
+      }
+    },
+    {
+      "key": "iam.v2.User.list-users",
+      "id": "list-users",
+      "product": "iam",
+      "version": "v2",
+      "resource": "user",
+      "http_method": "GET",
+      "path": "/user",
+      "summary": "List Users",
+      "tags": [
+        "user"
+      ],
+      "response": {
+        "payload_field": "users",
+        "payload_schema": "user",
+        "is_list": true
+      }
+    },
+    {
+      "key": "iam.v2.IamOrganizationPolicy.reset-iam-organization-policy",
+      "id": "reset-iam-organization-policy",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_organization_policy",
+      "http_method": "POST",
+      "path": "/iam-organization-policy:reset",
+      "summary": "Reset IAM Organization Policy",
+      "tags": [
+        "organization-policy"
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.IamOrganizationPolicy.update-iam-organization-policy",
+      "id": "update-iam-organization-policy",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_organization_policy",
+      "http_method": "PUT",
+      "path": "/iam-organization-policy",
+      "summary": "Update IAM Organization Policy",
+      "tags": [
+        "organization-policy"
+      ],
+      "parameters": [
+        {
+          "name": "default-service-strategy",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "IAM default service strategy",
+          "enum_values": [
+            "allow",
+            "deny"
+          ]
+        },
+        {
+          "name": "services",
+          "type": "map",
+          "required": true,
+          "location": "body",
+          "description": "IAM services"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.update-iam-role",
+      "id": "update-iam-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "PUT",
+      "path": "/iam-role/{id}",
+      "summary": "Update IAM Role",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role description"
+        },
+        {
+          "name": "permissions",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role permissions",
+          "item_type": "enum"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role labels",
+          "ref": "labels"
+        },
+        {
+          "name": "max-session-ttl",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Maximum TTL requester is allowed to ask for when assuming a role",
+          "format": "int64"
+        },
+        {
+          "name": "assume-role-policy",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "IAM Assume role policy",
+          "ref": "iam-assume-role-policy"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.IamRole.update-iam-role-policy",
+      "id": "update-iam-role-policy",
+      "product": "iam",
+      "version": "v2",
+      "resource": "iam_role",
+      "http_method": "PUT",
+      "path": "/iam-role/{id}:policy",
+      "summary": "Update IAM Role Policy",
+      "tags": [
+        "role"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "default-service-strategy",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "IAM default service strategy",
+          "enum_values": [
+            "allow",
+            "deny"
+          ]
+        },
+        {
+          "name": "services",
+          "type": "map",
+          "required": true,
+          "location": "body",
+          "description": "IAM services"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "iam.v2.User.update-user-role",
+      "id": "update-user-role",
+      "product": "iam",
+      "version": "v2",
+      "resource": "user",
+      "http_method": "PUT",
+      "path": "/user/{id}",
+      "summary": "Update a User's IAM role",
+      "tags": [
+        "user"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "role",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "IAM Role",
+          "ref": "iam-role"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "assume-iam-role : réponse inline à 6 propriétés, charge utile indécidable",
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

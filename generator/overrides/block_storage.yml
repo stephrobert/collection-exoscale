@@ -1,0 +1,19 @@
+# Décisions humaines sur le produit block-storage de l'API v2 d'Exoscale.
+#
+# Même frontière que dans compute.yml : Terraform relie, Ansible n'attache pas.
+
+operations:
+
+  block_storage.v2.BlockStorage.attach-block-storage-volume-to-instance:
+    generation: ignore
+    reason: >-
+      Relation entre deux ressources (un volume et une instance), déclarée par
+      Terraform et non par Ansible. Un module qui la modifierait produirait un
+      écart entre l'état déclaré et l'état réel, invisible jusqu'au prochain
+      `terraform apply`.
+
+  block_storage.v2.BlockStorage.detach-block-storage-volume:
+    generation: ignore
+    reason: >-
+      Relation entre deux ressources, déclarée par Terraform et non par
+      Ansible. Même frontière que attach-block-storage-volume-to-instance.

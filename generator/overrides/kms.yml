@@ -1,0 +1,63 @@
+# Décisions humaines sur le produit kms de l'API v2 d'Exoscale.
+#
+# Deux familles d'arbitrage, et aucune n'est une correction des règles :
+#
+# * la fin de vie d'une clé est le cycle de vie de la ressource, donc le
+#   périmètre de Terraform, même quand le contrat l'écrit avec un verbe
+#   d'action (`schedule`, `cancel`) ;
+# * les opérations de plan de données rendent une valeur calculée sans
+#   changer la clé. Ni une lecture de ressource, ni une action Day-2: un
+#   module d'action rendrait `changed` sur rien, et un module d'information
+#   rendrait un ciphertext sous le nom de la clé. Le générateur n'a pas de
+#   modèle pour « une valeur calculée depuis une ressource », et le dire vaut
+#   mieux qu'un module qui ment sur `changed`.
+
+operations:
+
+  kms.v2.KmsKey.schedule-kms-key-deletion:
+    generation: lifecycle
+    reason: >-
+      Suppression différée d'une clé : c'est la fin de vie de la ressource, que
+      Terraform décide. Le contrat l'écrit avec un verbe d'action, mais ce qui
+      est planifié est une suppression.
+
+  kms.v2.KmsKey.cancel-kms-key-deletion:
+    generation: lifecycle
+    reason: >-
+      L'annulation d'une suppression planifiée appartient au même cycle de vie
+      que la planification : Terraform, pas Ansible.
+
+  kms.v2.KmsKey.encrypt:
+    generation: ignore
+    reason: >-
+      Opération de plan de données : rend un ciphertext sans changer la clé. Un
+      module d'action rendrait `changed` sur rien, et le générateur n'a pas de
+      modèle pour une valeur calculée.
+
+  kms.v2.KmsKey.decrypt:
+    generation: ignore
+    reason: >-
+      Opération de plan de données : rend un texte clair sans changer la clé.
+      Même raison que encrypt.
+
+  kms.v2.KmsKey.re-encrypt:
+    generation: ignore
+    reason: >-
+      Opération de plan de données : rend un ciphertext sous une autre clé sans
+      changer aucune des deux. Même raison que encrypt.
+
+  kms.v2.KmsKey.generate-data-key:
+    generation: ignore
+    reason: >-
+      Opération de plan de données : rend une clé de données, claire et
+      chiffrée, sans changer la clé maîtresse. Même raison que encrypt.
+
+  # Le segment d'action `list-key-rotations` retiré, la ressource dérivée est
+  # `kms_key`, où `list-kms-keys` porte déjà la liste. Les rotations sont une
+  # sous-ressource de la clé, listée par son identifiant.
+  kms.v2.KmsKey.list-kms-key-rotations:
+    resource: kms_key_rotation
+    reason: >-
+      Une seconde liste sur `kms_key` entrerait en collision avec
+      list-kms-keys : les rotations d'une clé sont une sous-ressource, listée
+      par l'identifiant de la clé.

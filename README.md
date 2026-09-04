@@ -30,12 +30,63 @@ test collection, the falsification specs and the CI workflow, and
 
 <!-- counters:start, produced by scripts/readme_counters.py -->
 ```text
-exoscale v2: 374 operations in a single document, 14 products counted, 1 indexed
+exoscale v2: 374 operations in a single document, 14 products counted, 14 indexed
   compute v2: 111 operations, 70 asynchronous
     INFO 35 · ACTION 18 · MANAGE 11 · WORKFLOW 0 · LIFECYCLE 34 · IGNORE 13 · UNKNOWN 0
     Day-2 64 · AUTO 64 · OVERRIDE 0 · classified for automatic generation 100.0% (64/64)
+  ai v2: 22 operations, 7 asynchronous
+    INFO 12 · ACTION 1 · MANAGE 2 · WORKFLOW 0 · LIFECYCLE 6 · IGNORE 1 · UNKNOWN 0
+    Day-2 15 · AUTO 15 · OVERRIDE 0 · classified for automatic generation 100.0% (15/15)
+  audit_trail v2: 1 operations, 0 asynchronous
+    INFO 1 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 1 · AUTO 1 · OVERRIDE 0 · classified for automatic generation 100.0% (1/1)
+  block_storage v2: 13 operations, 8 asynchronous
+    INFO 4 · ACTION 1 · MANAGE 2 · WORKFLOW 0 · LIFECYCLE 4 · IGNORE 2 · UNKNOWN 0
+    Day-2 7 · AUTO 7 · OVERRIDE 0 · classified for automatic generation 100.0% (7/7)
+  ccm v2: 1 operations, 0 asynchronous
+    INFO 1 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 1 · AUTO 1 · OVERRIDE 0 · classified for automatic generation 100.0% (1/1)
+  dbaas v2: 146 operations, 90 asynchronous
+    INFO 52 · ACTION 19 · MANAGE 19 · WORKFLOW 0 · LIFECYCLE 54 · IGNORE 2 · UNKNOWN 0
+    Day-2 90 · AUTO 90 · OVERRIDE 0 · classified for automatic generation 100.0% (90/90)
+  dns v2: 10 operations, 5 asynchronous
+    INFO 5 · ACTION 0 · MANAGE 1 · WORKFLOW 0 · LIFECYCLE 4 · IGNORE 0 · UNKNOWN 0
+    Day-2 6 · AUTO 6 · OVERRIDE 0 · classified for automatic generation 100.0% (6/6)
+  general v2: 2 operations, 1 asynchronous
+    INFO 2 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 2 · AUTO 2 · OVERRIDE 0 · classified for automatic generation 100.0% (2/2)
+  iam v2: 18 operations, 10 asynchronous
+    INFO 6 · ACTION 1 · MANAGE 4 · WORKFLOW 0 · LIFECYCLE 6 · IGNORE 1 · UNKNOWN 0
+    Day-2 11 · AUTO 11 · OVERRIDE 0 · classified for automatic generation 100.0% (11/11)
+  kms v2: 16 operations, 0 asynchronous
+    INFO 3 · ACTION 6 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 3 · IGNORE 4 · UNKNOWN 0
+    Day-2 9 · AUTO 9 · OVERRIDE 0 · classified for automatic generation 100.0% (9/9)
+  organization v2: 4 operations, 0 asynchronous
+    INFO 4 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 4 · AUTO 4 · OVERRIDE 0 · classified for automatic generation 100.0% (4/4)
+  quotas v2: 2 operations, 0 asynchronous
+    INFO 2 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 2 · AUTO 2 · OVERRIDE 0 · classified for automatic generation 100.0% (2/2)
+  sks v2: 25 operations, 14 asynchronous
+    INFO 9 · ACTION 8 · MANAGE 2 · WORKFLOW 0 · LIFECYCLE 4 · IGNORE 2 · UNKNOWN 0
+    Day-2 19 · AUTO 18 · OVERRIDE 1 · classified for automatic generation 100.0% (19/19)
+  sos v2: 2 operations, 0 asynchronous
+    INFO 2 · ACTION 0 · MANAGE 0 · WORKFLOW 0 · LIFECYCLE 0 · IGNORE 0 · UNKNOWN 0
+    Day-2 2 · AUTO 2 · OVERRIDE 0 · classified for automatic generation 100.0% (2/2)
 
-collection stephrobert.exoscale: 26 modules written, 39 planned, 13 set aside with their reason
+collection stephrobert.exoscale: 136 modules written, 179 planned, 43 set aside with their reason
+  ai_deployment_action                     Perform an action on an Exoscale ai deployment
+  ai_deployment_info                       Gather information about Exoscale ai deployments
+  ai_inference_engine_parameter_info       Gather information about Exoscale ai inference engine parameters
+  ai_instance_type_info                    Gather information about Exoscale ai instance types
+  ai_log_info                              Gather information about Exoscale ai logs
+  ai_model_info                            Gather information about Exoscale ai models
+  ai_quota_info                            Gather information about Exoscale ai quotas
+  audit_trail_event_info                   Gather information about Exoscale events
+  block_storage_action                     Perform an action on an Exoscale block storage
+  block_storage_info                       Gather information about Exoscale block storages
+  block_storage_snapshot_info              Gather information about Exoscale block storage snapshots
+  ccm_quota_info                           Gather information about Exoscale quotas
   compute_anti_affinity_group_info         Gather information about Exoscale anti affinity groups
   compute_deploy_target_info               Gather information about Exoscale deploy targets
   compute_elastic_ip_action                Perform an action on an Exoscale elastic ip
@@ -49,6 +100,8 @@ collection stephrobert.exoscale: 26 modules written, 39 planned, 13 set aside wi
   compute_instance_type_info               Gather information about Exoscale instance types
   compute_load_balancer_action             Perform an action on an Exoscale load balancer
   compute_load_balancer_info               Gather information about Exoscale load balancers
+  compute_load_balancer_service_action     Perform an action on an Exoscale load balancer service
+  compute_load_balancer_service_info       Gather information about Exoscale load balancer services
   compute_private_network_action           Perform an action on an Exoscale private network
   compute_private_network_info             Gather information about Exoscale private networks
   compute_reverse_dns_elastic_ip_info      Gather information about Exoscale reverse dns elastic ips
@@ -62,7 +115,103 @@ collection stephrobert.exoscale: 26 modules written, 39 planned, 13 set aside wi
   compute_vpc_route_info                   Gather information about Exoscale vpc routes
   compute_vpc_subnet_info                  Gather information about Exoscale vpc subnets
   compute_vpc_subnet_route_info            Gather information about Exoscale vpc subnet routes
-  266 unit tests · 23 guards proven by mise run falsify
+  dbaas_ca_certificate_info                Gather information about Exoscale dbaas ca certificates
+  dbaas_clickhouse_acl_config_info         Gather information about Exoscale dbaas clickhouse acl configs
+  dbaas_clickhouse_info                    Gather information about Exoscale dbaas clickhouses
+  dbaas_clickhouse_maintenance_action      Perform an action on an Exoscale dbaas clickhouse maintenance
+  dbaas_clickhouse_password_action         Perform an action on an Exoscale dbaas clickhouse password
+  dbaas_clickhouse_password_info           Gather information about Exoscale dbaas clickhouse passwords
+  dbaas_clickhouse_role_info               Gather information about Exoscale dbaas clickhouse roles
+  dbaas_clickhouse_user_info               Gather information about Exoscale dbaas clickhouse users
+  dbaas_external_endpoint_datadog_info     Gather information about Exoscale dbaas external endpoint datadogs
+  dbaas_external_endpoint_elasticsearch_info Gather information about Exoscale dbaas external endpoint elasticsearches
+  dbaas_external_endpoint_info             Gather information about Exoscale dbaas external endpoints
+  dbaas_external_endpoint_opensearch_info  Gather information about Exoscale dbaas external endpoint opensearches
+  dbaas_external_endpoint_prometheus_info  Gather information about Exoscale dbaas external endpoint prometheus
+  dbaas_external_endpoint_rsyslog_info     Gather information about Exoscale dbaas external endpoint rsyslogs
+  dbaas_external_endpoint_type_info        Gather information about Exoscale dbaas external endpoint types
+  dbaas_external_integration_info          Gather information about Exoscale dbaas external integrations
+  dbaas_external_integration_settings_datadog_info Gather information about Exoscale dbaas external integration settings datadogs
+  dbaas_grafana_info                       Gather information about Exoscale dbaas grafanas
+  dbaas_grafana_maintenance_action         Perform an action on an Exoscale dbaas grafana maintenance
+  dbaas_grafana_password_action            Perform an action on an Exoscale dbaas grafana password
+  dbaas_grafana_password_info              Gather information about Exoscale dbaas grafana passwords
+  dbaas_integration_info                   Gather information about Exoscale dbaas integrations
+  dbaas_integration_type_info              Gather information about Exoscale dbaas integration types
+  dbaas_kafka_acl_config_info              Gather information about Exoscale dbaas kafka acl configs
+  dbaas_kafka_info                         Gather information about Exoscale dbaas kafkas
+  dbaas_kafka_maintenance_action           Perform an action on an Exoscale dbaas kafka maintenance
+  dbaas_kafka_password_action              Perform an action on an Exoscale dbaas kafka password
+  dbaas_migration_status_info              Gather information about Exoscale dbaas migration status
+  dbaas_mysql_info                         Gather information about Exoscale dbaas mysqls
+  dbaas_mysql_maintenance_action           Perform an action on an Exoscale dbaas mysql maintenance
+  dbaas_mysql_migration_action             Perform an action on an Exoscale dbaas mysql migration
+  dbaas_mysql_password_action              Perform an action on an Exoscale dbaas mysql password
+  dbaas_mysql_password_info                Gather information about Exoscale dbaas mysql passwords
+  dbaas_mysql_write_action                 Perform an action on an Exoscale dbaas mysql write
+  dbaas_opensearch_acl_config_info         Gather information about Exoscale dbaas opensearch acl configs
+  dbaas_opensearch_info                    Gather information about Exoscale dbaas opensearches
+  dbaas_opensearch_maintenance_action      Perform an action on an Exoscale dbaas opensearch maintenance
+  dbaas_opensearch_password_action         Perform an action on an Exoscale dbaas opensearch password
+  dbaas_opensearch_password_info           Gather information about Exoscale dbaas opensearch passwords
+  dbaas_postgres_info                      Gather information about Exoscale dbaas postgres
+  dbaas_postgres_maintenance_action        Perform an action on an Exoscale dbaas postgres maintenance
+  dbaas_postgres_migration_action          Perform an action on an Exoscale dbaas postgres migration
+  dbaas_postgres_password_action           Perform an action on an Exoscale dbaas postgres password
+  dbaas_postgres_password_info             Gather information about Exoscale dbaas postgres passwords
+  dbaas_service_info                       Gather information about Exoscale dbaas services
+  dbaas_service_log_info                   Gather information about Exoscale dbaas service logs
+  dbaas_service_metric_info                Gather information about Exoscale dbaas service metrics
+  dbaas_service_type_info                  Gather information about Exoscale dbaas service types
+  dbaas_settings_clickhouse_info           Gather information about Exoscale dbaas settings clickhouses
+  dbaas_settings_grafana_info              Gather information about Exoscale dbaas settings grafanas
+  dbaas_settings_kafka_info                Gather information about Exoscale dbaas settings kafkas
+  dbaas_settings_mysql_info                Gather information about Exoscale dbaas settings mysqls
+  dbaas_settings_opensearch_info           Gather information about Exoscale dbaas settings opensearches
+  dbaas_settings_pg_info                   Gather information about Exoscale dbaas settings pgs
+  dbaas_settings_thanos_info               Gather information about Exoscale dbaas settings thanos
+  dbaas_settings_valkey_info               Gather information about Exoscale dbaas settings valkeys
+  dbaas_task_info                          Gather information about Exoscale dbaas tasks
+  dbaas_thanos_info                        Gather information about Exoscale dbaas thanos
+  dbaas_thanos_maintenance_action          Perform an action on an Exoscale dbaas thanos maintenance
+  dbaas_thanos_password_info               Gather information about Exoscale dbaas thanos passwords
+  dbaas_valkey_info                        Gather information about Exoscale dbaas valkeys
+  dbaas_valkey_maintenance_action          Perform an action on an Exoscale dbaas valkey maintenance
+  dbaas_valkey_migration_action            Perform an action on an Exoscale dbaas valkey migration
+  dbaas_valkey_password_action             Perform an action on an Exoscale dbaas valkey password
+  dbaas_valkey_password_info               Gather information about Exoscale dbaas valkey passwords
+  dbaas_valkey_user_info                   Gather information about Exoscale dbaas valkey users
+  dns_domain_info                          Gather information about Exoscale dns domains
+  dns_domain_record_info                   Gather information about Exoscale dns domain records
+  dns_domain_zone_info                     Gather information about Exoscale dns domain zones
+  general_operation_info                   Gather information about Exoscale operations
+  general_zone_info                        Gather information about Exoscale zones
+  iam_api_key_info                         Gather information about Exoscale api keys
+  iam_organization_policy_action           Perform an action on an Exoscale iam organization policy
+  iam_organization_policy_info             Gather information about Exoscale iam organization policies
+  iam_role_info                            Gather information about Exoscale iam roles
+  iam_user_info                            Gather information about Exoscale users
+  kms_key_action                           Perform an action on an Exoscale kms key
+  kms_key_info                             Gather information about Exoscale kms keys
+  kms_key_rotation_info                    Gather information about Exoscale kms key rotations
+  organization_env_impact_info             Gather information about Exoscale env impacts
+  organization_info                        Gather information about Exoscale organizations
+  organization_live_balance_info           Gather information about Exoscale live balances
+  organization_usage_report_info           Gather information about Exoscale usage reports
+  quotas_quota_info                        Gather information about Exoscale quotas
+  sks_cluster_action                       Perform an action on an Exoscale sks cluster
+  sks_cluster_cert_info                    Gather information about Exoscale sks cluster certs
+  sks_cluster_deprecated_resource_info     Gather information about Exoscale sks cluster deprecated resources
+  sks_cluster_info                         Gather information about Exoscale sks clusters
+  sks_cluster_inspection_info              Gather information about Exoscale sks cluster inspections
+  sks_cluster_kubeconfig_info              Gather information about Exoscale sks cluster kubeconfigs
+  sks_cluster_nodepool_action              Perform an action on an Exoscale sks cluster nodepool
+  sks_cluster_nodepool_info                Gather information about Exoscale sks cluster nodepools
+  sks_cluster_version_info                 Gather information about Exoscale sks cluster versions
+  sks_template_info                        Gather information about Exoscale sks templates
+  sos_bucket_usage_info                    Gather information about Exoscale sos bucket usages
+  sos_presigned_url_info                   Gather information about Exoscale sos presigned urls
+  829 unit tests · 31 guards proven by mise run falsify
   CI: 3 jobs, Générateur · collection · Archive
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```

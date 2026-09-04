@@ -1,0 +1,22 @@
+---
+minor_changes:
+  - >-
+    Every product of the Exoscale API v2 document is now indexed, fourteen root
+    tags instead of one: ai, audit-trail, block-storage, ccm, compute, dbaas,
+    dns, general, iam, kms, organization, quotas, sks and sos. Every operation
+    of every product is classified with zero UNKNOWN; what is set aside (a
+    relation Terraform declares, a deletion, a value computed without changing
+    anything) is set aside with its reason in the generator's overrides.
+  - >-
+    Module names no longer repeat the product when the API path already
+    carries it: ``sks_cluster_info`` rather than ``sks_sks_cluster_info``.
+  - >-
+    An information module without a list operation reads its resource
+    unconditionally and requires every path identifier (``organization_info``,
+    ``compute_load_balancer_service_info``); an action module accepts
+    resources with zero or two shared identifiers
+    (``iam_organization_policy_action``, ``sks_cluster_nodepool_action``).
+  - >-
+    An action that answers at once rather than with an operation returns its
+    response under ``result`` instead of ``operation``, and its documentation
+    says which actions wait and which do not.

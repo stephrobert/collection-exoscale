@@ -1,0 +1,56 @@
+{
+  "product": "audit_trail",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "audit_trail.v2.Event.list-events",
+      "id": "list-events",
+      "product": "audit_trail",
+      "version": "v2",
+      "resource": "event",
+      "http_method": "GET",
+      "path": "/event",
+      "summary": "List Events",
+      "description": "Retrieve Mutation Events for a given date range. Defaults to retrieving Events for the past 24 hours.\n         Both a `from` and `to` arguments can be specified to filter Events over a specific period.\n         Events will be the the most descriptive possible but not all fields are mandatory",
+      "tags": [
+        "event"
+      ],
+      "parameters": [
+        {
+          "name": "from",
+          "type": "string",
+          "required": false,
+          "location": "query",
+          "format": "date-time"
+        },
+        {
+          "name": "to",
+          "type": "string",
+          "required": false,
+          "location": "query",
+          "format": "date-time"
+        }
+      ],
+      "response": {
+        "payload_schema": "event",
+        "is_list": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}
