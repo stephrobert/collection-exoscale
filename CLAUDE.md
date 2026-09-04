@@ -76,9 +76,11 @@ generator/overrides/    les décisions humaines, chacune avec sa raison
 generator/ansible/      noms de modules, types, traduction kebab/snake, modèle du module
 generator/renderer/     Jinja2, rendu seul
 generator/report/       texte, JSON, Markdown
-scripts/                sync, rapport, golden, contrôle de dérive, falsification
+scripts/                sync, rapport, golden, dérive, sanity, archive, release, compteurs, falsification
 specs/exoscale/         le contrat, et products.txt qui indexe des tags
 tests/fixtures/gadget/  un contrat de laboratoire qui reproduit les formes d'Exoscale
+docs/                   publié, en anglais : le générateur, le contrat, Scorecard
+.github/                onze workflows, CODEOWNERS, dependabot, le ruleset de main
 
 LE LIVRABLE, à l'emplacement qu'Ansible impose
 ansible_collections/stephrobert/exoscale/
@@ -86,7 +88,16 @@ ansible_collections/stephrobert/exoscale/
     plugins/module_utils/exoscale.py   client SDK, appel, attente de l'opération, erreurs
     plugins/modules/    les modules générés
     plugins/doc_fragments/  les paramètres communs, et le fragment `wait`
+    meta/               requires_ansible mesuré, et les métadonnées d'EE
+    changelogs/         les fragments, et le changelog qu'ils composent
 ```
+
+**Aucun nom en dur dans un contrôle.** Chez scaleway, quatre contrôles en une
+journée ont survécu au renommage de ce qu'ils contrôlaient : le bloc du README,
+le contrôle de couverture, son test, le contrôle de l'archive. Ici, `package.py`
+lit `plugins/` sur le disque, `readme_counters.py` lit l'index des produits, les
+modules et les tags du contrat. Ne coder aucun nom de module, de plugin ni de
+produit dans un contrôle.
 
 **Pourquoi le chemin et `galaxy.yml` déclarent tous deux le namespace.**
 Ansible lit les deux, on ne peut en supprimer aucun, alors `load_collection`
@@ -153,28 +164,62 @@ Une garde dont la suppression laisse tous les tests verts est un commentaire.
 ## Avant de pousser
 
 ```bash
-mise run check     # lint, types, tests, recensement et rapport strict, dérive des golden, falsification
+mise run check     # lint, types, tests, recensement et rapport strict, dérive des golden,
+                   # fragments de changelog, falsification, compteurs des README, archive
 ```
 
-| ce que le changement touche | à lancer en plus |
-|---|---|
-| une règle de classification, une règle de nommage | `mise run report` et lire le diff |
-| une garde | `mise run falsify` |
-| le parser, l'IR | `mise run golden:update` puis lire le diff |
-| un module généré, un template, le runtime | `mise run generate` puis `mise run test` |
-| le contrat | `mise run sync:api` puis `mise run check` |
+`check` porte tout ce que le job Générateur et le job Archive de la CI
+portent : c'est la promesse de son nom, et l'archive y est parce qu'un défaut
+a voyagé jusqu'en CI chez scaleway faute d'y être.
+
+| ce que le changement touche | à lancer en plus | ce que ça prouve |
+|---|---|---|
+| une règle de classification, une règle de nommage | `mise run report` et lire le diff | que la décision change là où on croit |
+| une garde, une validation, un refus | `mise run falsify` | que le test mord sans le correctif |
+| le parser, l'IR | `mise run golden:update` puis lire le diff | ce que le changement fait vraiment aux opérations |
+| un module généré, un template, le runtime | `mise run sanity` | qu'Ansible accepte le fichier produit, sur la version du verrou ; la matrice de CI fait les autres |
+| le contrat | `mise run sync:api`, `mise run drift`, `mise run check` | ce qui a bougé, produit par produit, indexé ou non |
+| un workflow, une action, `.github/` | `mise run security` | qu'actionlint, zizmor et poutine acceptent le pipeline |
+| `pyproject.toml` | `mise run lock` puis lire le diff | quelle dépendance apparaît vraiment, et sous quelle empreinte |
+| `meta/runtime.yml` | remesurer sanity sur chaque version de la matrice | que la borne est mesurée, pas estimée |
 
 ## Ce qui n'est pas encore prouvé
 
 Les modules s'importent, leur `argument_spec` est accepté par Ansible, le
-runtime est mesuré par des doubles, et le SDK installé expose chaque méthode
-appelée. **Aucun module n'a encore été joué contre le cloud réel.** Le dire
-vaut mieux qu'un vert qui ne mesure pas ça.
+runtime est mesuré par des doubles, le SDK installé expose chaque méthode
+appelée, `ansible-test sanity` passe de 2.17 à 2.21 et l'archive s'installe
+et répond à `ansible-doc`. **Aucun module n'a encore été joué contre le cloud
+réel, et il n'existe pas d'émulateur de l'API Exoscale.** Le dire vaut mieux
+qu'un vert qui ne mesure pas ça.
+
+## Le témoin du mode strict
+
+`report --strict` sort en 0 sur un dépôt sain comme sur un mode strict cassé :
+un contrôle qui cherche une absence est indiscernable d'un contrôle qui n'a
+rien regardé. `tests/unit/generator/test_cli.py` fabrique un contrat que
+personne ne sait classer et exige le code 2, et la mutation
+`mode-strict-temoin` prouve que ce test mord.
 
 ## Langue
 
-Le code, les commentaires, les docstrings, la documentation et les messages de
-commit sont en **français**, avec les accents. Les identifiants Python, les
-noms de modules Ansible et le vocabulaire de l'API restent en anglais.
+La frontière est **ce qui est publié**, pas le fichier qui le produit.
 
-Ne jamais utiliser le tiret cadratin.
+| quoi | langue |
+|---|---|
+| les deux README, `docs/`, `SECURITY.md`, `galaxy.yml`, les fragments de changelog | **anglais** |
+| ce que `DOCUMENTATION`, `EXAMPLES` et `RETURN` portent | **anglais**, il vient du contrat |
+| le code, les commentaires, les docstrings | **français**, avec les accents |
+| les noms de tests, les raisons de mutation, les raisons d'override | **français** |
+| la sortie des programmes : rapports, messages d'erreur, falsification | **français** |
+| les workflows, leurs commentaires et les noms de jobs | **français** |
+| les messages de commit | **français** |
+
+Les identifiants Python, les noms de modules Ansible et le vocabulaire de l'API
+restent en anglais partout : ce sont des noms propres, pas de la prose.
+
+**Conséquence pour les blocs dérivés.** `scripts/readme_counters.py` écrit
+dans deux fichiers publiés : sa sortie est en anglais, point décimal des
+pourcentages compris, alors que son code et ses messages d'erreur restent en
+français.
+
+Ne jamais utiliser le tiret cadratin, dans les deux langues.
