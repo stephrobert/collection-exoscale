@@ -62,7 +62,7 @@ _TYPE_VALUES: dict[str, ApiType] = {
 }
 
 #: Champs qu'un bloc `wait` peut porter.
-_WAIT_FIELDS: frozenset[str] = frozenset({"field", "states", "reason"})
+_WAIT_FIELDS: frozenset[str] = frozenset({"field", "states", "reason", "always"})
 
 
 @dataclass(frozen=True)
@@ -103,6 +103,10 @@ class WaitOverride:
     field: str
     states: dict[str, str]
     reason: str | None = None
+    #: Les actions qui agissent même quand l'état attendu est déjà atteint.
+    #: `reboot` vise `running` et doit redémarrer une machine qui tourne ;
+    #: `start` vise `running` et n'a rien à faire sur une machine qui tourne.
+    always: tuple[str, ...] = ()
 
 
 @dataclass(frozen=True)
@@ -272,8 +276,20 @@ def _parse_wait(key: str, raw: Any, path: Path) -> WaitOverride | None:
             "Le contrat ne les dit pas : c'est une décision, et elle se justifie."
         )
 
+    always_raw = raw.get("always") or ()
+    if isinstance(always_raw, str) or not isinstance(always_raw, list | tuple):
+        raise OverrideError(f"{path} : {key}.wait.always doit être une liste d'actions")
+    always = tuple(str(action) for action in always_raw)
+    hors_etats = sorted(set(always) - set(states))
+    if hors_etats:
+        raise OverrideError(
+            f"{path} : {key}.wait.always nomme {hors_etats}, qui n'ont pas d'état attendu "
+            "dans `states`. Une action qui agit toujours doit dire vers quel état."
+        )
+
     return WaitOverride(
         field=str(raw.get("field") or "state"),
         states={str(action): str(etat) for action, etat in states.items()},
         reason=raw.get("reason"),
+        always=always,
     )

@@ -145,3 +145,25 @@ operations:
     )
     plan = plan_service(gadget_service, load_overrides("gadget", root=tmp_path))
     assert plan.orphan_overrides == ("gadget.v2.Gadget.get-gadget-disparu",)
+
+
+def test_une_action_always_sans_etat_attendu_est_refusee(
+    tmp_path: Path, gadget_service: ApiService
+) -> None:
+    """Une action qui agit toujours doit dire vers quel état : sinon le runtime
+    agirait sans rien vérifier, et personne ne saurait pourquoi."""
+    (tmp_path / "gadget.yml").write_text(
+        """
+operations:
+  gadget.v2.Gadget.start-gadget:
+    wait:
+      field: state
+      states:
+        start: running
+      always: [reboot]
+      reason: test
+""",
+        encoding="utf-8",
+    )
+    with pytest.raises(OverrideError, match="always"):
+        load_overrides("gadget", root=tmp_path)

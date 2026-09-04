@@ -37,7 +37,7 @@ from generator.ansible.mapping import (
     option_name,
     sdk_method,
 )
-from generator.ir.enums import ApiType, OperationKind, ParameterLocation
+from generator.ir.enums import ApiType, HTTPMethod, OperationKind, ParameterLocation
 from generator.ir.models import ApiOperation, ApiParameter
 from generator.overrides.loader import OperationOverride, OverrideSet, ParameterOverride
 from generator.parser.naming import pluralize_phrase, split_words
@@ -111,6 +111,8 @@ class ActionBinding:
     required: tuple[str, ...] = ()
     #: État de la ressource attendu une fois l'opération terminée, s'il est décidé.
     expected_state: str | None = None
+    #: Vrai quand l'action agit même si l'état attendu est déjà atteint.
+    always_acts: bool = False
 
 
 @dataclass(frozen=True)
@@ -129,6 +131,9 @@ class AnsibleModuleSpec:
     selector: str | None = None
     actions: tuple[ActionBinding, ...] = ()
     state_field: str | None = None
+    #: La lecture unitaire de la ressource, quand un état est attendu : c'est
+    #: elle qui sépare « l'API a accepté » de « la machine tourne ».
+    read_operation: OperationBinding | None = None
     #: Limites du contrat rencontrées en construisant le module.
     limits: tuple[str, ...] = ()
     sensitive_return: bool = False
@@ -200,6 +205,20 @@ class AnsibleModuleSpec:
             )
         if self.sensitive_return:
             notes.append("The returned value is a secret: do not log the task output.")
+        if self.read_operation is not None and self.state_field is not None:
+            expected = ", ".join(
+                f"C({action.name}) leads to C({action.expected_state})"
+                for action in self.actions
+                if action.expected_state is not None
+            )
+            always = ", ".join(f"C({action.name})" for action in self.actions if action.always_acts)
+            notes.append(
+                f"Once the operation succeeds, the module reads the {self.resource_words} "
+                f"until its C({self.state_field}) reaches the expected value ({expected}), "
+                f"and reports C(changed=false) without sending anything when the "
+                f"{self.resource_words} already is in that state"
+                + (f", except for {always}, which always acts." if always else ".")
+            )
 
         document: dict[str, Any] = {
             "module": self.name,
@@ -313,6 +332,15 @@ class AnsibleModuleSpec:
                 ),
                 "returned": "for asynchronous actions" if self.has_synchronous else "always",
                 "type": "dict",
+            }
+        if self.read_operation is not None and self.state_field is not None:
+            returned[self.state_field] = {
+                "description": (
+                    f"The C({self.state_field}) of the {self.resource_words}, read after "
+                    "the operation."
+                ),
+                "returned": "when an expected state is declared for the action",
+                "type": "str",
             }
         if self.has_synchronous:
             returned["result"] = {
@@ -539,14 +567,17 @@ def _build_action_spec(
             and _resolved_option(p, override) not in shared_ids
         )
         expected = None
+        always = False
         if override is not None and override.wait is not None:
             expected = override.wait.states.get(action)
+            always = action in override.wait.always
         actions.append(
             ActionBinding(
                 name=action,
                 operation=_binding(item.operation, override),
                 required=tuple(sorted({option for option in required if option not in shared_ids})),
                 expected_state=expected,
+                always_acts=always,
             )
         )
 
@@ -565,6 +596,10 @@ def _build_action_spec(
         if plan.overrides.get(item.operation.key) is not None
         and plan.overrides.get(item.operation.key).wait is not None  # type: ignore[union-attr]
     }
+    state_field = next(iter(sorted(state_fields)), None)
+    read_operation = (
+        _read_binding(plan, resource, options, limits) if state_field is not None else None
+    )
     return AnsibleModuleSpec(
         name=name,
         kind=OperationKind.ACTION,
@@ -575,9 +610,47 @@ def _build_action_spec(
         option_docs=docs,
         selector=selector,
         actions=tuple(actions),
-        state_field=next(iter(sorted(state_fields)), None),
+        state_field=state_field,
+        read_operation=read_operation,
         limits=tuple(sorted(set(limits))),
     )
+
+
+def _read_binding(
+    plan: ProductPlan, resource: str, options: dict[str, dict[str, Any]], limits: list[str]
+) -> OperationBinding | None:
+    """La lecture unitaire de la ressource, pour vérifier son état après une action.
+
+    `operation.state == success` dit que le travail est fini, pas que la
+    ressource est dans l'état visé : il faut la relire. La lecture est celle du
+    module d'information de la même ressource, et ses identifiants de chemin
+    doivent être des options du module d'action, sinon le runtime ne saurait
+    pas l'appeler. Ce qui manque est dit dans les limites, jamais deviné.
+    """
+    candidates = [
+        item
+        for item in plan.operations
+        if item.resource == resource
+        and item.kind is OperationKind.INFO
+        and not _is_list(item.operation)
+        and item.operation.http_method is HTTPMethod.GET
+    ]
+    if len(candidates) != 1:
+        limits.append(
+            f"{resource} : {len(candidates)} lecture(s) unitaire(s), l'état attendu ne "
+            "sera pas vérifié après une action"
+        )
+        return None
+    item = candidates[0]
+    binding = _binding(item.operation, plan.overrides.get(item.operation.key))
+    missing = sorted(set(binding.path_params) - set(options))
+    if missing:
+        limits.append(
+            f"{item.operation.id} : la lecture demande {missing}, que le module d'action "
+            "ne porte pas ; l'état attendu ne sera pas vérifié"
+        )
+        return None
+    return binding
 
 
 def action_name(operation_id: str, resource: str) -> str:

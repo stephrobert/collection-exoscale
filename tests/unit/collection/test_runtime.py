@@ -183,3 +183,127 @@ def test_une_action_synchrone_rend_sa_reponse_sous_result(monkeypatch: pytest.Mo
         runtime.run_action_module(module, spec)
     assert fake.waited == []
     assert module.exited == {"changed": True, "result": {"success": True}}
+
+
+class _StatefulClient(_Client):
+    """Un client dont l'instance change d'état à chaque lecture, dans l'ordre donné."""
+
+    def __init__(self, states: list[str]) -> None:
+        super().__init__()
+        self.states = list(states)
+        self.reads = 0
+
+    def get_instance(self, **kwargs: object) -> dict[str, object]:
+        self.calls.append(("get_instance", kwargs))
+        self.reads += 1
+        state = self.states.pop(0) if len(self.states) > 1 else self.states[0]
+        return {"id": kwargs.get("id"), "state": state}
+
+    def reboot_instance(self, **kwargs: object) -> dict[str, object]:
+        self.calls.append(("reboot_instance", kwargs))
+        return {"id": "op-3", "state": "pending"}
+
+
+def _stateful_spec() -> runtime.ActionModule:
+    read = runtime.Operation(id="get-instance", method="get_instance", path_params={"id": "id"})
+    start = runtime.Operation(
+        id="start-instance", method="start_instance", path_params={"id": "id"}, is_async=True
+    )
+    reboot = runtime.Operation(
+        id="reboot-instance", method="reboot_instance", path_params={"id": "id"}, is_async=True
+    )
+    return runtime.ActionModule(
+        resource="instance",
+        selector="id",
+        actions=(
+            runtime.Action("start", start, expected_state="running"),
+            runtime.Action("reboot", reboot, expected_state="running", always=True),
+        ),
+        state_field="state",
+        read_operation=read,
+    )
+
+
+@pytest.fixture(autouse=True)
+def _sans_attente(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Attendre pour de vrai ne prouve rien : la pause est neutralisée."""
+    monkeypatch.setattr(runtime, "_sleep", lambda seconds: None)
+
+
+def test_une_action_dont_letat_est_deja_atteint_ne_change_rien(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """`start` sur une machine qui tourne n'a rien à faire, et le dit par `changed=False`."""
+    fake = _StatefulClient(["running"])
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    module = _Module({"action": "start", "id": "inst", "wait": True})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _stateful_spec())
+    assert [nom for nom, _ in fake.calls] == ["get_instance"]
+    assert module.exited is not None
+    assert module.exited["changed"] is False and module.exited["state"] == "running"
+
+
+def test_apres_success_le_module_attend_letat_attendu(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`success` sur l'opération précède l'état : la machine est relue jusqu'à `running`."""
+    fake = _StatefulClient(["stopped", "starting", "starting", "running"])
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    module = _Module({"action": "start", "id": "inst", "wait": True, "wait_timeout": 30})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _stateful_spec())
+    assert fake.waited == ["op-1"]
+    assert module.exited is not None
+    assert module.exited["changed"] is True and module.exited["state"] == "running"
+    assert fake.reads == 4
+
+
+def test_une_action_always_agit_meme_si_letat_est_atteint(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`reboot` vise `running`, qui est aussi l'état de départ : il agit quand même."""
+    fake = _StatefulClient(["running"])
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    module = _Module({"action": "reboot", "id": "inst", "wait": True})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _stateful_spec())
+    assert ("reboot_instance", {"id": "inst"}) in fake.calls
+    assert module.exited is not None and module.exited["changed"] is True
+
+
+def test_un_etat_jamais_atteint_echoue_en_disant_changed(monkeypatch: pytest.MonkeyPatch) -> None:
+    """L'action a été acceptée : un échec après coup doit dire que la machine a bougé."""
+    fake = _StatefulClient(["stopped", "starting"])
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    horloge = iter([0.0, 0.0, 1.0, 100.0, 200.0, 300.0])
+    monkeypatch.setattr(runtime.time, "monotonic", lambda: next(horloge))
+    module = _Module({"action": "start", "id": "inst", "wait": True, "wait_timeout": 5})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _stateful_spec())
+    assert module.failed is not None
+    assert module.failed["changed"] is True and module.failed["state"] == "starting"
+    assert "expected 'running'" in module.failed["msg"]
+
+
+def test_un_echec_de_lattente_de_loperation_dit_changed(monkeypatch: pytest.MonkeyPatch) -> None:
+    class _Casse(_Client):
+        def wait(self, operation_id: str, max_wait_time: int | None = None) -> dict[str, object]:
+            raise runtime.ExoscaleAPIException("Operation error: failure, disk full")
+
+    monkeypatch.setattr(runtime, "build_client", lambda module: _Casse())
+    module = _Module({"action": "start", "id": "inst", "wait": True})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _action_spec())
+    assert module.failed is not None
+    assert module.failed["changed"] is True and "disk full" in module.failed["msg"]
+
+
+def test_sans_attente_letat_nest_pas_lu(monkeypatch: pytest.MonkeyPatch) -> None:
+    """`wait: false` rend l'opération acceptée, et ne lit rien : rien à vérifier."""
+    fake = _StatefulClient(["running"])
+    monkeypatch.setattr(runtime, "build_client", lambda module: fake)
+    module = _Module({"action": "start", "id": "inst", "wait": False})
+    with pytest.raises(SystemExit):
+        runtime.run_action_module(module, _stateful_spec())
+    assert fake.reads == 0
+    assert module.exited is not None and module.exited["operation"] == {
+        "id": "op-1",
+        "state": "pending",
+    }

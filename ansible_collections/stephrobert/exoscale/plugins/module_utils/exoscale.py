@@ -36,6 +36,7 @@ déclaré par les overrides mais pas encore vérifié.
 from __future__ import annotations
 
 import os
+import time
 import traceback
 from collections import namedtuple
 
@@ -60,25 +61,49 @@ except ImportError:
 #: de l'option Ansible au nom du contrat.
 Operation = namedtuple(
     "Operation",
-    ["id", "method", "path_params", "query_params", "body_params", "payload_field", "is_list", "is_async"],
+    [
+        "id",
+        "method",
+        "path_params",
+        "query_params",
+        "body_params",
+        "payload_field",
+        "is_list",
+        "is_async",
+    ],
     defaults=({}, {}, None, False, False),
 )
 
-#: Une action d'un module d'action, et l'état attendu une fois finie.
-Action = namedtuple("Action", ["name", "operation", "expected_state"], defaults=(None,))
+#: Une action d'un module d'action, l'état attendu une fois finie, et si elle
+#: agit même quand cet état est déjà atteint (`reboot` vise `running` et doit
+#: redémarrer une machine qui tourne).
+Action = namedtuple(
+    "Action", ["name", "operation", "expected_state", "always"], defaults=(None, False)
+)
 
 #: Un module d'information : une lecture unitaire, une liste, et le sélecteur
 #: qui bascule de l'une à l'autre.
 InfoModule = namedtuple(
-    "InfoModule", ["resource", "get_operation", "list_operation", "selector"], defaults=(None, None, None)
+    "InfoModule",
+    ["resource", "get_operation", "list_operation", "selector"],
+    defaults=(None, None, None),
 )
 
-#: Un module d'action : le sélecteur commun et les actions qu'il regroupe.
+#: Un module d'action : le sélecteur commun, les actions qu'il regroupe, et
+#: quand un état est attendu, le champ qui le porte et la lecture qui le rend.
 ActionModule = namedtuple(
-    "ActionModule", ["resource", "selector", "actions", "state_field"], defaults=(None,)
+    "ActionModule",
+    ["resource", "selector", "actions", "state_field", "read_operation"],
+    defaults=(None, None),
 )
 
 DEFAULT_WAIT_TIMEOUT = 600
+
+#: Intervalle entre deux lectures de l'état, en secondes.
+POLL_INTERVAL = 2
+
+#: Remplaçable par un test : attendre pour de vrai n'y prouve rien.
+_sleep = time.sleep
 
 
 def exoscale_argument_spec():
@@ -183,8 +208,62 @@ def run_info_module(module, spec):
     module.exit_json(changed=False, **{key: payload})
 
 
+def read_state(module, client, spec):
+    """L'état courant de la ressource, lu par l'opération de lecture du module.
+
+    `None` quand la lecture ne rend pas le champ : le module ne devine pas un
+    état, il dit qu'il ne l'a pas lu.
+    """
+    read = spec.read_operation
+    payload = call(module, client, read, arguments_for(module, read))
+    if read.payload_field is not None and isinstance(payload, dict):
+        payload = payload.get(read.payload_field)
+    if not isinstance(payload, dict) or payload.get(spec.state_field) is None:
+        return None
+    return str(payload[spec.state_field])
+
+
+def poll_state(module, client, spec, expected, timeout):
+    """Lit la ressource jusqu'à l'état attendu, et échoue en disant l'état lu.
+
+    `operation.state == success` dit que le travail est fini, pas que la
+    ressource est dans l'état visé. Cette boucle est ce qui sépare « l'API a
+    accepté » de « la machine tourne ». L'échec dit `changed=True` : l'action a
+    été envoyée et acceptée, et un playbook rejoué doit le savoir.
+    """
+    deadline = time.monotonic() + timeout
+    state = read_state(module, client, spec)
+    while state != expected:
+        if time.monotonic() >= deadline:
+            module.fail_json(
+                changed=True,
+                msg=(
+                    f"the operation succeeded, but the {spec.resource} is "
+                    f"{state!r} after {timeout} seconds, expected {expected!r}"
+                ),
+                operation=None,
+                **{spec.state_field: state},
+            )
+        _sleep(POLL_INTERVAL)
+        state = read_state(module, client, spec)
+    return state
+
+
 def run_action_module(module, spec):
-    """Déclenche une action, et attend la fin de l'opération quand `wait` est vrai."""
+    """Déclenche une action, attend l'opération, puis l'état attendu s'il est déclaré.
+
+    Quatre choses qu'un module d'action doit tenir, et que celui-ci tient :
+
+    * **en check mode, ne rien envoyer** ;
+    * **ne rien envoyer non plus quand l'état visé est déjà là**, et le dire
+      par `changed=False` : `start` sur une machine qui tourne n'a rien à
+      faire. Sauf pour une action déclarée `always`, comme `reboot`, qui vise
+      `running` et doit redémarrer une machine qui tourne ;
+    * **`changed` est vrai dès que l'API a accepté** : tout échec ultérieur, de
+      l'attente de l'opération ou de l'état, le dit ;
+    * **attendre l'état, si on sait quoi attendre.** L'état visé vient d'un
+      override, jamais du contrat, qui ne le dit pas.
+    """
     wanted = module.params["action"]
     action = next((item for item in spec.actions if item.name == wanted), None)
     if action is None:
@@ -192,11 +271,34 @@ def run_action_module(module, spec):
         return
     operation = action.operation
     kwargs = arguments_for(module, operation)
+    wait = bool(module.params.get("wait", True))
+    timeout = module.params.get("wait_timeout") or DEFAULT_WAIT_TIMEOUT
+
+    # La vérification d'état demande trois choses que le générateur ne fournit
+    # qu'ensemble : une lecture de la ressource, le champ qui porte l'état, et
+    # l'état attendu de cette action.
+    verifies = (
+        wait
+        and spec.read_operation is not None
+        and spec.state_field is not None
+        and action.expected_state is not None
+    )
 
     if module.check_mode:
         module.exit_json(changed=True, operation=None, msg="check mode: the action was not sent")
 
     client = build_client(module)
+
+    if verifies and not action.always:
+        current = read_state(module, client, spec)
+        if current == action.expected_state:
+            module.exit_json(
+                changed=False,
+                operation=None,
+                msg=f"the {spec.resource} already is {current!r}: nothing was sent",
+                **{spec.state_field: current},
+            )
+
     result = call(module, client, operation, kwargs)
 
     if not operation.is_async:
@@ -207,10 +309,19 @@ def run_action_module(module, spec):
 
     if operation.is_async and isinstance(result, dict) and module.params.get("wait", True):
         try:
-            result = client.wait(result["id"], max_wait_time=module.params.get("wait_timeout"))
+            result = client.wait(result["id"], max_wait_time=timeout)
         except ExoscaleAPIException as error:
-            module.fail_json(msg=str(error), operation=operation.id, operation_id=result.get("id"))
-    module.exit_json(changed=True, operation=result)
+            # À partir d'ici l'API a **accepté** : la ressource a changé, et un
+            # `fail_json` sans `changed` ferait croire à un playbook rejoué qu'il
+            # n'a rien fait, alors que la machine a bougé.
+            module.fail_json(
+                changed=True, msg=str(error), operation=operation.id, operation_id=result.get("id")
+            )
+
+    extra = {}
+    if verifies:
+        extra[spec.state_field] = poll_state(module, client, spec, action.expected_state, timeout)
+    module.exit_json(changed=True, operation=result, **extra)
 
 
 def _plural(resource):

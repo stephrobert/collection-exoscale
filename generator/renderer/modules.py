@@ -180,6 +180,8 @@ def _action_module_literal(spec: AnsibleModuleSpec) -> str:
     lines.append("    ),")
     if spec.state_field is not None:
         lines.append(f"    state_field={quote(spec.state_field)},")
+    if spec.read_operation is not None:
+        lines.append(f"    read_operation={_operation_literal(spec.read_operation, indent=4)},")
     lines.append(")")
     return "\n".join(lines)
 
@@ -191,6 +193,8 @@ def _action_literal(action: ActionBinding, *, indent: int) -> str:
     lines.append(f"{inner}operation={_operation_literal(action.operation, indent=indent + 4)},")
     if action.expected_state is not None:
         lines.append(f"{inner}expected_state={quote(action.expected_state)},")
+    if action.always_acts:
+        lines.append(f"{inner}always=True,")
     lines.append(pad + ")")
     return "\n".join(lines)
 

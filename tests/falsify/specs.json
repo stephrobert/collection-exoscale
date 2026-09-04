@@ -294,6 +294,38 @@
       "find": "    \"bg-sof-1\",\n    \"hr-zag-1\",\n)",
       "replace": "    \"bg-sof-1\",\n)",
       "test": "tests/unit/inventory/test_providers.py::test_les_zones_du_provider_sont_celles_du_contrat"
+    },
+    {
+      "name": "asynchrone-etat-deja-atteint",
+      "why": "`start` sur une machine qui tourne n'a rien à faire ; sans cette garde, le module envoie l'action et rend `changed` sur rien.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "        if current == action.expected_state:",
+      "replace": "        if current == action.expected_state and False:",
+      "test": "tests/unit/collection/test_runtime.py::test_une_action_dont_letat_est_deja_atteint_ne_change_rien"
+    },
+    {
+      "name": "asynchrone-etat-verifie-apres-success",
+      "why": "`success` sur l'opération ne dit pas que la machine tourne : sans la relecture, le module rend `changed` sur un état qu'il n'a pas vu.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "    extra = {}\n    if verifies:",
+      "replace": "    extra = {}\n    if verifies and False:",
+      "test": "tests/unit/collection/test_runtime.py::test_apres_success_le_module_attend_letat_attendu"
+    },
+    {
+      "name": "asynchrone-echec-apres-acceptation-dit-changed",
+      "why": "Après l'acceptation par l'API, la ressource a changé ; un échec sans `changed` ferait croire à un playbook rejoué qu'il n'a rien fait.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "            module.fail_json(\n                changed=True, msg=str(error), operation=operation.id, operation_id=result.get(\"id\")\n            )",
+      "replace": "            module.fail_json(\n                changed=False, msg=str(error), operation=operation.id, operation_id=result.get(\"id\")\n            )",
+      "test": "tests/unit/collection/test_runtime.py::test_un_echec_de_lattente_de_loperation_dit_changed"
+    },
+    {
+      "name": "override-always-inconnu",
+      "why": "Une action `always` sans état attendu agirait sans rien vérifier, et personne ne saurait pourquoi.",
+      "file": "generator/overrides/loader.py",
+      "find": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats:",
+      "replace": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_une_action_always_sans_etat_attendu_est_refusee"
     }
   ]
 }
