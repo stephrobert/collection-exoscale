@@ -17,14 +17,14 @@ module: compute_instance_console_info
 short_description: Gather information about Exoscale instance consoles
 version_added: 0.1.0
 description:
-- Read one Exoscale instance console by its identifier, or list them. This module never changes
-  anything.
+- Read one Exoscale instance console. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
   id:
     description: Not documented by the Exoscale API contract.
     type: str
+    required: true
 extends_documentation_fragment:
 - stephrobert.exoscale.exoscale
 """
@@ -39,8 +39,8 @@ EXAMPLES = r"""
 
 RETURN = r"""
 instance_console:
-  description: The instance console, when a selector is given.
-  returned: when the selector is given
+  description: The instance console.
+  returned: always
   type: dict
 """
 
@@ -55,7 +55,7 @@ from ansible_collections.stephrobert.exoscale.plugins.module_utils.exoscale impo
 
 #: Options propres au module, traduites depuis le contrat.
 MODULE_ARGUMENT_SPEC = {
-    "id": {"type": "str"},
+    "id": {"type": "str", "required": True},
 }
 
 #: Ce que le contrat exige pour une action et pas pour une autre.
@@ -74,7 +74,6 @@ MODULE = InfoModule(
         method="get_console_proxy_url",
         path_params={"id": "id"},
     ),
-    selector="id",
 )
 
 

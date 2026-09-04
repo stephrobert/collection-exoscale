@@ -190,6 +190,70 @@
       "find": "        if attendu != texte:\n            perimes.append(nom)",
       "replace": "        if attendu != texte and False:\n            perimes.append(nom)",
       "test": "tests/unit/outillage/test_compteurs.py::test_un_bloc_perime_fait_echouer_le_controle"
+    },
+    {
+      "name": "enveloppe-de-liste-nommee",
+      "why": "Neuf list-* répondent par une référence vers leur enveloppe ; sans cette forme, une liste passe pour une lecture unitaire et le module est refusé.",
+      "file": "generator/parser/openapi.py",
+      "find": "    if property_schema.get(\"type\") != \"array\":\n        return None\n    items_ref = property_schema.get(\"items\", {}).get(\"$ref\", \"\")\n    return str(field_name), (items_ref.rsplit(\"/\", 1)[-1] or None)",
+      "replace": "    if property_schema.get(\"type\") != \"array\" or True:\n        return None\n    items_ref = property_schema.get(\"items\", {}).get(\"$ref\", \"\")\n    return str(field_name), (items_ref.rsplit(\"/\", 1)[-1] or None)",
+      "test": "tests/unit/generator/test_parser.py::test_une_enveloppe_de_liste_nommee_est_une_liste"
+    },
+    {
+      "name": "produit-non-redouble",
+      "why": "`sks_sks_cluster_info` n'est pas un nom qu'un opérateur aurait écrit, mesuré sur 11 produits.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    if resource == product or resource.startswith(product + \"_\"):",
+      "replace": "    if (resource == product or resource.startswith(product + \"_\")) and False:",
+      "test": "tests/unit/generator/test_mapping.py::test_le_produit_nest_pas_redouble_dans_le_nom_du_module"
+    },
+    {
+      "name": "lecture-sans-liste-exige-ses-identifiants",
+      "why": "Une lecture sans liste dont les identifiants ne sont pas exigés laisse partir un appel au SDK sans son identifiant.",
+      "file": "generator/ansible/models.py",
+      "find": "            if path_option in options:\n                options[path_option][\"required\"] = True",
+      "replace": "            if path_option in options and False:\n                options[path_option][\"required\"] = True",
+      "test": "tests/unit/generator/test_models.py::test_une_lecture_sans_liste_na_pas_de_selecteur_et_exige_ses_identifiants"
+    },
+    {
+      "name": "list-non-vue-comme-liste-refusee",
+      "why": "Une list-* rendue comme lecture unitaire ferait passer une liste pour un objet, en silence.",
+      "file": "generator/ansible/models.py",
+      "find": "        if get.operation.id.startswith(\"list-\"):",
+      "replace": "        if get.operation.id.startswith(\"list-\") and False:",
+      "test": "tests/unit/generator/test_models.py::test_une_liste_nommee_list_que_le_parser_ne_voit_pas_comme_liste_est_refusee"
+    },
+    {
+      "name": "identifiants-communs-exiges",
+      "why": "Les identifiants que toutes les actions partagent sont obligatoires ; sans ça, un appel part sans son identifiant de ressource.",
+      "file": "generator/ansible/models.py",
+      "find": "    for shared_id in shared_ids:\n        if shared_id in options:",
+      "replace": "    for shared_id in shared_ids:\n        if shared_id in options and False:",
+      "test": "tests/unit/generator/test_models.py::test_des_actions_a_deux_identifiants_communs_les_exigent_tous_les_deux"
+    },
+    {
+      "name": "action-synchrone-rend-result",
+      "why": "Une action synchrone rangée sous `operation` fait chercher un `state` qui n'existe pas.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "    if not operation.is_async:\n        # Une action synchrone",
+      "replace": "    if not operation.is_async and False:\n        # Une action synchrone",
+      "test": "tests/unit/collection/test_runtime.py::test_une_action_synchrone_rend_sa_reponse_sous_result"
+    },
+    {
+      "name": "segment-daction-a-plusieurs-mots",
+      "why": "Un segment d'action à plusieurs mots pris pour une ressource fabrique des modules fantômes (kms_key_schedule_deletion_action), mesuré sur douze chemins.",
+      "file": "generator/parser/openapi.py",
+      "find": "            (last_words and last_words[0] == verb)",
+      "replace": "            (last_words and last_words[0] == verb and last == verb)",
+      "test": "tests/unit/generator/test_parser.py::test_un_segment_daction_a_plusieurs_mots_nest_pas_une_ressource"
+    },
+    {
+      "name": "no_log-explicite-pour-sanity",
+      "why": "Un nom que sanity soupçonne sans `no_log` explicite fait échouer validate-modules ; le mapping doit dire que ce n'est pas un secret plutôt que de laisser sanity le supposer.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    elif looks_secret_to_sanity(option_name(parameter)):",
+      "replace": "    elif looks_secret_to_sanity(option_name(parameter)) and False:",
+      "test": "tests/unit/generator/test_mapping.py::test_un_nom_que_sanity_soupconne_sans_etre_un_secret_le_dit_explicitement"
     }
   ]
 }

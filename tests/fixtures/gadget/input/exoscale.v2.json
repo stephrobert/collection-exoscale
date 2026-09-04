@@ -13,7 +13,8 @@
     "enveloppe de liste inline à une propriété, `required` sur un corps,",
     "propriété readOnly, paramètre de chemin sans schéma, tag employé sans",
     "être déclaré, opération sans tag, lecture portée par POST, segment",
-    "d'action terminal (`/maintenance/start`), et aucune pagination."
+    "d'action terminal (`/maintenance/start`), et aucune pagination.",
+    "Ajouté en indexant les treize autres produits : enveloppe de liste nommée par référence (`list-kms-keys-response`), ressource singleton sans identifiant (`/iam-organization-policy`), action sur une ressource imbriquée à deux identifiants (`/sks-cluster/{id}/nodepool/{sks-nodepool-id}:scale`)."
   ],
   "servers": [
     {
@@ -586,15 +587,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "object",
-                  "properties": {
-                    "widgets": {
-                      "type": "array",
-                      "items": {
-                        "$ref": "#/components/schemas/widget"
-                      }
-                    }
-                  }
+                  "$ref": "#/components/schemas/list-widgets-response"
                 }
               }
             }
@@ -778,6 +771,84 @@
           }
         }
       }
+    },
+    "/gadget-quota": {
+      "get": {
+        "operationId": "get-gadget-quota",
+        "summary": "Retrieve the gadget quota of the organization",
+        "tags": [
+          "gadget"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/gadget-quota"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget-quota:reset": {
+      "put": {
+        "operationId": "reset-gadget-quota",
+        "summary": "Reset the gadget quota to its default",
+        "tags": [
+          "gadget"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}/gizmo/{gizmo-id}:restart": {
+      "put": {
+        "operationId": "restart-gadget-gizmo",
+        "summary": "Restart a gizmo",
+        "tags": [
+          "gizmo"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "gizmo-id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -876,6 +947,30 @@
           "reason": {
             "type": "string",
             "readOnly": true
+          }
+        }
+      },
+      "list-widgets-response": {
+        "type": "object",
+        "properties": {
+          "widgets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/widget"
+            }
+          }
+        }
+      },
+      "gadget-quota": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "usage": {
+            "type": "integer",
+            "format": "int64"
           }
         }
       }

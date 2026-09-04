@@ -1,0 +1,439 @@
+{
+  "product": "block_storage",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "block_storage.v2.BlockStorage.attach-block-storage-volume-to-instance",
+      "id": "attach-block-storage-volume-to-instance",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "PUT",
+      "path": "/block-storage/{id}:attach",
+      "summary": "Attach block storage volume to an instance",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instance to attach to, this can only be done if the volume is not currently attached",
+          "ref": "instance-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.create-block-storage-snapshot",
+      "id": "create-block-storage-snapshot",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "POST",
+      "path": "/block-storage/{id}:create-snapshot",
+      "summary": "Create a block storage snapshot",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Snapshot name"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.create-block-storage-volume",
+      "id": "create-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "POST",
+      "path": "/block-storage",
+      "summary": "Create a block storage volume",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Volume name"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Volume size in GiB.\n                            When a snapshot ID is supplied, this defaults to the size of the source volume, but can be set to a larger value.",
+          "format": "int64"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "block-storage-snapshot",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Block storage snapshot",
+          "ref": "block-storage-snapshot-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorageSnapshot.delete-block-storage-snapshot",
+      "id": "delete-block-storage-snapshot",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage_snapshot",
+      "http_method": "DELETE",
+      "path": "/block-storage-snapshot/{id}",
+      "summary": "Delete a block storage snapshot, data will be unrecoverable",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.delete-block-storage-volume",
+      "id": "delete-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "DELETE",
+      "path": "/block-storage/{id}",
+      "summary": "Delete a block storage volume, data will be unrecoverable",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.detach-block-storage-volume",
+      "id": "detach-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "PUT",
+      "path": "/block-storage/{id}:detach",
+      "summary": "Detach block storage volume",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorageSnapshot.get-block-storage-snapshot",
+      "id": "get-block-storage-snapshot",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage_snapshot",
+      "http_method": "GET",
+      "path": "/block-storage-snapshot/{id}",
+      "summary": "Retrieve block storage snapshot details",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "block-storage-snapshot",
+        "payload_schema": "block-storage-snapshot"
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.get-block-storage-volume",
+      "id": "get-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "GET",
+      "path": "/block-storage/{id}",
+      "summary": "Retrieve block storage volume details",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "block-storage-volume",
+        "payload_schema": "block-storage-volume"
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorageSnapshot.list-block-storage-snapshots",
+      "id": "list-block-storage-snapshots",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage_snapshot",
+      "http_method": "GET",
+      "path": "/block-storage-snapshot",
+      "summary": "List block storage snapshots",
+      "tags": [
+        "block-storage"
+      ],
+      "response": {
+        "payload_field": "block-storage-snapshots",
+        "payload_schema": "block-storage-snapshot",
+        "is_list": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.list-block-storage-volumes",
+      "id": "list-block-storage-volumes",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "GET",
+      "path": "/block-storage",
+      "summary": "List block storage volumes",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "instance-id",
+          "type": "string",
+          "required": false,
+          "location": "query",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "block-storage-volumes",
+        "payload_schema": "block-storage-volume",
+        "is_list": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.resize-block-storage-volume",
+      "id": "resize-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "PUT",
+      "path": "/block-storage/{id}:resize-volume",
+      "summary": "Resize a block storage volume",
+      "description": "This operation resizes a Block storage volume. Note: the volume can only grow, cannot be shrunk. Only detached volumes or volumes attached to stopped instances can be resized.",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Volume size in GiB",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "block-storage-volume",
+        "payload_schema": "block-storage-volume"
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorageSnapshot.update-block-storage-snapshot",
+      "id": "update-block-storage-snapshot",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage_snapshot",
+      "http_method": "PUT",
+      "path": "/block-storage-snapshot/{id}",
+      "summary": "Update block storage volume snapshot",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Snapshot name"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "block_storage.v2.BlockStorage.update-block-storage-volume",
+      "id": "update-block-storage-volume",
+      "product": "block_storage",
+      "version": "v2",
+      "resource": "block_storage",
+      "http_method": "PUT",
+      "path": "/block-storage/{id}",
+      "summary": "Update block storage volume",
+      "tags": [
+        "block-storage"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Volume name"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

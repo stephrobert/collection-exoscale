@@ -1,0 +1,564 @@
+{
+  "product": "kms",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "kms.v2.KmsKey.cancel-kms-key-deletion",
+      "id": "cancel-kms-key-deletion",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/cancel-deletion",
+      "summary": "Cancel KMS Key Deletion",
+      "description": "Cancels the scheduled deletion of a KMS Key.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "success-response",
+        "payload_schema": "success-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.create-kms-key",
+      "id": "create-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key",
+      "summary": "Create KMS Key",
+      "description": "Create a customer-managed unique KMS Key in your organization. A KMS Key is a logical representation of a cryptographic key material. It also includes metadata such as a UUID, a name and its state.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "A human-readable display name uniquely identifying the KMS key within the tenant space."
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "An optional detailed description providing additional context about the key's intended use case."
+        },
+        {
+          "name": "usage",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "enum_values": [
+            "encrypt-decrypt"
+          ],
+          "default": "encrypt-decrypt"
+        },
+        {
+          "name": "multi-zone",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "True if this is a multi-zone key.",
+          "default": false
+        }
+      ],
+      "response": {
+        "schema": "create-kms-key-response",
+        "payload_schema": "create-kms-key-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.decrypt",
+      "id": "decrypt",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/decrypt",
+      "summary": "Decrypt",
+      "description": "Decrypts a ciphertext.",
+      "tags": [
+        "crypto"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "encryption-context",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "The exact Base64-encoded Additional Authenticated Data (AAD) used during encryption to verify data integrity.",
+          "format": "byte"
+        },
+        {
+          "name": "ciphertext",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The Base64-encoded ciphertext payload to be decrypted.",
+          "format": "byte"
+        }
+      ],
+      "response": {
+        "schema": "decrypt-response",
+        "payload_schema": "decrypt-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.disable-kms-key",
+      "id": "disable-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/disable",
+      "summary": "Disable KMS Key",
+      "description": "Disables a KMS Key by setting its state to \"disabled\". This prevents the use of the KMS key for cryptographic and key lifecycle operations.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "success-response",
+        "payload_schema": "success-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.disable-kms-key-rotation",
+      "id": "disable-kms-key-rotation",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/disable-key-rotation",
+      "summary": "Disable Key Rotation",
+      "description": "Disable the periodic rotation of a KMS Key.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "disable-kms-key-rotation-response",
+        "payload_schema": "disable-kms-key-rotation-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.enable-kms-key",
+      "id": "enable-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/enable",
+      "summary": "Enable KMS Key",
+      "description": "Enables a KMS Key by setting its state to \"enabled\". It restores the ability to fully use the KMS key for cryptographic operations and key lifecycle operations.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "success-response",
+        "payload_schema": "success-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.enable-kms-key-rotation",
+      "id": "enable-kms-key-rotation",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/enable-key-rotation",
+      "summary": "Enable Key Rotation",
+      "description": "Enable the periodic rotation of a KMS Key.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "rotation-period",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The number of days between each automatic key rotation.",
+          "default": 365
+        }
+      ],
+      "response": {
+        "schema": "enable-kms-key-rotation-response",
+        "payload_schema": "enable-kms-key-rotation-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.encrypt",
+      "id": "encrypt",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/encrypt",
+      "summary": "Encrypt",
+      "description": "Encrypts a plaintext.",
+      "tags": [
+        "crypto"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "encryption-context",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Base64-encoded bytes to be used as the Additional Authenticated Data (AAD) for encryption integrity.",
+          "format": "byte"
+        },
+        {
+          "name": "plaintext",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The Base64-encoded plaintext data you wish to encrypt.",
+          "format": "byte"
+        }
+      ],
+      "response": {
+        "schema": "encrypt-response",
+        "payload_schema": "encrypt-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.generate-data-key",
+      "id": "generate-data-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/generate-data-key",
+      "summary": "Generate Data Encryption Key",
+      "description": "Generate a Data Encryption Key from a given KMS Key.",
+      "tags": [
+        "crypto"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "key-spec",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "enum_values": [
+            "AES-256"
+          ]
+        },
+        {
+          "name": "bytes-count",
+          "type": "integer",
+          "required": false,
+          "location": "body"
+        },
+        {
+          "name": "encryption-context",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Base64-encoded Additional Authenticated Data binding key generation parameters securely to operational scope.",
+          "format": "byte"
+        }
+      ],
+      "response": {
+        "schema": "generate-data-key-response",
+        "payload_schema": "generate-data-key-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.get-kms-key",
+      "id": "get-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "GET",
+      "path": "/kms-key/{id}",
+      "summary": "Get KMS Key",
+      "description": "Retrieve KMS Key details.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "get-kms-key-response",
+        "payload_schema": "get-kms-key-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.list-kms-key-rotations",
+      "id": "list-kms-key-rotations",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "GET",
+      "path": "/kms-key/{id}/list-key-rotations",
+      "summary": "List KMS Key Rotations",
+      "description": "List all the key material versions of a KMS Key.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "list-kms-key-rotations-response",
+        "payload_field": "rotations",
+        "payload_schema": "list-kms-key-rotations-response-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.list-kms-keys",
+      "id": "list-kms-keys",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "GET",
+      "path": "/kms-key",
+      "summary": "List KMS Keys",
+      "description": "Lists all KMS Keys in your organization in a given zone.",
+      "tags": [
+        "kms-key"
+      ],
+      "response": {
+        "schema": "list-kms-keys-response",
+        "payload_field": "kms-keys",
+        "payload_schema": "list-kms-keys-response-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.re-encrypt",
+      "id": "re-encrypt",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/re-encrypt",
+      "summary": "Re-encrypt",
+      "description": "Decrypts an existing ciphertext using its original key material and re-encrypts the underlying plaintext using a specified KMS key or the latest key material of the same KMS Key.",
+      "tags": [
+        "crypto"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "source",
+          "type": "object",
+          "required": true,
+          "location": "body"
+        },
+        {
+          "name": "destination",
+          "type": "object",
+          "required": true,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "re-encrypt-response",
+        "payload_schema": "re-encrypt-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.replicate-kms-key",
+      "id": "replicate-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/replicate",
+      "summary": "Replicate KMS Key",
+      "description": "Replicate a KMS key to a target zone.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "zone",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "The targeted cloud zone where the KMS key should be replicated."
+        }
+      ],
+      "response": {
+        "schema": "success-response",
+        "payload_schema": "success-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.rotate-kms-key",
+      "id": "rotate-kms-key",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/rotate",
+      "summary": "Rotate Key",
+      "description": "Performs an immediate rotation of the key material for a symmetric key.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "rotate-kms-key-response",
+        "payload_schema": "rotate-kms-key-response"
+      }
+    },
+    {
+      "key": "kms.v2.KmsKey.schedule-kms-key-deletion",
+      "id": "schedule-kms-key-deletion",
+      "product": "kms",
+      "version": "v2",
+      "resource": "kms_key",
+      "http_method": "POST",
+      "path": "/kms-key/{id}/schedule-deletion",
+      "summary": "Schedule KMS Key Deletion",
+      "description": "Schedules a KMS key for deletion after a delay. You can specify a delay of 7-30 days.",
+      "tags": [
+        "kms-key"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "delay-days",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Number of days to wait until deletion is final.",
+          "default": 30
+        }
+      ],
+      "response": {
+        "schema": "schedule-kms-key-deletion-response",
+        "payload_schema": "schedule-kms-key-deletion-response"
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

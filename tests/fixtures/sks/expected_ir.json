@@ -1,0 +1,1174 @@
+{
+  "product": "sks",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "sks.v2.SksCluster.create-sks-cluster",
+      "id": "create-sks-cluster",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "POST",
+      "path": "/sks-cluster",
+      "summary": "Create an SKS cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Cluster description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Cluster Labels",
+          "ref": "sks-cluster-labels"
+        },
+        {
+          "name": "cni",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Cluster CNI",
+          "enum_values": [
+            "calico",
+            "cilium"
+          ]
+        },
+        {
+          "name": "auto-upgrade",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable auto upgrade of the control plane to the latest patch version available"
+        },
+        {
+          "name": "networking",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Cluster networking configuration",
+          "ref": "networking"
+        },
+        {
+          "name": "oidc",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Cluster OpenID configmap",
+          "ref": "sks-oidc"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Cluster name"
+        },
+        {
+          "name": "create-default-security-group",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Creates an ad-hoc security group based on the choice of the selected CNI"
+        },
+        {
+          "name": "enable-kube-proxy",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Indicates whether to deploy the Kubernetes network proxy. When unspecified, defaults to `true` unless Cilium CNI is selected"
+        },
+        {
+          "name": "level",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Cluster service level",
+          "enum_values": [
+            "starter",
+            "pro"
+          ]
+        },
+        {
+          "name": "feature-gates",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "A list of Kubernetes-only Alpha features to enable for API server component",
+          "item_type": "string"
+        },
+        {
+          "name": "addons",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Cluster addons",
+          "item_type": "enum"
+        },
+        {
+          "name": "audit",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kubernetes Audit Log Configuration",
+          "ref": "sks-audit-create"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Control plane Kubernetes version"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.create-sks-nodepool",
+      "id": "create-sks-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "POST",
+      "path": "/sks-cluster/{id}/nodepool",
+      "summary": "Create a new SKS Nodepool",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "anti-affinity-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Anti-affinity Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool description"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Configures public IP assignment of the Instances with:",
+          "enum_values": [
+            "inet4",
+            "dual"
+          ]
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool labels",
+          "ref": "sks-nodepool-labels"
+        },
+        {
+          "name": "taints",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool taints",
+          "ref": "sks-nodepool-taints"
+        },
+        {
+          "name": "security-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Security Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Nodepool name, lowercase only"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Nodepool instances type",
+          "ref": "instance-type-ref"
+        },
+        {
+          "name": "private-networks",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Private Networks",
+          "item_type": "object"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of instances",
+          "format": "int64"
+        },
+        {
+          "name": "kubelet-image-gc",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kubelet image GC options",
+          "ref": "kubelet-image-gc"
+        },
+        {
+          "name": "instance-prefix",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Prefix to apply to instances names (default: pool), lowercase only"
+        },
+        {
+          "name": "deploy-target",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Deploy Target",
+          "ref": "deploy-target-ref"
+        },
+        {
+          "name": "addons",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool addons",
+          "item_type": "enum"
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Nodepool instances disk size in GiB",
+          "format": "int64"
+        },
+        {
+          "name": "nvidia-mig-profiles",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Nvidia MIG Profiles",
+          "ref": "nvidia-mig-profiles"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.delete-sks-cluster",
+      "id": "delete-sks-cluster",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "DELETE",
+      "path": "/sks-cluster/{id}",
+      "summary": "Delete an SKS cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.delete-sks-nodepool",
+      "id": "delete-sks-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "DELETE",
+      "path": "/sks-cluster/{id}/nodepool/{sks-nodepool-id}",
+      "summary": "Delete an SKS Nodepool",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "sks-nodepool-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.evict-sks-nodepool-members",
+      "id": "evict-sks-nodepool-members",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/nodepool/{sks-nodepool-id}:evict",
+      "summary": "Evict Nodepool members",
+      "description": "This operation evicts the specified Compute instances member from the Nodepool, shrinking it to `&lt;current nodepool size&gt; - &lt;# evicted members&gt;`.",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "sks-nodepool-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instances",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterKubeconfig.generate-sks-cluster-kubeconfig",
+      "id": "generate-sks-cluster-kubeconfig",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_kubeconfig",
+      "http_method": "POST",
+      "path": "/sks-cluster-kubeconfig/{id}",
+      "summary": "Generate a new Kubeconfig file for a SKS cluster",
+      "description": "This operation returns a Kubeconfig file encoded in base64.",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "ttl",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Validity in seconds of the Kubeconfig user certificate (default: 30 days)",
+          "format": "int64"
+        },
+        {
+          "name": "user",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "User name in the generated Kubeconfig. The certificate present in the Kubeconfig will also have this name set for the CN field."
+        },
+        {
+          "name": "groups",
+          "type": "array",
+          "required": true,
+          "location": "body",
+          "description": "List of roles. The certificate present in the Kubeconfig will have these roles set in the Org field.",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "payload_field": "kubeconfig"
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.generate-sks-karpenter-exoscale-nodeclass",
+      "id": "generate-sks-karpenter-exoscale-nodeclass",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/generate-karpenter-exoscale-nodeclass",
+      "summary": "Generate a Karpenter ExoscaleNodeClass manifest for an SKS cluster, including its default security group and feature flags if present",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "exoscale-nodeclass"
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.generate-sks-karpenter-nodepool",
+      "id": "generate-sks-karpenter-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/generate-karpenter-nodepool",
+      "summary": "Generate a Karpenter NodePool manifest with minimal configuration for an SKS cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "nodepool"
+      }
+    },
+    {
+      "key": "sks.v2.SksTemplate.get-active-nodepool-template",
+      "id": "get-active-nodepool-template",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_template",
+      "http_method": "GET",
+      "path": "/sks-template/{kube-version}/{variant}",
+      "description": "Get the active template for a given kube version and variant (standard | nvidia)",
+      "tags": [
+        "nodepool-template"
+      ],
+      "parameters": [
+        {
+          "name": "kube-version",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "standard",
+            "nvidia"
+          ]
+        }
+      ],
+      "response": {
+        "payload_field": "active-template"
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.get-sks-cluster",
+      "id": "get-sks-cluster",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "GET",
+      "path": "/sks-cluster/{id}",
+      "summary": "Retrieve SKS cluster details",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "sks-cluster",
+        "payload_schema": "sks-cluster"
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterCert.get-sks-cluster-authority-cert",
+      "id": "get-sks-cluster-authority-cert",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_cert",
+      "http_method": "GET",
+      "path": "/sks-cluster/{id}/authority/{authority}/cert",
+      "summary": "Get the certificate for a SKS cluster authority",
+      "description": "This operation returns the certificate for the given SKS cluster authority encoded in base64.",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "authority",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "control-plane",
+            "aggregation",
+            "kubelet"
+          ]
+        }
+      ],
+      "response": {
+        "payload_field": "cacert"
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterInspection.get-sks-cluster-inspection",
+      "id": "get-sks-cluster-inspection",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_inspection",
+      "http_method": "GET",
+      "path": "/sks-cluster/{id}/inspection",
+      "summary": "Get the latest inspection result",
+      "description": "Helps troubleshoot common problems when deploying a kubernetes cluster. Inspections run every couple of minutes.",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {}
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.get-sks-nodepool",
+      "id": "get-sks-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "GET",
+      "path": "/sks-cluster/{id}/nodepool/{sks-nodepool-id}",
+      "summary": "Retrieve SKS Nodepool details",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "sks-nodepool-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "sks-nodepool",
+        "payload_schema": "sks-nodepool"
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterDeprecatedResource.list-sks-cluster-deprecated-resources",
+      "id": "list-sks-cluster-deprecated-resources",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_deprecated_resource",
+      "http_method": "GET",
+      "path": "/sks-cluster-deprecated-resources/{id}",
+      "summary": "Resources that are scheduled to be removed in future kubernetes releases",
+      "description": "This operation returns the deprecated resources for a given cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_schema": "sks-cluster-deprecated-resource",
+        "is_list": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterVersion.list-sks-cluster-versions",
+      "id": "list-sks-cluster-versions",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_version",
+      "http_method": "GET",
+      "path": "/sks-cluster-version",
+      "summary": "List available versions for SKS clusters",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "include-deprecated",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "payload_field": "sks-cluster-versions",
+        "is_list": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.list-sks-clusters",
+      "id": "list-sks-clusters",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "GET",
+      "path": "/sks-cluster",
+      "summary": "List SKS clusters",
+      "tags": [
+        "cluster"
+      ],
+      "response": {
+        "payload_field": "sks-clusters",
+        "payload_schema": "sks-cluster",
+        "is_list": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.rotate-sks-ccm-credentials",
+      "id": "rotate-sks-ccm-credentials",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/rotate-ccm-credentials",
+      "summary": "Rotate Exoscale CCM credentials",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.rotate-sks-csi-credentials",
+      "id": "rotate-sks-csi-credentials",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/rotate-csi-credentials",
+      "summary": "Rotate Exoscale CSI credentials",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.rotate-sks-karpenter-credentials",
+      "id": "rotate-sks-karpenter-credentials",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/rotate-karpenter-credentials",
+      "summary": "Rotate Exoscale Karpenter credentials",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.rotate-sks-operators-ca",
+      "id": "rotate-sks-operators-ca",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/rotate-operators-ca",
+      "summary": "Rotate operators certificate authority",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.scale-sks-nodepool",
+      "id": "scale-sks-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/nodepool/{sks-nodepool-id}:scale",
+      "summary": "Scale a SKS Nodepool",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "sks-nodepool-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of instances",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.update-sks-cluster",
+      "id": "update-sks-cluster",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}",
+      "summary": "Update an SKS cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Cluster description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Cluster labels",
+          "ref": "sks-cluster-labels"
+        },
+        {
+          "name": "auto-upgrade",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable auto upgrade of the control plane to the latest patch version available"
+        },
+        {
+          "name": "oidc",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Cluster OpenID configmap",
+          "ref": "sks-oidc"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Cluster name"
+        },
+        {
+          "name": "enable-operators-ca",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Add or remove the operators certificate authority (CA) from the list of trusted CAs of the api server. The default value is true"
+        },
+        {
+          "name": "feature-gates",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "A list of Kubernetes-only Alpha features to enable for API server component",
+          "item_type": "string"
+        },
+        {
+          "name": "addons",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Cluster addons",
+          "item_type": "enum"
+        },
+        {
+          "name": "audit",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kubernetes Audit Log Configuration",
+          "ref": "sks-audit-update"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksClusterNodepool.update-sks-nodepool",
+      "id": "update-sks-nodepool",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster_nodepool",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/nodepool/{sks-nodepool-id}",
+      "summary": "Update an SKS Nodepool",
+      "tags": [
+        "nodepool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "sks-nodepool-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "anti-affinity-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Anti-affinity Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool description"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Configures public IP assignment of the Instances with:",
+          "enum_values": [
+            "inet4",
+            "dual"
+          ]
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool labels",
+          "ref": "sks-nodepool-labels"
+        },
+        {
+          "name": "taints",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool taints",
+          "ref": "sks-nodepool-taints"
+        },
+        {
+          "name": "security-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Security Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool name, lowercase only"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool instances type",
+          "ref": "instance-type-ref"
+        },
+        {
+          "name": "private-networks",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Private Networks",
+          "item_type": "object"
+        },
+        {
+          "name": "kubelet-image-gc",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kubelet image GC options",
+          "ref": "kubelet-image-gc"
+        },
+        {
+          "name": "instance-prefix",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Prefix to apply to managed instances names (default: pool), lowercase only"
+        },
+        {
+          "name": "deploy-target",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool Deploy Target",
+          "ref": "deploy-target-ref"
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Nodepool instances disk size in GiB",
+          "format": "int64"
+        },
+        {
+          "name": "nvidia-mig-profiles",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Nvidia MIG Profiles",
+          "ref": "nvidia-mig-profiles"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.upgrade-sks-cluster",
+      "id": "upgrade-sks-cluster",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/upgrade",
+      "summary": "Upgrade an SKS cluster",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Control plane Kubernetes version"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "sks.v2.SksCluster.upgrade-sks-cluster-service-level",
+      "id": "upgrade-sks-cluster-service-level",
+      "product": "sks",
+      "version": "v2",
+      "resource": "sks_cluster",
+      "http_method": "PUT",
+      "path": "/sks-cluster/{id}/upgrade-service-level",
+      "summary": "Upgrade a SKS cluster to pro",
+      "tags": [
+        "cluster"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète",
+    "get-sks-cluster-inspection : réponse inline à 0 propriétés, charge utile indécidable"
+  ]
+}

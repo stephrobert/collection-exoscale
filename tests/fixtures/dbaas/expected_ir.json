@@ -1,0 +1,5843 @@
+{
+  "product": "dbaas",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "enums": [
+    {
+      "name": "dbaas-pg-target-versions",
+      "values": [
+        "14",
+        "17",
+        "15",
+        "18",
+        "13",
+        "16"
+      ],
+      "description": "Target version for upgrade"
+    },
+    {
+      "name": "enum-external-endpoint-types",
+      "values": [
+        "prometheus",
+        "opensearch",
+        "rsyslog",
+        "datadog",
+        "elasticsearch"
+      ],
+      "description": "External endpoint type"
+    },
+    {
+      "name": "enum-integration-types",
+      "values": [
+        "datasource",
+        "logs",
+        "metrics"
+      ],
+      "description": "Integration type"
+    },
+    {
+      "name": "enum-migration-method",
+      "values": [
+        "dump",
+        "replication"
+      ],
+      "description": "The migration method to be used (currently supported only by MySQL service type)"
+    },
+    {
+      "name": "enum-mysql-authentication-plugin",
+      "values": [
+        "caching_sha2_password",
+        "mysql_native_password"
+      ],
+      "description": "Authentication method"
+    },
+    {
+      "name": "enum-pg-pool-mode",
+      "values": [
+        "transaction",
+        "statement",
+        "session"
+      ],
+      "description": "PGBouncer pool mode"
+    },
+    {
+      "name": "enum-pg-synchronous-replication",
+      "values": [
+        "quorum",
+        "off"
+      ],
+      "description": "Synchronous replication type. Note that the service plan also needs to support synchronous replication."
+    },
+    {
+      "name": "enum-pg-variant",
+      "values": [
+        "timescale",
+        "aiven"
+      ],
+      "description": "Variant of the PostgreSQL service, may affect the features that are exposed by default"
+    },
+    {
+      "name": "enum-sort-order",
+      "values": [
+        "desc",
+        "asc"
+      ],
+      "description": "Sort order for log messages (default: desc)"
+    }
+  ],
+  "operations": [
+    {
+      "key": "dbaas.v2.DbaasExternalEndpoint.attach-dbaas-service-to-endpoint",
+      "id": "attach-dbaas-service-to-endpoint",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint/{source-service-name}/attach",
+      "description": "[BETA] Create a new DBaaS connection between a DBaaS service and an external service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "source-service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "dest-endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "External endpoint id",
+          "format": "uuid"
+        },
+        {
+          "name": "type",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "External endpoint type",
+          "enum_name": "enum-external-endpoint-types",
+          "enum_values": [
+            "prometheus",
+            "opensearch",
+            "rsyslog",
+            "datadog",
+            "elasticsearch"
+          ],
+          "ref": "enum-external-endpoint-types"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseUser.create-dbaas-clickhouse-user",
+      "id": "create-dbaas-clickhouse-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_user",
+      "http_method": "POST",
+      "path": "/dbaas-clickhouse/{service-name}/user",
+      "summary": "[BETA] Create a DBaaS ClickHouse user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Password",
+          "ref": "dbaas-user-password"
+        },
+        {
+          "name": "roles",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "ClickHouse roles to grant to the user",
+          "item_type": "object"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-clickhouse-secrets",
+        "payload_schema": "dbaas-user-clickhouse-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointDatadog.create-dbaas-external-endpoint-datadog",
+      "id": "create-dbaas-external-endpoint-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_datadog",
+      "http_method": "POST",
+      "path": "/dbaas-external-endpoint-datadog/{name}",
+      "description": "[BETA] Create DataDog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointElasticsearch.create-dbaas-external-endpoint-elasticsearch",
+      "id": "create-dbaas-external-endpoint-elasticsearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_elasticsearch",
+      "http_method": "POST",
+      "path": "/dbaas-external-endpoint-elasticsearch/{name}",
+      "description": "[BETA] Create ElasticSearch Logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointOpensearch.create-dbaas-external-endpoint-opensearch",
+      "id": "create-dbaas-external-endpoint-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_opensearch",
+      "http_method": "POST",
+      "path": "/dbaas-external-endpoint-opensearch/{name}",
+      "description": "[BETA] Create OpenSearch Logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointPrometheus.create-dbaas-external-endpoint-prometheus",
+      "id": "create-dbaas-external-endpoint-prometheus",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_prometheus",
+      "http_method": "POST",
+      "path": "/dbaas-external-endpoint-prometheus/{name}",
+      "description": "[BETA] Create Prometheus external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointRsyslog.create-dbaas-external-endpoint-rsyslog",
+      "id": "create-dbaas-external-endpoint-rsyslog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_rsyslog",
+      "http_method": "POST",
+      "path": "/dbaas-external-endpoint-rsyslog/{name}",
+      "description": "[BETA] Create RSyslog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegration.create-dbaas-integration",
+      "id": "create-dbaas-integration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration",
+      "http_method": "POST",
+      "path": "/dbaas-integration",
+      "description": "[BETA] Create a new DBaaS integration between two services",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "integration-type",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Integration type",
+          "enum_name": "enum-integration-types",
+          "enum_values": [
+            "datasource",
+            "logs",
+            "metrics"
+          ],
+          "ref": "enum-integration-types"
+        },
+        {
+          "name": "source-service",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "A source service",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "dest-service",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "A destination service",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Integration settings"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaAclConfig.create-dbaas-kafka-schema-registry-acl-config",
+      "id": "create-dbaas-kafka-schema-registry-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_acl_config",
+      "http_method": "POST",
+      "path": "/dbaas-kafka/{name}/schema-registry/acl-config",
+      "summary": "Add a Kafka Schema Registry ACL entry",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Kafka ACL ID",
+          "ref": "dbaas-kafka-acl-id"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Kafka username or username pattern"
+        },
+        {
+          "name": "resource",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Kafka Schema Registry name or pattern"
+        },
+        {
+          "name": "permission",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Kafka Schema Registry permission",
+          "enum_values": [
+            "schema_registry_read",
+            "schema_registry_write"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaAclConfig.create-dbaas-kafka-topic-acl-config",
+      "id": "create-dbaas-kafka-topic-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_acl_config",
+      "http_method": "POST",
+      "path": "/dbaas-kafka/{name}/topic/acl-config",
+      "summary": "Add a Kafka topic ACL entry",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Kafka ACL ID",
+          "ref": "dbaas-kafka-acl-id"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Kafka username or username pattern"
+        },
+        {
+          "name": "topic",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Kafka topic name or pattern"
+        },
+        {
+          "name": "permission",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Kafka permission",
+          "enum_values": [
+            "admin",
+            "read",
+            "readwrite",
+            "write"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaUser.create-dbaas-kafka-user",
+      "id": "create-dbaas-kafka-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_user",
+      "http_method": "POST",
+      "path": "/dbaas-kafka/{service-name}/user",
+      "summary": "Create a DBaaS Kafka user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlDatabase.create-dbaas-mysql-database",
+      "id": "create-dbaas-mysql-database",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_database",
+      "http_method": "POST",
+      "path": "/dbaas-mysql/{service-name}/database",
+      "summary": "Create a DBaaS MySQL database",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Service database name",
+          "ref": "dbaas-database-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlUser.create-dbaas-mysql-user",
+      "id": "create-dbaas-mysql-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_user",
+      "http_method": "POST",
+      "path": "/dbaas-mysql/{service-name}/user",
+      "summary": "Create a DBaaS MySQL user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "authentication",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Authentication option",
+          "enum_name": "enum-mysql-authentication-plugin",
+          "enum_values": [
+            "caching_sha2_password",
+            "mysql_native_password"
+          ],
+          "ref": "enum-mysql-authentication-plugin"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchUser.create-dbaas-opensearch-user",
+      "id": "create-dbaas-opensearch-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_user",
+      "http_method": "POST",
+      "path": "/dbaas-opensearch/{service-name}/user",
+      "summary": "Create a DBaaS OpenSearch user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresConnectionPool.create-dbaas-pg-connection-pool",
+      "id": "create-dbaas-pg-connection-pool",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_connection_pool",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{service-name}/connection-pool",
+      "summary": "Create a DBaaS PostgreSQL connection pool",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Connection pool name",
+          "ref": "dbaas-pg-pool-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Service database name",
+          "ref": "dbaas-database-name"
+        },
+        {
+          "name": "mode",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "PGBouncer pool mode",
+          "enum_name": "enum-pg-pool-mode",
+          "enum_values": [
+            "transaction",
+            "statement",
+            "session"
+          ],
+          "ref": "enum-pg-pool-mode"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Size of PGBouncer's PostgreSQL side connection pool",
+          "ref": "dbaas-pg-pool-size"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Pool username",
+          "ref": "dbaas-pg-pool-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresDatabase.create-dbaas-pg-database",
+      "id": "create-dbaas-pg-database",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_database",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{service-name}/database",
+      "summary": "Create a DBaaS Postgres database",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Service database name",
+          "ref": "dbaas-database-name"
+        },
+        {
+          "name": "lc-collate",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Default string sort order (LC_COLLATE) for PostgreSQL database"
+        },
+        {
+          "name": "lc-ctype",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Default character classification (LC_CTYPE) for PostgreSQL database"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresUpgradeCheck.create-dbaas-pg-upgrade-check",
+      "id": "create-dbaas-pg-upgrade-check",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_upgrade_check",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{service}/upgrade-check",
+      "description": "Check whether you can upgrade Postgres service to a newer version",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "target-version",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Target version for upgrade",
+          "enum_name": "dbaas-pg-target-versions",
+          "enum_values": [
+            "14",
+            "17",
+            "15",
+            "18",
+            "13",
+            "16"
+          ],
+          "ref": "dbaas-pg-target-versions"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-task",
+        "payload_schema": "dbaas-task"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresUser.create-dbaas-postgres-user",
+      "id": "create-dbaas-postgres-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_user",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{service-name}/user",
+      "summary": "Create a DBaaS Postgres user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "allow-replication",
+          "type": "boolean",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouse.create-dbaas-service-clickhouse",
+      "id": "create-dbaas-service-clickhouse",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse",
+      "http_method": "POST",
+      "path": "/dbaas-clickhouse/{name}",
+      "summary": "[BETA] Create a DBaaS ClickHouse service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "ClickHouse major version"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "clickhouse-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "ClickHouse-specific settings",
+          "ref": "json-schema-clickhouse"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "recovery-backup-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Name of a backup to recover from for services that support backup names"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafana.create-dbaas-service-grafana",
+      "id": "create-dbaas-service-grafana",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana",
+      "http_method": "POST",
+      "path": "/dbaas-grafana/{name}",
+      "description": "Create a DBaaS Grafana service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "grafana-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Grafana specific settings",
+          "ref": "json-schema-grafana"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allowed CIDR address blocks for incoming connections",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafka.create-dbaas-service-kafka",
+      "id": "create-dbaas-service-kafka",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka",
+      "http_method": "POST",
+      "path": "/dbaas-kafka/{name}",
+      "summary": "Create a DBaaS Kafka service",
+      "description": "Create a DBaaS Kafka service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "authentication-methods",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka authentication methods"
+        },
+        {
+          "name": "kafka-rest-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable Kafka-REST service"
+        },
+        {
+          "name": "kafka-connect-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Allow clients to connect to kafka_connect from the public internet for service nodes that are in a project VPC or another type of private network"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "schema-registry-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Schema Registry configuration",
+          "ref": "json-schema-schema-registry"
+        },
+        {
+          "name": "kafka-rest-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka REST configuration",
+          "ref": "json-schema-kafka-rest"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "kafka-connect-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka Connect configuration values",
+          "ref": "json-schema-kafka-connect"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "kafka-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka-specific settings",
+          "ref": "json-schema-kafka"
+        },
+        {
+          "name": "schema-registry-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable Schema-Registry service"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Kafka major version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysql.create-dbaas-service-mysql",
+      "id": "create-dbaas-service-mysql",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql",
+      "http_method": "POST",
+      "path": "/dbaas-mysql/{name}",
+      "summary": "Create a DBaaS MySQL service",
+      "description": "Create a DBaaS MySQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "backup-schedule",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        },
+        {
+          "name": "integrations",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Service integrations to be enabled when creating the service.",
+          "item_type": "object"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "recovery-backup-time",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "ISO time of a backup to recover from for services that support arbitrary times"
+        },
+        {
+          "name": "mysql-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "MySQL-specific settings",
+          "ref": "json-schema-mysql"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "admin-username",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Custom username for admin user. This must be set only when a new service is being created."
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "MySQL major version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "admin-password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Custom password for admin user. Defaults to random string. This must be set only when a new service is being created.",
+          "ref": "dbaas-mysql-user-password"
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        },
+        {
+          "name": "binlog-retention-period",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The minimum amount of time in seconds to keep binlog entries before deletion. This may be extended for services that require binlog entries for longer than the default for example if using the MySQL Debezium Kafka connector.",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearch.create-dbaas-service-opensearch",
+      "id": "create-dbaas-service-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch",
+      "http_method": "POST",
+      "path": "/dbaas-opensearch/{name}",
+      "summary": "Create a DBaaS OpenSearch service",
+      "description": "Create a DBaaS OpenSearch service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "max-index-count",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Maximum number of indexes to keep before deleting the oldest one",
+          "format": "int64"
+        },
+        {
+          "name": "keep-index-refresh-interval",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Aiven automation resets index.refresh_interval to default value for every index to be sure that indices are always visible to search. If it doesn't fit your case, you can disable this by setting up this flag to true."
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "index-patterns",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allows you to create glob style patterns and set a max number of indexes matching this pattern you want to keep. Creating indexes exceeding this value will cause the oldest one to get deleted. You could for example create a pattern looking like 'logs.?' and then create index logs.1, logs.2 etc, it will delete logs.1 once you create logs.6. Do note 'logs.?' does not apply to logs.10. Note: Setting max_index_count to 0 will do nothing and the pattern gets ignored.",
+          "item_type": "object"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "index-template",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Template settings for all new indexes"
+        },
+        {
+          "name": "opensearch-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "OpenSearch-specific settings",
+          "ref": "json-schema-opensearch"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "OpenSearch major version"
+        },
+        {
+          "name": "recovery-backup-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Name of a backup to recover from for services that support backup names"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "opensearch-dashboards",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "OpenSearch Dashboards settings"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgres.create-dbaas-service-pg",
+      "id": "create-dbaas-service-pg",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{name}",
+      "summary": "Create a DBaaS PostgreSQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "pgbouncer-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGBouncer connection pooling settings",
+          "ref": "json-schema-pgbouncer"
+        },
+        {
+          "name": "backup-schedule",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Variant of the PostgreSQL service, may affect the features that are exposed by default",
+          "enum_name": "enum-pg-variant",
+          "enum_values": [
+            "timescale",
+            "aiven"
+          ],
+          "ref": "enum-pg-variant"
+        },
+        {
+          "name": "integrations",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Service integrations to be enabled when creating the service.",
+          "item_type": "object"
+        },
+        {
+          "name": "timescaledb-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "TimescaleDB extension configuration values",
+          "ref": "json-schema-timescaledb"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "pgaudit-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGAudit settings",
+          "ref": "json-schema-pgaudit"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "synchronous-replication",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Synchronous replication type. Note that the service plan also needs to support synchronous replication.",
+          "enum_name": "enum-pg-synchronous-replication",
+          "enum_values": [
+            "quorum",
+            "off"
+          ],
+          "ref": "enum-pg-synchronous-replication"
+        },
+        {
+          "name": "recovery-backup-time",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "ISO time of a backup to recover from for services that support arbitrary times"
+        },
+        {
+          "name": "pglookout-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGLookout settings",
+          "ref": "json-schema-pglookout"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "admin-username",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Custom username for admin user. This must be set only when a new service is being created."
+        },
+        {
+          "name": "version",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "PostgreSQL major version",
+          "enum_name": "dbaas-pg-target-versions",
+          "enum_values": [
+            "14",
+            "17",
+            "15",
+            "18",
+            "13",
+            "16"
+          ],
+          "ref": "dbaas-pg-target-versions"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "work-mem",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).",
+          "format": "int64"
+        },
+        {
+          "name": "shared-buffers-percentage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Percentage of total RAM that the database server uses for shared memory buffers. Valid range is 20-60 (float), which corresponds to 20% - 60%. This setting adjusts the shared_buffers configuration value.",
+          "format": "int64"
+        },
+        {
+          "name": "pg-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PostgreSQL-specific settings",
+          "ref": "json-schema-pg"
+        },
+        {
+          "name": "admin-password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Custom password for admin user. Defaults to random string. This must be set only when a new service is being created."
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanos.create-dbaas-service-thanos",
+      "id": "create-dbaas-service-thanos",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos",
+      "http_method": "POST",
+      "path": "/dbaas-thanos/{name}",
+      "summary": "Create a DBaaS Thanos service",
+      "description": "Create a DBaaS Thanos service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allowed CIDR address blocks for incoming connections",
+          "item_type": "string"
+        },
+        {
+          "name": "thanos-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Thanos specific settings",
+          "ref": "json-schema-thanos"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkey.create-dbaas-service-valkey",
+      "id": "create-dbaas-service-valkey",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey",
+      "http_method": "POST",
+      "path": "/dbaas-valkey/{name}",
+      "summary": "Create a DBaaS Valkey service",
+      "description": "Create a DBaaS Valkey service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "valkey-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Valkey.conf settings",
+          "ref": "json-schema-valkey"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "fork-from-service",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service to fork from",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Valkey major version"
+        },
+        {
+          "name": "recovery-backup-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Name of a backup to recover from for services that support backup names"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasTaskMigrationCheck.create-dbaas-task-migration-check",
+      "id": "create-dbaas-task-migration-check",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_task_migration_check",
+      "http_method": "POST",
+      "path": "/dbaas-task-migration-check/{service}",
+      "description": "Create a DBaaS task to check migration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "source-service-uri",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Service URI of the source MySQL or PostgreSQL database with admin credentials."
+        },
+        {
+          "name": "method",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "The migration method to be used (currently supported only by MySQL service type)",
+          "enum_name": "enum-migration-method",
+          "enum_values": [
+            "dump",
+            "replication"
+          ],
+          "ref": "enum-migration-method"
+        },
+        {
+          "name": "ignore-dbs",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Comma-separated list of databases, which should be ignored during migration (supported by MySQL only at the moment)"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyUser.create-dbaas-valkey-user",
+      "id": "create-dbaas-valkey-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_user",
+      "http_method": "POST",
+      "path": "/dbaas-valkey/{service-name}/user",
+      "summary": "Create a DBaaS Valkey user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Username",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "access-control",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "ref": "dbaas-valkey-user-access-control"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseRole.delete-dbaas-clickhouse-role",
+      "id": "delete-dbaas-clickhouse-role",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_role",
+      "http_method": "DELETE",
+      "path": "/dbaas-clickhouse/{service-name}/role/{role-uuid}",
+      "summary": "[BETA] Delete a DBaaS ClickHouse role",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "role-uuid",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseUser.delete-dbaas-clickhouse-user",
+      "id": "delete-dbaas-clickhouse-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-clickhouse/{service-name}/user/{user-uuid}",
+      "summary": "[BETA] Delete a DBaaS ClickHouse user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "user-uuid",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointDatadog.delete-dbaas-external-endpoint-datadog",
+      "id": "delete-dbaas-external-endpoint-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_datadog",
+      "http_method": "DELETE",
+      "path": "/dbaas-external-endpoint-datadog/{endpoint-id}",
+      "description": "[BETA] Delete DataDog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointElasticsearch.delete-dbaas-external-endpoint-elasticsearch",
+      "id": "delete-dbaas-external-endpoint-elasticsearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_elasticsearch",
+      "http_method": "DELETE",
+      "path": "/dbaas-external-endpoint-elasticsearch/{endpoint-id}",
+      "description": "[BETA] Delete ElasticSearch logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointOpensearch.delete-dbaas-external-endpoint-opensearch",
+      "id": "delete-dbaas-external-endpoint-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_opensearch",
+      "http_method": "DELETE",
+      "path": "/dbaas-external-endpoint-opensearch/{endpoint-id}",
+      "description": "[BETA] Delete OpenSearch logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointPrometheus.delete-dbaas-external-endpoint-prometheus",
+      "id": "delete-dbaas-external-endpoint-prometheus",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_prometheus",
+      "http_method": "DELETE",
+      "path": "/dbaas-external-endpoint-prometheus/{endpoint-id}",
+      "description": "[BETA] Delete Prometheus external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointRsyslog.delete-dbaas-external-endpoint-rsyslog",
+      "id": "delete-dbaas-external-endpoint-rsyslog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_rsyslog",
+      "http_method": "DELETE",
+      "path": "/dbaas-external-endpoint-rsyslog/{endpoint-id}",
+      "description": "[BETA] Delete RSyslog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegration.delete-dbaas-integration",
+      "id": "delete-dbaas-integration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration",
+      "http_method": "DELETE",
+      "path": "/dbaas-integration/{id}",
+      "description": "[BETA] Delete a DBaaS Integration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaAclConfig.delete-dbaas-kafka-schema-registry-acl-config",
+      "id": "delete-dbaas-kafka-schema-registry-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_acl_config",
+      "http_method": "DELETE",
+      "path": "/dbaas-kafka/{name}/schema-registry/acl-config/{acl-id}",
+      "summary": "Delete a Kafka ACL entry",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "acl-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-kafka-acl-id"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaAclConfig.delete-dbaas-kafka-topic-acl-config",
+      "id": "delete-dbaas-kafka-topic-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_acl_config",
+      "http_method": "DELETE",
+      "path": "/dbaas-kafka/{name}/topic/acl-config/{acl-id}",
+      "summary": "Delete a Kafka ACL entry",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "acl-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-kafka-acl-id"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaUser.delete-dbaas-kafka-user",
+      "id": "delete-dbaas-kafka-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-kafka/{service-name}/user/{username}",
+      "summary": "Delete a DBaaS kafka user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlDatabase.delete-dbaas-mysql-database",
+      "id": "delete-dbaas-mysql-database",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_database",
+      "http_method": "DELETE",
+      "path": "/dbaas-mysql/{service-name}/database/{database-name}",
+      "summary": "Delete a DBaaS MySQL database",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-mysql-database-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlUser.delete-dbaas-mysql-user",
+      "id": "delete-dbaas-mysql-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-mysql/{service-name}/user/{username}",
+      "summary": "Delete a DBaaS MySQL user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchUser.delete-dbaas-opensearch-user",
+      "id": "delete-dbaas-opensearch-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-opensearch/{service-name}/user/{username}",
+      "summary": "Delete a DBaaS OpenSearch user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresConnectionPool.delete-dbaas-pg-connection-pool",
+      "id": "delete-dbaas-pg-connection-pool",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_connection_pool",
+      "http_method": "DELETE",
+      "path": "/dbaas-postgres/{service-name}/connection-pool/{connection-pool-name}",
+      "summary": "Delete a DBaaS PostgreSQL connection pool",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "connection-pool-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-pg-pool-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresDatabase.delete-dbaas-pg-database",
+      "id": "delete-dbaas-pg-database",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_database",
+      "http_method": "DELETE",
+      "path": "/dbaas-postgres/{service-name}/database/{database-name}",
+      "summary": "Delete a DBaaS Postgres database",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-pg-database-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresUser.delete-dbaas-postgres-user",
+      "id": "delete-dbaas-postgres-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-postgres/{service-name}/user/{username}",
+      "summary": "Delete a DBaaS Postgres user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasService.delete-dbaas-service",
+      "id": "delete-dbaas-service",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service",
+      "http_method": "DELETE",
+      "path": "/dbaas-service/{name}",
+      "summary": "Delete a DBaaS service",
+      "description": "Delete a DBaaS service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouse.delete-dbaas-service-clickhouse",
+      "id": "delete-dbaas-service-clickhouse",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse",
+      "http_method": "DELETE",
+      "path": "/dbaas-clickhouse/{name}",
+      "summary": "[BETA] Delete a ClickHouse service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafana.delete-dbaas-service-grafana",
+      "id": "delete-dbaas-service-grafana",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana",
+      "http_method": "DELETE",
+      "path": "/dbaas-grafana/{name}",
+      "summary": "Delete a Grafana service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafka.delete-dbaas-service-kafka",
+      "id": "delete-dbaas-service-kafka",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka",
+      "http_method": "DELETE",
+      "path": "/dbaas-kafka/{name}",
+      "summary": "Delete a Kafka service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysql.delete-dbaas-service-mysql",
+      "id": "delete-dbaas-service-mysql",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql",
+      "http_method": "DELETE",
+      "path": "/dbaas-mysql/{name}",
+      "summary": "Delete a MySQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearch.delete-dbaas-service-opensearch",
+      "id": "delete-dbaas-service-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch",
+      "http_method": "DELETE",
+      "path": "/dbaas-opensearch/{name}",
+      "summary": "Delete a OpenSearch service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgres.delete-dbaas-service-pg",
+      "id": "delete-dbaas-service-pg",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres",
+      "http_method": "DELETE",
+      "path": "/dbaas-postgres/{name}",
+      "summary": "Delete a Postgres service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanos.delete-dbaas-service-thanos",
+      "id": "delete-dbaas-service-thanos",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos",
+      "http_method": "DELETE",
+      "path": "/dbaas-thanos/{name}",
+      "summary": "Delete a Thanos service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkey.delete-dbaas-service-valkey",
+      "id": "delete-dbaas-service-valkey",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey",
+      "http_method": "DELETE",
+      "path": "/dbaas-valkey/{name}",
+      "summary": "Delete a Valkey service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyUser.delete-dbaas-valkey-user",
+      "id": "delete-dbaas-valkey-user",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_user",
+      "http_method": "DELETE",
+      "path": "/dbaas-valkey/{service-name}/user/{username}",
+      "summary": "Delete a DBaaS Valkey user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpoint.detach-dbaas-service-from-endpoint",
+      "id": "detach-dbaas-service-from-endpoint",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint/{source-service-name}/detach",
+      "description": "[BETA] Detach a DBaaS external integration from a service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "source-service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "integration-id",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "External Integration ID",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlWrite.enable-dbaas-mysql-writes",
+      "id": "enable-dbaas-mysql-writes",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_write",
+      "http_method": "PUT",
+      "path": "/dbaas-mysql/{name}/enable/writes",
+      "summary": "Temporarily enable writes for MySQL services in read-only mode due to filled up storage",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasCaCertificate.get-dbaas-ca-certificate",
+      "id": "get-dbaas-ca-certificate",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_ca_certificate",
+      "http_method": "GET",
+      "path": "/dbaas-ca-certificate",
+      "summary": "Get DBaaS CA Certificate",
+      "description": "Returns a CA Certificate required to reach a DBaaS service through a TLS-protected connection.",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "certificate"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseAclConfig.get-dbaas-clickhouse-acl-config",
+      "id": "get-dbaas-clickhouse-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_acl_config",
+      "http_method": "GET",
+      "path": "/dbaas-clickhouse/{service-name}/acl-config",
+      "summary": "[BETA] Get DBaaS ClickHouse ACL configuration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-clickhouse-acl-config",
+        "payload_field": "users",
+        "payload_schema": "dbaas-clickhouse-user-acl-config",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointDatadog.get-dbaas-external-endpoint-datadog",
+      "id": "get-dbaas-external-endpoint-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_datadog",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-datadog/{endpoint-id}",
+      "description": "[BETA] Get DataDog external endpoint settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-external-endpoint-datadog-output",
+        "payload_schema": "dbaas-external-endpoint-datadog-output"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointElasticsearch.get-dbaas-external-endpoint-elasticsearch",
+      "id": "get-dbaas-external-endpoint-elasticsearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_elasticsearch",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-elasticsearch/{endpoint-id}",
+      "description": "[BETA] Get ElasticSearch Logs external integration endpoint settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-endpoint-elasticsearch-output",
+        "payload_schema": "dbaas-endpoint-elasticsearch-output"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointOpensearch.get-dbaas-external-endpoint-opensearch",
+      "id": "get-dbaas-external-endpoint-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_opensearch",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-opensearch/{endpoint-id}",
+      "description": "[BETA] Get OpenSearch Logs external integration endpoint settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-endpoint-opensearch-output",
+        "payload_schema": "dbaas-endpoint-opensearch-output"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointPrometheus.get-dbaas-external-endpoint-prometheus",
+      "id": "get-dbaas-external-endpoint-prometheus",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_prometheus",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-prometheus/{endpoint-id}",
+      "description": "[BETA] Get Prometheus external integration endpoint settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-endpoint-external-prometheus-output",
+        "payload_schema": "dbaas-endpoint-external-prometheus-output"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointRsyslog.get-dbaas-external-endpoint-rsyslog",
+      "id": "get-dbaas-external-endpoint-rsyslog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_rsyslog",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-rsyslog/{endpoint-id}",
+      "description": "[BETA] Get RSyslog external integration endpoint settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-external-endpoint-rsyslog-output",
+        "payload_schema": "dbaas-external-endpoint-rsyslog-output"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalIntegration.get-dbaas-external-integration",
+      "id": "get-dbaas-external-integration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_integration",
+      "http_method": "GET",
+      "path": "/dbaas-external-integration/{integration-id}",
+      "description": "[BETA] Get a DBaaS external integration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "integration-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-external-integration",
+        "payload_schema": "dbaas-external-integration"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalIntegrationSettingsDatadog.get-dbaas-external-integration-settings-datadog",
+      "id": "get-dbaas-external-integration-settings-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_integration_settings_datadog",
+      "http_method": "GET",
+      "path": "/dbaas-external-integration-settings-datadog/{integration-id}",
+      "description": "[BETA] Get Datadog integration settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "integration-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "settings",
+        "payload_schema": "dbaas-integration-settings-datadog"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegration.get-dbaas-integration",
+      "id": "get-dbaas-integration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration",
+      "http_method": "GET",
+      "path": "/dbaas-integration/{id}",
+      "description": "[BETA] Get a DBaaS Integration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-integration",
+        "payload_schema": "dbaas-integration"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaAclConfig.get-dbaas-kafka-acl-config",
+      "id": "get-dbaas-kafka-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_acl_config",
+      "http_method": "GET",
+      "path": "/dbaas-kafka/{name}/acl-config",
+      "summary": "Get DBaaS kafka ACL configuration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-kafka-acls",
+        "payload_schema": "dbaas-kafka-acls"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMigrationStatus.get-dbaas-migration-status",
+      "id": "get-dbaas-migration-status",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_migration_status",
+      "http_method": "GET",
+      "path": "/dbaas-migration-status/{name}",
+      "summary": "Get a DBaaS migration status",
+      "description": "Get a DBaaS migration status",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-migration-status",
+        "payload_schema": "dbaas-migration-status"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchAclConfig.get-dbaas-opensearch-acl-config",
+      "id": "get-dbaas-opensearch-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_acl_config",
+      "http_method": "GET",
+      "path": "/dbaas-opensearch/{name}/acl-config",
+      "summary": "Get DBaaS OpenSearch ACL configuration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-opensearch-acl-config",
+        "payload_schema": "dbaas-opensearch-acl-config"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouse.get-dbaas-service-clickhouse",
+      "id": "get-dbaas-service-clickhouse",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse",
+      "http_method": "GET",
+      "path": "/dbaas-clickhouse/{name}",
+      "summary": "[BETA] Get a DBaaS ClickHouse service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-clickhouse",
+        "payload_schema": "dbaas-service-clickhouse"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafana.get-dbaas-service-grafana",
+      "id": "get-dbaas-service-grafana",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana",
+      "http_method": "GET",
+      "path": "/dbaas-grafana/{name}",
+      "summary": "Get a DBaaS Grafana service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-grafana",
+        "payload_schema": "dbaas-service-grafana"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafka.get-dbaas-service-kafka",
+      "id": "get-dbaas-service-kafka",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka",
+      "http_method": "GET",
+      "path": "/dbaas-kafka/{name}",
+      "summary": "Get a DBaaS Kafka service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-kafka",
+        "payload_schema": "dbaas-service-kafka"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasServiceLog.get-dbaas-service-logs",
+      "id": "get-dbaas-service-logs",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service_log",
+      "http_method": "POST",
+      "path": "/dbaas-service-logs/{service-name}",
+      "summary": "Get logs of DBaaS service",
+      "description": "Get logs of DBaaS service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "limit",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "How many log entries to receive at most, up to 500 (default: 100)",
+          "format": "int64"
+        },
+        {
+          "name": "sort-order",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Sort order for log messages (default: desc)",
+          "enum_name": "enum-sort-order",
+          "enum_values": [
+            "desc",
+            "asc"
+          ],
+          "ref": "enum-sort-order"
+        },
+        {
+          "name": "offset",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Opaque offset identifier"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-logs",
+        "payload_schema": "dbaas-service-logs"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasServiceMetric.get-dbaas-service-metrics",
+      "id": "get-dbaas-service-metrics",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service_metric",
+      "http_method": "POST",
+      "path": "/dbaas-service-metrics/{service-name}",
+      "summary": "Get metrics of DBaaS service",
+      "description": "Get metrics of DBaaS service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "period",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Metrics time period (default: hour)",
+          "enum_values": [
+            "hour",
+            "week",
+            "year",
+            "month",
+            "day"
+          ]
+        }
+      ],
+      "response": {
+        "payload_field": "metrics"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysql.get-dbaas-service-mysql",
+      "id": "get-dbaas-service-mysql",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql",
+      "http_method": "GET",
+      "path": "/dbaas-mysql/{name}",
+      "summary": "Get a DBaaS MySQL service",
+      "description": "Get a DBaaS MySQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-mysql",
+        "payload_schema": "dbaas-service-mysql"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearch.get-dbaas-service-opensearch",
+      "id": "get-dbaas-service-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch",
+      "http_method": "GET",
+      "path": "/dbaas-opensearch/{name}",
+      "summary": "Get a DBaaS OpenSearch service",
+      "description": "Get a DBaaS OpenSearch service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-opensearch",
+        "payload_schema": "dbaas-service-opensearch"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgres.get-dbaas-service-pg",
+      "id": "get-dbaas-service-pg",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres",
+      "http_method": "GET",
+      "path": "/dbaas-postgres/{name}",
+      "summary": "Get a DBaaS PostgreSQL service",
+      "description": "Get a DBaaS PostgreSQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-pg",
+        "payload_schema": "dbaas-service-pg"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanos.get-dbaas-service-thanos",
+      "id": "get-dbaas-service-thanos",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos",
+      "http_method": "GET",
+      "path": "/dbaas-thanos/{name}",
+      "description": "Get a DBaaS Thanos service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-thanos",
+        "payload_schema": "dbaas-service-thanos"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasServiceType.get-dbaas-service-type",
+      "id": "get-dbaas-service-type",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service_type",
+      "http_method": "GET",
+      "path": "/dbaas-service-type/{service-type-name}",
+      "summary": "Get a DBaaS service type",
+      "description": "Get a DBaaS service type",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-type-name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-type",
+        "payload_schema": "dbaas-service-type"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkey.get-dbaas-service-valkey",
+      "id": "get-dbaas-service-valkey",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey",
+      "http_method": "GET",
+      "path": "/dbaas-valkey/{name}",
+      "description": "Get a DBaaS Valkey service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-service-valkey",
+        "payload_schema": "dbaas-service-valkey"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsClickhouse.get-dbaas-settings-clickhouse",
+      "id": "get-dbaas-settings-clickhouse",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_clickhouse",
+      "http_method": "GET",
+      "path": "/dbaas-settings-clickhouse",
+      "summary": "[BETA] Get DBaaS ClickHouse settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsGrafana.get-dbaas-settings-grafana",
+      "id": "get-dbaas-settings-grafana",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_grafana",
+      "http_method": "GET",
+      "path": "/dbaas-settings-grafana",
+      "summary": "Get DBaaS Grafana settings",
+      "description": "Get DBaaS Grafana settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsKafka.get-dbaas-settings-kafka",
+      "id": "get-dbaas-settings-kafka",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_kafka",
+      "http_method": "GET",
+      "path": "/dbaas-settings-kafka",
+      "summary": "Get DBaaS Kafka settings",
+      "description": "Get DBaaS Kafka settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsMysql.get-dbaas-settings-mysql",
+      "id": "get-dbaas-settings-mysql",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_mysql",
+      "http_method": "GET",
+      "path": "/dbaas-settings-mysql",
+      "summary": "Get DBaaS MySQL settings",
+      "description": "Get DBaaS MySQL settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsOpensearch.get-dbaas-settings-opensearch",
+      "id": "get-dbaas-settings-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_opensearch",
+      "http_method": "GET",
+      "path": "/dbaas-settings-opensearch",
+      "summary": "Get DBaaS OpenSearch settings",
+      "description": "Get DBaaS OpenSearch settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsPg.get-dbaas-settings-pg",
+      "id": "get-dbaas-settings-pg",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_pg",
+      "http_method": "GET",
+      "path": "/dbaas-settings-pg",
+      "summary": "Get DBaaS PostgreSQL settings",
+      "description": "Get DBaaS PostgreSQL settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsThanos.get-dbaas-settings-thanos",
+      "id": "get-dbaas-settings-thanos",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_thanos",
+      "http_method": "GET",
+      "path": "/dbaas-settings-thanos",
+      "summary": "Get DBaaS Thanos settings",
+      "description": "Get DBaaS Thanos settings",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasSettingsValkey.get-dbaas-settings-valkey",
+      "id": "get-dbaas-settings-valkey",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_settings_valkey",
+      "http_method": "GET",
+      "path": "/dbaas-settings-valkey",
+      "summary": "Get DBaaS Valkey settings",
+      "description": "Returns the default settings for Valkey.",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasTask.get-dbaas-task",
+      "id": "get-dbaas-task",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_task",
+      "http_method": "GET",
+      "path": "/dbaas-task/{service}/{id}",
+      "summary": "Get a DBaaS task",
+      "description": "Get a DBaaS task",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-task",
+        "payload_schema": "dbaas-task"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseRole.list-dbaas-clickhouse-roles",
+      "id": "list-dbaas-clickhouse-roles",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_role",
+      "http_method": "GET",
+      "path": "/dbaas-clickhouse/{service-name}/role",
+      "summary": "[BETA] List DBaaS ClickHouse roles",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-clickhouse-roles",
+        "payload_field": "roles",
+        "payload_schema": "dbaas-clickhouse-role",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseUser.list-dbaas-clickhouse-users",
+      "id": "list-dbaas-clickhouse-users",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_user",
+      "http_method": "GET",
+      "path": "/dbaas-clickhouse/{service-name}/user",
+      "summary": "[BETA] List DBaaS ClickHouse users",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-clickhouse-users",
+        "payload_field": "users",
+        "payload_schema": "dbaas-clickhouse-user",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointType.list-dbaas-external-endpoint-types",
+      "id": "list-dbaas-external-endpoint-types",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_type",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoint-types",
+      "description": "[BETA] List available external endpoint types and their schemas for DBaaS external integrations",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "endpoint-types",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpoint.list-dbaas-external-endpoints",
+      "id": "list-dbaas-external-endpoints",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint",
+      "http_method": "GET",
+      "path": "/dbaas-external-endpoints",
+      "description": "[BETA] List available external endpoints for integrations",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "dbaas-endpoints",
+        "payload_schema": "dbaas-external-endpoint",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalIntegration.list-dbaas-external-integrations",
+      "id": "list-dbaas-external-integrations",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_integration",
+      "http_method": "GET",
+      "path": "/dbaas-external-integrations/{service-name}",
+      "description": "[BETA] List all DBaaS connections between services and external endpoints",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "payload_field": "external-integrations",
+        "payload_schema": "dbaas-external-integration",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegrationSettings.list-dbaas-integration-settings",
+      "id": "list-dbaas-integration-settings",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration_settings",
+      "http_method": "GET",
+      "path": "/dbaas-integration-settings/{integration-type}/{source-type}/{dest-type}",
+      "description": "[BETA] Get DBaaS integration settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "integration-type",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "source-type",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        },
+        {
+          "name": "dest-type",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "payload_field": "settings"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegrationType.list-dbaas-integration-types",
+      "id": "list-dbaas-integration-types",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration_type",
+      "http_method": "GET",
+      "path": "/dbaas-integration-types",
+      "description": "[BETA] Get DBaaS integration types",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "dbaas-integration-types",
+        "payload_schema": "dbaas-integration-type",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasServiceType.list-dbaas-service-types",
+      "id": "list-dbaas-service-types",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service_type",
+      "http_method": "GET",
+      "path": "/dbaas-service-type",
+      "summary": "DBaaS Service Types",
+      "description": "List available service types for DBaaS",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "dbaas-service-types",
+        "payload_schema": "dbaas-service-type",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasService.list-dbaas-services",
+      "id": "list-dbaas-services",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_service",
+      "http_method": "GET",
+      "path": "/dbaas-service",
+      "summary": "List DBaaS services",
+      "description": "List DBaaS services",
+      "tags": [
+        "dbaas"
+      ],
+      "response": {
+        "payload_field": "dbaas-services",
+        "payload_schema": "dbaas-service-common",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyUser.list-dbaas-valkey-users",
+      "id": "list-dbaas-valkey-users",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_user",
+      "http_method": "GET",
+      "path": "/dbaas-valkey/{service-name}/user",
+      "summary": "List DBaaS Valkey users with ACL configuration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-valkey-users",
+        "payload_field": "users",
+        "payload_schema": "dbaas-valkey-user",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhousePassword.reset-dbaas-clickhouse-user-password",
+      "id": "reset-dbaas-clickhouse-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_password",
+      "http_method": "PUT",
+      "path": "/dbaas-clickhouse/{service-name}/user/{username}/password/reset",
+      "summary": "[BETA] Reset the credentials of a DBaaS ClickHouse user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-clickhouse-secrets",
+        "payload_schema": "dbaas-user-clickhouse-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafanaPassword.reset-dbaas-grafana-user-password",
+      "id": "reset-dbaas-grafana-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana_password",
+      "http_method": "PUT",
+      "path": "/dbaas-grafana/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS Grafana user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaPassword.reset-dbaas-kafka-user-password",
+      "id": "reset-dbaas-kafka-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_password",
+      "http_method": "PUT",
+      "path": "/dbaas-kafka/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS Kafka user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlPassword.reset-dbaas-mysql-user-password",
+      "id": "reset-dbaas-mysql-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_password",
+      "http_method": "PUT",
+      "path": "/dbaas-mysql/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS mysql user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-mysql-user-password"
+        },
+        {
+          "name": "authentication",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Authentication method",
+          "enum_name": "enum-mysql-authentication-plugin",
+          "enum_values": [
+            "caching_sha2_password",
+            "mysql_native_password"
+          ],
+          "ref": "enum-mysql-authentication-plugin"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchPassword.reset-dbaas-opensearch-user-password",
+      "id": "reset-dbaas-opensearch-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_password",
+      "http_method": "PUT",
+      "path": "/dbaas-opensearch/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS OpenSearch user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresPassword.reset-dbaas-postgres-user-password",
+      "id": "reset-dbaas-postgres-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_password",
+      "http_method": "PUT",
+      "path": "/dbaas-postgres/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS Postgres user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyPassword.reset-dbaas-valkey-user-password",
+      "id": "reset-dbaas-valkey-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_password",
+      "http_method": "PUT",
+      "path": "/dbaas-valkey/{service-name}/user/{username}/password/reset",
+      "summary": "Reset the credentials of a DBaaS Valkey user",
+      "description": "If no password is provided one will be generated automatically.",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "password",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "New password",
+          "ref": "dbaas-user-password"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhousePassword.reveal-dbaas-clickhouse-user-password",
+      "id": "reveal-dbaas-clickhouse-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_password",
+      "http_method": "GET",
+      "path": "/dbaas-clickhouse/{service-name}/user/{username}/password/reveal",
+      "summary": "[BETA] Reveal the secrets of a DBaaS ClickHouse user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-clickhouse-secrets",
+        "payload_schema": "dbaas-user-clickhouse-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafanaPassword.reveal-dbaas-grafana-user-password",
+      "id": "reveal-dbaas-grafana-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana_password",
+      "http_method": "GET",
+      "path": "/dbaas-grafana/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS Grafana user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-grafana-secrets",
+        "payload_schema": "dbaas-user-grafana-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaPassword.reveal-dbaas-kafka-connect-password",
+      "id": "reveal-dbaas-kafka-connect-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_password",
+      "http_method": "GET",
+      "path": "/dbaas-kafka/{service-name}/connect/password/reveal",
+      "summary": "Reveal the secrets for DBaaS Kafka Connect",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-kafka-connect-secrets",
+        "payload_schema": "dbaas-user-kafka-connect-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaPassword.reveal-dbaas-kafka-user-password",
+      "id": "reveal-dbaas-kafka-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_password",
+      "http_method": "GET",
+      "path": "/dbaas-kafka/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS Kafka user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-kafka-secrets",
+        "payload_schema": "dbaas-user-kafka-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlPassword.reveal-dbaas-mysql-user-password",
+      "id": "reveal-dbaas-mysql-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_password",
+      "http_method": "GET",
+      "path": "/dbaas-mysql/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS MySQL user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-mysql-secrets",
+        "payload_schema": "dbaas-user-mysql-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchPassword.reveal-dbaas-opensearch-user-password",
+      "id": "reveal-dbaas-opensearch-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_password",
+      "http_method": "GET",
+      "path": "/dbaas-opensearch/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS OpenSearch user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-opensearch-secrets",
+        "payload_schema": "dbaas-user-opensearch-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresPassword.reveal-dbaas-postgres-user-password",
+      "id": "reveal-dbaas-postgres-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_password",
+      "http_method": "GET",
+      "path": "/dbaas-postgres/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS Postgres user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-postgres-secrets",
+        "payload_schema": "dbaas-user-postgres-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanosPassword.reveal-dbaas-thanos-user-password",
+      "id": "reveal-dbaas-thanos-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos_password",
+      "http_method": "GET",
+      "path": "/dbaas-thanos/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS Thanos user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-thanos-secrets",
+        "payload_schema": "dbaas-user-thanos-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyPassword.reveal-dbaas-valkey-user-password",
+      "id": "reveal-dbaas-valkey-user-password",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_password",
+      "http_method": "GET",
+      "path": "/dbaas-valkey/{service-name}/user/{username}/password/reveal",
+      "summary": "Reveal the secrets of a DBaaS Valkey user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-user-valkey-secrets",
+        "payload_schema": "dbaas-user-valkey-secrets"
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouseMaintenance.start-dbaas-clickhouse-maintenance",
+      "id": "start-dbaas-clickhouse-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-clickhouse/{name}/maintenance/start",
+      "summary": "[BETA] Initiate ClickHouse maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafanaMaintenance.start-dbaas-grafana-maintenance",
+      "id": "start-dbaas-grafana-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-grafana/{name}/maintenance/start",
+      "summary": "Initiate Grafana maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafkaMaintenance.start-dbaas-kafka-maintenance",
+      "id": "start-dbaas-kafka-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-kafka/{name}/maintenance/start",
+      "summary": "Initiate Kafka maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlMaintenance.start-dbaas-mysql-maintenance",
+      "id": "start-dbaas-mysql-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-mysql/{name}/maintenance/start",
+      "summary": "Initiate MySQL maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchMaintenance.start-dbaas-opensearch-maintenance",
+      "id": "start-dbaas-opensearch-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-opensearch/{name}/maintenance/start",
+      "summary": "Initiate OpenSearch maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresMaintenance.start-dbaas-pg-maintenance",
+      "id": "start-dbaas-pg-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-postgres/{name}/maintenance/start",
+      "summary": "Initiate PostgreSQL maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanosMaintenance.start-dbaas-thanos-maintenance",
+      "id": "start-dbaas-thanos-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-thanos/{name}/maintenance/start",
+      "summary": "Initiate Thanos maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyMaintenance.start-dbaas-valkey-maintenance",
+      "id": "start-dbaas-valkey-maintenance",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_maintenance",
+      "http_method": "PUT",
+      "path": "/dbaas-valkey/{name}/maintenance/start",
+      "summary": "Initiate Valkey maintenance update",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysqlMigration.stop-dbaas-mysql-migration",
+      "id": "stop-dbaas-mysql-migration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql_migration",
+      "http_method": "POST",
+      "path": "/dbaas-mysql/{name}/migration/stop",
+      "summary": "Stop a DBaaS MySQL migration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresMigration.stop-dbaas-pg-migration",
+      "id": "stop-dbaas-pg-migration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_migration",
+      "http_method": "POST",
+      "path": "/dbaas-postgres/{name}/migration/stop",
+      "summary": "Stop a DBaaS PostgreSQL migration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyMigration.stop-dbaas-valkey-migration",
+      "id": "stop-dbaas-valkey-migration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_migration",
+      "http_method": "POST",
+      "path": "/dbaas-valkey/{name}/migration/stop",
+      "summary": "Stop a DBaaS Valkey migration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointDatadog.update-dbaas-external-endpoint-datadog",
+      "id": "update-dbaas-external-endpoint-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_datadog",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint-datadog/{endpoint-id}",
+      "description": "[BETA] Update DataDog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointElasticsearch.update-dbaas-external-endpoint-elasticsearch",
+      "id": "update-dbaas-external-endpoint-elasticsearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_elasticsearch",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint-elasticsearch/{endpoint-id}",
+      "description": "[BETA] Update ElasticSearch Logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointOpensearch.update-dbaas-external-endpoint-opensearch",
+      "id": "update-dbaas-external-endpoint-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_opensearch",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint-opensearch/{endpoint-id}",
+      "description": "[BETA] Update OpenSearch Logs external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointPrometheus.update-dbaas-external-endpoint-prometheus",
+      "id": "update-dbaas-external-endpoint-prometheus",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_prometheus",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint-prometheus/{endpoint-id}",
+      "description": "[BETA] Update Prometheus external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalEndpointRsyslog.update-dbaas-external-endpoint-rsyslog",
+      "id": "update-dbaas-external-endpoint-rsyslog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_endpoint_rsyslog",
+      "http_method": "PUT",
+      "path": "/dbaas-external-endpoint-rsyslog/{endpoint-id}",
+      "description": "[BETA] Update RSyslog external integration endpoint",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "endpoint-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasExternalIntegrationSettingsDatadog.update-dbaas-external-integration-settings-datadog",
+      "id": "update-dbaas-external-integration-settings-datadog",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_external_integration_settings_datadog",
+      "http_method": "POST",
+      "path": "/dbaas-external-integration-settings-datadog/{integration-id}",
+      "description": "[BETA] Manage Datadog integration settings",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "integration-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "ref": "dbaas-integration-settings-datadog"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasIntegration.update-dbaas-integration",
+      "id": "update-dbaas-integration",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_integration",
+      "http_method": "PUT",
+      "path": "/dbaas-integration/{id}",
+      "description": "[BETA] Update a existing DBaaS integration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "settings",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Integration settings"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearchAclConfig.update-dbaas-opensearch-acl-config",
+      "id": "update-dbaas-opensearch-acl-config",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch_acl_config",
+      "http_method": "PUT",
+      "path": "/dbaas-opensearch/{name}/acl-config",
+      "summary": "Create a DBaaS OpenSearch ACL configuration",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "acls",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "List of OpenSearch ACLs",
+          "item_type": "object"
+        },
+        {
+          "name": "acl-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable OpenSearch ACLs. When disabled authenticated service users have unrestricted access."
+        },
+        {
+          "name": "extended-acl-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable to enforce index rules in a limited fashion for requests that use the _mget, _msearch, and _bulk APIs"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresConnectionPool.update-dbaas-pg-connection-pool",
+      "id": "update-dbaas-pg-connection-pool",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_connection_pool",
+      "http_method": "PUT",
+      "path": "/dbaas-postgres/{service-name}/connection-pool/{connection-pool-name}",
+      "summary": "Update a DBaaS PostgreSQL connection pool",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "connection-pool-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-pg-pool-name"
+        },
+        {
+          "name": "database-name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Service database name",
+          "ref": "dbaas-database-name"
+        },
+        {
+          "name": "mode",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "PGBouncer pool mode",
+          "enum_name": "enum-pg-pool-mode",
+          "enum_values": [
+            "transaction",
+            "statement",
+            "session"
+          ],
+          "ref": "enum-pg-pool-mode"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Size of PGBouncer's PostgreSQL side connection pool",
+          "ref": "dbaas-pg-pool-size"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Pool username",
+          "ref": "dbaas-pg-pool-username"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgresAllowReplication.update-dbaas-postgres-allow-replication",
+      "id": "update-dbaas-postgres-allow-replication",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres_allow_replication",
+      "http_method": "PUT",
+      "path": "/dbaas-postgres/{service-name}/user/{username}/allow-replication",
+      "summary": "Update access control for one service user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "allow-replication",
+          "type": "boolean",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "dbaas-postgres-users",
+        "payload_field": "users",
+        "is_list": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasClickhouse.update-dbaas-service-clickhouse",
+      "id": "update-dbaas-service-clickhouse",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_clickhouse",
+      "http_method": "PUT",
+      "path": "/dbaas-clickhouse/{name}",
+      "summary": "[BETA] Update a DBaaS ClickHouse service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "ClickHouse major version"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "clickhouse-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "ClickHouse-specific settings",
+          "ref": "json-schema-clickhouse"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasGrafana.update-dbaas-service-grafana",
+      "id": "update-dbaas-service-grafana",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_grafana",
+      "http_method": "PUT",
+      "path": "/dbaas-grafana/{name}",
+      "summary": "Update a DBaaS Grafana service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "grafana-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Grafana specific settings",
+          "ref": "json-schema-grafana"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allowed CIDR address blocks for incoming connections",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasKafka.update-dbaas-service-kafka",
+      "id": "update-dbaas-service-kafka",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_kafka",
+      "http_method": "PUT",
+      "path": "/dbaas-kafka/{name}",
+      "summary": "Update a DBaaS Kafka service",
+      "description": "Update a DBaaS Kafka service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "authentication-methods",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka authentication methods"
+        },
+        {
+          "name": "kafka-rest-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable Kafka-REST service"
+        },
+        {
+          "name": "kafka-connect-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Allow clients to connect to kafka_connect from the public internet for service nodes that are in a project VPC or another type of private network"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "schema-registry-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Schema Registry configuration",
+          "ref": "json-schema-schema-registry"
+        },
+        {
+          "name": "kafka-rest-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka REST configuration",
+          "ref": "json-schema-kafka-rest"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "kafka-connect-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka Connect configuration values",
+          "ref": "json-schema-kafka-connect"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "kafka-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Kafka-specific settings",
+          "ref": "json-schema-kafka"
+        },
+        {
+          "name": "schema-registry-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable Schema-Registry service"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Kafka major version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasMysql.update-dbaas-service-mysql",
+      "id": "update-dbaas-service-mysql",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_mysql",
+      "http_method": "PUT",
+      "path": "/dbaas-mysql/{name}",
+      "summary": "Update a DBaaS MySQL service",
+      "description": "Update a DBaaS MySQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "backup-schedule",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "mysql-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "MySQL-specific settings",
+          "ref": "json-schema-mysql"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "MySQL version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        },
+        {
+          "name": "binlog-retention-period",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "The minimum amount of time in seconds to keep binlog entries before deletion. This may be extended for services that require binlog entries for longer than the default for example if using the MySQL Debezium Kafka connector.",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasOpensearch.update-dbaas-service-opensearch",
+      "id": "update-dbaas-service-opensearch",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_opensearch",
+      "http_method": "PUT",
+      "path": "/dbaas-opensearch/{name}",
+      "summary": "Update a DBaaS OpenSearch service",
+      "description": "Update a DBaaS OpenSearch service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "max-index-count",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Maximum number of indexes to keep before deleting the oldest one",
+          "format": "int64"
+        },
+        {
+          "name": "keep-index-refresh-interval",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Aiven automation resets index.refresh_interval to default value for every index to be sure that indices are always visible to search. If it doesn't fit your case, you can disable this by setting up this flag to true."
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "index-patterns",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allows you to create glob style patterns and set a max number of indexes matching this pattern you want to keep. Creating indexes exceeding this value will cause the oldest one to get deleted. You could for example create a pattern looking like 'logs.?' and then create index logs.1, logs.2 etc, it will delete logs.1 once you create logs.6. Do note 'logs.?' does not apply to logs.10. Note: Setting max_index_count to 0 will do nothing and the pattern gets ignored.",
+          "item_type": "object"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "index-template",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Template settings for all new indexes"
+        },
+        {
+          "name": "opensearch-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "OpenSearch-specific settings",
+          "ref": "json-schema-opensearch"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "opensearch-dashboards",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "OpenSearch Dashboards settings"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasPostgres.update-dbaas-service-pg",
+      "id": "update-dbaas-service-pg",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_postgres",
+      "http_method": "PUT",
+      "path": "/dbaas-postgres/{name}",
+      "summary": "Update a DBaaS PostgreSQL service",
+      "description": "Update a DBaaS PostgreSQL service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "pgbouncer-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGBouncer connection pooling settings",
+          "ref": "json-schema-pgbouncer"
+        },
+        {
+          "name": "backup-schedule",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        },
+        {
+          "name": "variant",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Variant of the PostgreSQL service, may affect the features that are exposed by default",
+          "enum_name": "enum-pg-variant",
+          "enum_values": [
+            "timescale",
+            "aiven"
+          ],
+          "ref": "enum-pg-variant"
+        },
+        {
+          "name": "timescaledb-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "TimescaleDB extension configuration values",
+          "ref": "json-schema-timescaledb"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "pgaudit-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGAudit settings",
+          "ref": "json-schema-pgaudit"
+        },
+        {
+          "name": "synchronous-replication",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Synchronous replication type. Note that the service plan also needs to support synchronous replication.",
+          "enum_name": "enum-pg-synchronous-replication",
+          "enum_values": [
+            "quorum",
+            "off"
+          ],
+          "ref": "enum-pg-synchronous-replication"
+        },
+        {
+          "name": "pglookout-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PGLookout settings",
+          "ref": "json-schema-pglookout"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Version"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "work-mem",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Sets the maximum amount of memory to be used by a query operation (such as a sort or hash table) before writing to temporary disk files, in MB. Default is 1MB + 0.075% of total RAM (up to 32MB).",
+          "format": "int64"
+        },
+        {
+          "name": "shared-buffers-percentage",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Percentage of total RAM that the database server uses for shared memory buffers. Valid range is 20-60 (float), which corresponds to 20% - 60%. This setting adjusts the shared_buffers configuration value.",
+          "format": "int64"
+        },
+        {
+          "name": "pg-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "PostgreSQL-specific settings",
+          "ref": "json-schema-pg"
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasThanos.update-dbaas-service-thanos",
+      "id": "update-dbaas-service-thanos",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_thanos",
+      "http_method": "PUT",
+      "path": "/dbaas-thanos/{name}",
+      "description": "Update a DBaaS Thanos service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allowed CIDR address blocks for incoming connections",
+          "item_type": "string"
+        },
+        {
+          "name": "thanos-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Thanos specific settings",
+          "ref": "json-schema-thanos"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkey.update-dbaas-service-valkey",
+      "id": "update-dbaas-service-valkey",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey",
+      "http_method": "PUT",
+      "path": "/dbaas-valkey/{name}",
+      "description": "Update a DBaaS Valkey service",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "maintenance",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Automatic maintenance settings"
+        },
+        {
+          "name": "plan",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subscription plan"
+        },
+        {
+          "name": "termination-protection",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Service is protected against termination and powering off"
+        },
+        {
+          "name": "ip-filter",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Allow incoming connections from CIDR address block, e.g. '10.20.0.0/16'",
+          "item_type": "string"
+        },
+        {
+          "name": "migration",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Migrate data from existing server"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Valkey major version"
+        },
+        {
+          "name": "valkey-settings",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Valkey.conf settings",
+          "ref": "json-schema-valkey"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "dbaas.v2.DbaasValkeyUser.update-dbaas-valkey-user-access-control",
+      "id": "update-dbaas-valkey-user-access-control",
+      "product": "dbaas",
+      "version": "v2",
+      "resource": "dbaas_valkey_user",
+      "http_method": "PUT",
+      "path": "/dbaas-valkey/{service-name}/user/{username}",
+      "summary": "Update access control for one DBaaS Valkey service user",
+      "tags": [
+        "dbaas"
+      ],
+      "parameters": [
+        {
+          "name": "service-name",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-service-name"
+        },
+        {
+          "name": "username",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "ref": "dbaas-user-username"
+        },
+        {
+          "name": "access-control",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "ref": "dbaas-valkey-user-access-control"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

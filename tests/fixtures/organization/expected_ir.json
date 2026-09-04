@@ -1,0 +1,109 @@
+{
+  "product": "organization",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "organization.v2.EnvImpact.get-env-impact",
+      "id": "get-env-impact",
+      "product": "organization",
+      "version": "v2",
+      "resource": "env_impact",
+      "http_method": "GET",
+      "path": "/env-impact/{period}",
+      "summary": "[BETA] Retrieve organization environmental impact reports",
+      "description": "[BETA] Returns environmental impact reports for an organization",
+      "tags": [
+        "organization"
+      ],
+      "parameters": [
+        {
+          "name": "period",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "env-impact-report",
+        "payload_schema": "env-impact-report"
+      }
+    },
+    {
+      "key": "organization.v2.LiveBalance.get-live-balance",
+      "id": "get-live-balance",
+      "product": "organization",
+      "version": "v2",
+      "resource": "live_balance",
+      "http_method": "GET",
+      "path": "/live-balance",
+      "summary": "[BETA] Retrieve the live-balance",
+      "description": "[BETA] Returns the live-balance of the current organization.",
+      "tags": [
+        "organization"
+      ],
+      "response": {
+        "schema": "live-balance",
+        "payload_schema": "live-balance"
+      }
+    },
+    {
+      "key": "organization.v2.Organization.get-organization",
+      "id": "get-organization",
+      "product": "organization",
+      "version": "v2",
+      "resource": "organization",
+      "http_method": "GET",
+      "path": "/organization",
+      "summary": "Retrieve an organization",
+      "tags": [
+        "organization"
+      ],
+      "response": {
+        "schema": "organization",
+        "payload_schema": "organization"
+      }
+    },
+    {
+      "key": "organization.v2.UsageReport.get-usage-report",
+      "id": "get-usage-report",
+      "product": "organization",
+      "version": "v2",
+      "resource": "usage_report",
+      "http_method": "GET",
+      "path": "/usage-report",
+      "summary": "Retrieve organization usage reports",
+      "description": "Returns aggregated usage reports for an organization",
+      "tags": [
+        "organization"
+      ],
+      "parameters": [
+        {
+          "name": "period",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "payload_field": "usage",
+        "is_list": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

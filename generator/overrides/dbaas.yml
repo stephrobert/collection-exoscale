@@ -1,0 +1,18 @@
+# Décisions humaines sur le produit dbaas de l'API v2 d'Exoscale.
+#
+# Même frontière que dans compute.yml : Terraform relie, Ansible n'attache pas.
+
+operations:
+
+  dbaas.v2.DbaasExternalEndpoint.attach-dbaas-service-to-endpoint:
+    generation: ignore
+    reason: >-
+      Relation entre un service DBaaS et un point de terminaison externe,
+      déclarée par Terraform et non par Ansible. Un module qui la modifierait
+      produirait un écart entre l'état déclaré et l'état réel.
+
+  dbaas.v2.DbaasExternalEndpoint.detach-dbaas-service-from-endpoint:
+    generation: ignore
+    reason: >-
+      Relation entre deux ressources, déclarée par Terraform et non par
+      Ansible. Même frontière que attach-dbaas-service-to-endpoint.

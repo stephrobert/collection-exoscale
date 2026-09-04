@@ -1,0 +1,66 @@
+{
+  "product": "general",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "operations": [
+    {
+      "key": "general.v2.Operation.get-operation",
+      "id": "get-operation",
+      "product": "general",
+      "version": "v2",
+      "resource": "operation",
+      "http_method": "GET",
+      "path": "/operation/{id}",
+      "summary": "Retrieve Operation details",
+      "tags": [
+        "operation"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "general.v2.Zone.list-zones",
+      "id": "list-zones",
+      "product": "general",
+      "version": "v2",
+      "resource": "zone",
+      "http_method": "GET",
+      "path": "/zone",
+      "summary": "List Zones",
+      "tags": [
+        "zone"
+      ],
+      "response": {
+        "payload_field": "zones",
+        "payload_schema": "zone",
+        "is_list": true
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète"
+  ]
+}

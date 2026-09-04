@@ -1,54 +1,47 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-# Copyright: (c) Contrat de laboratoire (@lab)
+# Copyright: (c) Stéphane Robert (@stephrobert)
 # GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 # This file is generated.
 # Do not edit manually.
 #
-# Contrat    : tests/fixtures/gadget/input/exoscale.v2.json
-# Opérations : reveal-gadget-password
+# Contrat    : specs/exoscale/exoscale.v2.json
+# Opérations : get-live-balance
 # Régénérer  : mise run generate
 
 from __future__ import annotations
 
 DOCUMENTATION = r"""
-module: gadget_gadget_password_info
-short_description: Gather information about Exoscale gadget passwords
-version_added: 9.9.9
+module: organization_live_balance_info
+short_description: Gather information about Exoscale live balances
+version_added: 0.1.0
 description:
-- Read one Exoscale gadget password by its identifier, or list them. This module never changes
-  anything.
+- Read one Exoscale live balance. This module never changes anything.
 author:
-- Contrat de laboratoire (@lab)
-options:
-  id:
-    description: Not documented by the Exoscale API contract.
-    type: str
+- Stéphane Robert (@stephrobert)
+options: {}
 extends_documentation_fragment:
-- lab.gadget.exoscale
-notes:
-- 'The returned value is a secret: do not log the task output.'
+- stephrobert.exoscale.exoscale
 """
 
 EXAMPLES = r"""
-- name: Read one gadget password
-  lab.gadget.gadget_gadget_password_info:
+- name: Read one live balance
+  stephrobert.exoscale.organization_live_balance_info:
     zone: ch-gva-2
-    id: 11111111-2222-3333-4444-555555555555
   register: result
 """
 
 RETURN = r"""
-gadget_password:
-  description: The gadget password, when a selector is given.
-  returned: when the selector is given
+live_balance:
+  description: The live balance.
+  returned: always
   type: dict
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
 
-from ansible_collections.lab.gadget.plugins.module_utils.exoscale import (  # noqa: E402
+from ansible_collections.stephrobert.exoscale.plugins.module_utils.exoscale import (  # noqa: E402
     InfoModule,
     Operation,
     exoscale_argument_spec,
@@ -56,9 +49,7 @@ from ansible_collections.lab.gadget.plugins.module_utils.exoscale import (  # no
 )
 
 #: Options propres au module, traduites depuis le contrat.
-MODULE_ARGUMENT_SPEC = {
-    "id": {"type": "str"},
-}
+MODULE_ARGUMENT_SPEC = {}
 
 #: Ce que le contrat exige pour une action et pas pour une autre.
 REQUIRED_IF = []
@@ -70,13 +61,12 @@ ARGUMENT_SPEC.update(MODULE_ARGUMENT_SPEC)
 
 #: Ce que le module exécute, et les décisions que le générateur a prises.
 MODULE = InfoModule(
-    resource="gadget_password",
+    resource="live_balance",
     get_operation=Operation(
-        id="reveal-gadget-password",
-        method="reveal_gadget_password",
-        path_params={"id": "id"},
+        id="get-live-balance",
+        method="get_live_balance",
+        path_params={},
     ),
-    selector="id",
 )
 
 

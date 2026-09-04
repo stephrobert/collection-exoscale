@@ -41,11 +41,11 @@ def test_les_operations_asynchrones_sont_comptees(gadget_plan: ProductPlan) -> N
 
 def test_un_module_regroupe_ses_operations(gadget_plan: ProductPlan) -> None:
     modules = gadget_plan.modules()
-    assert {plan.operation.id for plan in modules["gadget_gadget_info"]} >= {
+    assert {plan.operation.id for plan in modules["gadget_info"]} >= {
         "get-gadget",
         "list-gadgets",
     }
-    assert {plan.operation.id for plan in modules["gadget_gadget_action"]} >= {
+    assert {plan.operation.id for plan in modules["gadget_action"]} >= {
         "start-gadget",
         "scale-gadget",
         "reset-gadget-field",

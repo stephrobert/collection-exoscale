@@ -17,7 +17,7 @@ module: compute_vpc_route_info
 short_description: Gather information about Exoscale vpc routes
 version_added: 0.1.0
 description:
-- Read one Exoscale vpc route by its identifier, or list them. This module never changes anything.
+- List Exoscale vpc routes. This module never changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -38,7 +38,7 @@ EXAMPLES = r"""
 RETURN = r"""
 vpc_routes:
   description: The vpc routes.
-  returned: when no selector is given
+  returned: always
   type: list
   elements: dict
 """
