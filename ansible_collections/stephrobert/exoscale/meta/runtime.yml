@@ -1,5 +1,22 @@
 ---
-# La borne basse est celle que les modules générés emploient réellement :
-# `required_if` et `supports_check_mode` existent depuis longtemps, et le
-# runtime n'importe rien de plus récent que `ansible.module_utils.basic`.
-requires_ansible: ">=2.16.0"
+# Version minimale d'ansible-core exigée par la collection.
+#
+# 2.17 est **mesuré**, pas supposé. Le 4 septembre 2026, `ansible-test sanity`
+# a été lancé sur cette collection avec chaque version de 2.16 à 2.21 :
+#
+#   2.16.19   32 contrôles, 3 en échec : future-import-boilerplate et
+#             metaclass-boilerplate sur les 27 fichiers, plus le pep8
+#   2.17.14   24 contrôles, 1 en échec : le pep8, corrigé depuis
+#   2.18.19   24 contrôles, 1 en échec : le même pep8
+#   2.19.12   24 contrôles, 1 en échec : le même pep8
+#   2.20.8    24 contrôles, 1 en échec : le même pep8
+#   2.21.3    24 contrôles, 1 en échec : le même pep8
+#
+# Les deux boilerplates de 2.16 ne sont pas des détails de forme : 2.16 accepte
+# encore des cibles Python 2.7, que ces modules ne savent pas servir. À partir
+# de 2.17 le support de Python 2 disparaît, les deux contrôles avec. Le pep8
+# était un en-tête généré de 240 caractères, replié depuis par le renderer.
+#
+# La matrice de `.github/workflows/ci.yml` éprouve chaque version déclarée ici.
+# Relever ce nombre demande de le remesurer, pas de l'estimer.
+requires_ansible: ">=2.17.0"

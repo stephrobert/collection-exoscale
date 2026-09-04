@@ -1,7 +1,8 @@
 # Ce qu'une commande peut reproduire ne se versionne pas, et `git status` doit
-# rester vide après `mise run check`.
+# rester vide après `mise run check`, `mise run sanity` et `mise run package`.
+# La CI le vérifie, par `mise run check:worktree`.
 
-# Artefacts des tâches : build/reports
+# Artefacts des tâches : build/reports, build/docs, build/dist
 build/
 
 # Environnements et caches d'outils
@@ -16,7 +17,13 @@ __pycache__/
 # `ansible-test` écrit ici quand il tourne depuis le dépôt.
 /ansible_collections/stephrobert/exoscale/tests/output/
 
+# `antsibull-changelog` reconstruit ce cache à chaque exécution.
+/ansible_collections/stephrobert/exoscale/changelogs/.plugin-cache.yaml
+
 # Collections installées pour un essai local, et archives.
 .ansible/
 *.tar.gz
 *.retry
+
+# Réglages locaux de mise, propres à un poste.
+.mise.local.toml

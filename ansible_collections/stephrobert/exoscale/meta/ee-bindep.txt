@@ -1,0 +1,2 @@
+# Paquets système dont les modules ont besoin. Aucun : le SDK Exoscale est du
+# Python pur et signe ses requêtes avec la bibliothèque standard.

@@ -1,0 +1,8 @@
+# Paquets Python dont les modules de cette collection ont besoin à
+# l'exécution, côté contrôleur.
+#
+# La borne basse est celle que le runtime emploie : `Client.wait` avec
+# `max_wait_time`, présent depuis la 0.16 du SDK. C'est la même borne que
+# `pyproject.toml` déclare pour les tests, et un test exige que le SDK installé
+# expose chaque méthode qu'un module appelle.
+exoscale>=0.16
