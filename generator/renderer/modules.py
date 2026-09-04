@@ -14,6 +14,7 @@ Deux propriétés sont tenues ici et vérifiées par un test :
 
 from __future__ import annotations
 
+import textwrap
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,15 @@ GENERATED_HEADER = "# This file is generated.\n# Do not edit manually."
 #: Longueur au-delà de laquelle un littéral passe à la ligne.
 INLINE_BUDGET = 88
 
+#: Largeur de repli de l'en-tête `# Opérations : ...`.
+#:
+#: `ansible-test sanity` refuse une ligne de plus de 160 caractères (pep8
+#: E501), et c'est mesuré : l'en-tête de `compute_instance_action`, onze
+#: opérations sur une ligne, faisait 240 caractères, et sanity le refusait sur
+#: chacune des cinq versions d'ansible-core de la matrice. Replié bien en deçà
+#: de la limite, pour qu'un lecteur n'ait pas à faire défiler.
+HEADER_WIDTH = 100
+
 
 class RenderError(ValueError):
     """Le modèle ne peut pas être rendu tel quel."""
@@ -47,7 +57,7 @@ def render_module(spec: AnsibleModuleSpec, *, source: str) -> str:
         generated_header=GENERATED_HEADER,
         authors=", ".join(spec.collection.authors) or spec.collection.fqcn,
         source=source,
-        operations=", ".join(spec.operation_ids),
+        operation_lines=operation_header(spec.operation_ids),
         documentation=_yaml_block(spec.documentation()),
         examples=_yaml_block(spec.examples_documentation()),
         returns=_yaml_block(spec.return_documentation()),
@@ -62,6 +72,25 @@ def render_module(spec: AnsibleModuleSpec, *, source: str) -> str:
     if not rendered.endswith("\n"):
         rendered += "\n"
     return rendered
+
+
+def operation_header(operation_ids: tuple[str, ...]) -> list[str]:
+    """Les lignes `# Opérations : ...` de l'en-tête, repliées à `HEADER_WIDTH`.
+
+    Une opération n'est jamais coupée en deux : `break_on_hyphens` est faux
+    parce que chaque identifiant en porte, et couper `revert-instance-to-
+    snapshot` en fin de ligne ferait chercher un nom qui n'existe pas.
+    """
+    prefix = "# Opérations : "
+    continuation = "#" + " " * (len(prefix) - 1)
+    return textwrap.wrap(
+        ", ".join(operation_ids),
+        width=HEADER_WIDTH,
+        initial_indent=prefix,
+        subsequent_indent=continuation,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
 
 
 def write_modules(

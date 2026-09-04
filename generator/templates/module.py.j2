@@ -6,7 +6,9 @@
 {{ generated_header }}
 #
 # Contrat    : {{ source }}
-# Opérations : {{ operations }}
+{% for line in operation_lines %}
+{{ line }}
+{% endfor %}
 # Régénérer  : mise run generate
 
 from __future__ import annotations

@@ -7,7 +7,9 @@
 # Do not edit manually.
 #
 # Contrat    : specs/exoscale/exoscale.v2.json
-# Opérations : add-instance-protection, enable-tpm, reboot-instance, remove-instance-protection, reset-instance-field, reset-instance-password, resize-instance-disk, revert-instance-to-snapshot, scale-instance, start-instance, stop-instance
+# Opérations : add-instance-protection, enable-tpm, reboot-instance, remove-instance-protection,
+#              reset-instance-field, reset-instance-password, resize-instance-disk,
+#              revert-instance-to-snapshot, scale-instance, start-instance, stop-instance
 # Régénérer  : mise run generate
 
 from __future__ import annotations

@@ -129,3 +129,19 @@ def test_le_module_ne_porte_aucune_logique(path: Path) -> None:
         assert not isinstance(node, (ast.If, ast.For, ast.While, ast.Try)), (
             "une décision s'est glissée"
         )
+
+
+@pytest.mark.parametrize("path", MODULES, ids=[p.stem for p in MODULES])
+def test_aucune_ligne_dun_module_ne_depasse_la_limite_de_sanity(path: Path) -> None:
+    """`ansible-test sanity` refuse une ligne de plus de 160 caractères (pep8 E501).
+
+    Mesuré sur les cinq versions d'ansible-core de la matrice : l'en-tête de
+    `compute_instance_action` en faisait 240, et la sanity était rouge partout.
+    Ce test le dit hors ligne, avant que la matrice ne le dise en CI.
+    """
+    trop_longues = [
+        (numero, len(ligne))
+        for numero, ligne in enumerate(path.read_text(encoding="utf-8").splitlines(), start=1)
+        if len(ligne) > 160
+    ]
+    assert trop_longues == [], f"{path.name} : lignes trop longues {trop_longues}"
