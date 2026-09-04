@@ -28,6 +28,14 @@ dev = [
     # module appelle.
     "ansible-core>=2.16",
     "exoscale>=0.16",
+    # L'outil officiel de documentation des collections. Il juge une classe de
+    # défauts qu'`ansible-test sanity` laisse passer, mesuré sur
+    # collection-scaleway : une référence croisée invalide sort en 0 chez l'un
+    # et en 3 chez l'autre.
+    "antsibull-docs>=2.0",
+    # Le changelog n'est pas écrit à la main : chaque changement dépose un
+    # fragment, et `antsibull-changelog lint` les juge avant la publication.
+    "antsibull-changelog>=0.24",
 ]
 
 [tool.setuptools.packages.find]
@@ -67,6 +75,10 @@ warn_unused_ignores = true
 # `ansible.module_utils`, qui n'est pas typé. C'est `ansible-test sanity` qui
 # contrôle `ansible_collections/`.
 files = ["generator", "scripts"]
+
+# Les scripts s'appellent entre eux par leur nom de fichier : ils ne forment
+# pas un paquet, et mypy doit les trouver là où ils sont.
+mypy_path = "scripts"
 
 [[tool.mypy.overrides]]
 module = "yaml"

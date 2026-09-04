@@ -102,6 +102,94 @@
       "find": "    if operation.is_async and isinstance(result, dict) and module.params.get(\"wait\", True):",
       "replace": "    if operation.is_async and isinstance(result, dict) and module.params.get(\"wait\", True) and False:",
       "test": "tests/unit/collection/test_runtime.py::test_une_action_attend_la_fin_de_loperation"
+    },
+    {
+      "name": "mode-strict-temoin",
+      "why": "`report --strict` sort en 0 sur un dépôt sain comme sur un mode strict cassé : sans témoin, un contrôle qui cherche une absence est indiscernable d'un contrôle qui n'a rien regardé.",
+      "file": "generator/cli.py",
+      "find": "    if arguments.strict and (plan.unknown or plan.orphan_overrides):",
+      "replace": "    if arguments.strict and (plan.unknown or plan.orphan_overrides) and False:",
+      "test": "tests/unit/generator/test_cli.py::test_le_mode_strict_sort_en_2_sur_une_operation_non_classee"
+    },
+    {
+      "name": "en-tete-replie",
+      "why": "Un en-tête de plus de 160 caractères fait refuser le module par ansible-test sanity, sur toutes les versions de la matrice.",
+      "file": "generator/renderer/modules.py",
+      "find": "        width=HEADER_WIDTH,",
+      "replace": "        width=HEADER_WIDTH * 1000,",
+      "test": "tests/unit/generator/test_renderer.py::test_len_tete_des_operations_se_replie_sous_la_limite_de_sanity"
+    },
+    {
+      "name": "sanity-sur-collection-invisible",
+      "why": "Dans un dépôt git, ansible-test demande la liste des fichiers à git : sur une collection non suivie, il sort en 0 sans rien examiner.",
+      "file": "scripts/sanity.py",
+      "find": "    if under_git and tracked == 0:",
+      "replace": "    if under_git and tracked == 0 and False:",
+      "test": "tests/unit/outillage/test_verdicts.py::test_sanity_refuse_une_collection_que_git_ne_suit_pas"
+    },
+    {
+      "name": "sanity-qui-ne-mesure-rien",
+      "why": "`All targets skipped` sort en 0 : c'est la seule chose qui distingue une collection saine d'une mesure qui n'a pas eu lieu.",
+      "file": "scripts/sanity.py",
+      "find": "    return NOTHING_TESTED not in output",
+      "replace": "    return NOTHING_TESTED not in output or True",
+      "test": "tests/unit/outillage/test_verdicts.py::test_sanity_refuse_un_vert_qui_na_rien_examine"
+    },
+    {
+      "name": "archive-repertoire-interdit",
+      "why": "Une garde qui ne regarde que les fichiers ne voit pas un répertoire interdit, même vide : l'archive de Scaleway emportait un tests/ vide.",
+      "file": "scripts/package.py",
+      "find": "if chemin.split(\"/\", 1)[0] in FORBIDDEN}",
+      "replace": "if chemin.split(\"/\", 1)[0] in FORBIDDEN and False}",
+      "test": "tests/unit/outillage/test_verdicts.py::test_un_repertoire_interdit_meme_vide_est_une_fuite"
+    },
+    {
+      "name": "archive-plugin-oublie",
+      "why": "Sans cette moitié, une archive vide passerait tous les contrôles de fuite.",
+      "file": "scripts/package.py",
+      "find": "    manquants = [attendu for attendu in required_entries(collection) if attendu not in contenu]",
+      "replace": "    manquants = [attendu for attendu in required_entries(collection) if attendu not in contenu and False]",
+      "test": "tests/unit/outillage/test_verdicts.py::test_une_archive_qui_oublie_un_plugin_est_refusee"
+    },
+    {
+      "name": "release-tag-discordant",
+      "why": "L'archive est nommée d'après galaxy.yml, pas d'après le tag : les deux divergent sans que rien ne le dise, et une version publiée est immuable.",
+      "file": "scripts/release.py",
+      "find": "    elif normaliser(tag) != collection.version:",
+      "replace": "    elif normaliser(tag) != collection.version and False:",
+      "test": "tests/unit/outillage/test_release.py::test_un_tag_qui_ne_dit_pas_la_version_de_galaxy_est_refuse"
+    },
+    {
+      "name": "release-arbre-sale",
+      "why": "Une archive construite sur des modifications non versionnées ne se reproduit pas.",
+      "file": "scripts/release.py",
+      "find": "    if sale:",
+      "replace": "    if sale and False:",
+      "test": "tests/unit/outillage/test_release.py::test_un_arbre_sale_est_refuse"
+    },
+    {
+      "name": "release-fragments-en-attente",
+      "why": "Les fragments en attente décrivent ce que la version apporte, et resteraient dehors.",
+      "file": "scripts/release.py",
+      "find": "    if fragments:",
+      "replace": "    if fragments and False:",
+      "test": "tests/unit/outillage/test_release.py::test_des_fragments_en_attente_sont_refuses"
+    },
+    {
+      "name": "derive-produit-non-indexe",
+      "why": "Un seul document porte tous les produits et le golden ne suit que les indexés : sans le recensement, une opération apparue dans un produit non indexé passe en silence.",
+      "file": "scripts/drift_report.py",
+      "find": "        if a != b:",
+      "replace": "        if a != b and False:",
+      "test": "tests/unit/outillage/test_drift.py::test_un_produit_non_indexe_qui_grossit_est_nomme"
+    },
+    {
+      "name": "compteurs-perimes",
+      "why": "Un nombre recopié à la main vieillit en silence et se lit exactement comme une mesure : le contrôle doit rougir sur un bloc périmé.",
+      "file": "scripts/readme_counters.py",
+      "find": "        if attendu != texte:\n            perimes.append(nom)",
+      "replace": "        if attendu != texte and False:\n            perimes.append(nom)",
+      "test": "tests/unit/outillage/test_compteurs.py::test_un_bloc_perime_fait_echouer_le_controle"
     }
   ]
 }
