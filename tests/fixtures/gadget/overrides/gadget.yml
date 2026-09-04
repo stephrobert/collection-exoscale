@@ -19,3 +19,26 @@ operations:
       id:
         option: snapshot_id
         reason: Le corps porte l'identifiant du snapshot, pas celui du gadget.
+
+  # L'état attendu après une action. `success` sur l'opération dit que le
+  # travail est fini, pas que le gadget tourne : le runtime relit le gadget
+  # jusqu'à `running`. `scale` est déclaré `always` : il agit même sur un
+  # gadget qui tourne, comme `reboot-instance` sur le contrat réel.
+  gadget.v2.Gadget.start-gadget:
+    wait:
+      field: state
+      states:
+        start: running
+      reason: >-
+        Reproduit start-instance : le contrat ne dit pas l'état d'arrivée, un
+        humain le décide et le runtime le vérifie.
+
+  gadget.v2.Gadget.scale-gadget:
+    wait:
+      field: state
+      states:
+        scale: running
+      always: [scale]
+      reason: >-
+        Reproduit reboot-instance : l'état visé peut déjà être là, et l'action
+        doit quand même agir.

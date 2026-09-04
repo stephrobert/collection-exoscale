@@ -59,6 +59,10 @@ extends_documentation_fragment:
 notes:
 - 'Every action is asynchronous on the Exoscale API: the module waits for the returned operation
   to reach C(success) when I(wait) is true, and returns the operation as accepted otherwise.'
+- Once the operation succeeds, the module reads the gadget until its C(state) reaches the
+  expected value (C(scale) leads to C(running), C(start) leads to C(running)), and reports
+  C(changed=false) without sending anything when the gadget already is in that state, except
+  for C(scale), which always acts.
 """
 
 EXAMPLES = r"""
@@ -75,6 +79,10 @@ operation:
     done, C(pending) when the module did not wait.'
   returned: always
   type: dict
+state:
+  description: The C(state) of the gadget, read after the operation.
+  returned: when an expected state is declared for the action
+  type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
@@ -166,6 +174,8 @@ MODULE = ActionModule(
                 body_params={"gadget_type": "gadget-type"},
                 is_async=True,
             ),
+            expected_state="running",
+            always=True,
         ),
         Action(
             name="start",
@@ -176,7 +186,14 @@ MODULE = ActionModule(
                 body_params={"rescue_profile": "rescue-profile"},
                 is_async=True,
             ),
+            expected_state="running",
         ),
+    ),
+    state_field="state",
+    read_operation=Operation(
+        id="get-gadget",
+        method="get_gadget",
+        path_params={"id": "id"},
     ),
 )
 

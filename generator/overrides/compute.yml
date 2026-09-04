@@ -159,3 +159,41 @@ operations:
         reason: >-
           Le corps porte un champ `id` qui est celui du snapshot à restaurer.
           Sous le nom `id`, il se confondrait avec le sélecteur de l'instance.
+
+  # --- L'état attendu après une action sur une instance ---------------------
+  #
+  # `operation.state == success` dit que le travail est fini, pas que
+  # l'instance est `running`. Le contrat n'énumère l'état que pour `instance`
+  # (`instance-state` : running, stopped, starting, stopping, ...) : c'est la
+  # seule ressource où un état attendu se déclare sans deviner, et c'est ici
+  # qu'il se déclare. Le runtime relit l'instance avant d'agir (une machine
+  # qui tourne déjà n'a pas besoin de `start`, et le module rend
+  # `changed=False`) et après l'opération, jusqu'à l'état attendu.
+
+  compute.v2.Instance.start-instance:
+    wait:
+      field: state
+      states:
+        start: running
+      reason: >-
+        Démarrer vise `running` ; `success` sur l'opération précède parfois
+        l'état, et une machine qui tourne déjà n'a rien à démarrer.
+
+  compute.v2.Instance.stop-instance:
+    wait:
+      field: state
+      states:
+        stop: stopped
+      reason: >-
+        Arrêter vise `stopped` ; une machine déjà arrêtée n'a rien à arrêter,
+        et le module le dit par `changed=False`.
+
+  compute.v2.Instance.reboot-instance:
+    wait:
+      field: state
+      states:
+        reboot: running
+      always: [reboot]
+      reason: >-
+        Redémarrer vise `running`, qui est aussi l'état de départ : l'action
+        agit toujours, et le runtime attend que la machine soit revenue.

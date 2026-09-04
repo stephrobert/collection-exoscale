@@ -71,6 +71,10 @@ extends_documentation_fragment:
 notes:
 - 'Every action is asynchronous on the Exoscale API: the module waits for the returned operation
   to reach C(success) when I(wait) is true, and returns the operation as accepted otherwise.'
+- Once the operation succeeds, the module reads the instance until its C(state) reaches the
+  expected value (C(reboot) leads to C(running), C(start) leads to C(running), C(stop) leads
+  to C(stopped)), and reports C(changed=false) without sending anything when the instance
+  already is in that state, except for C(reboot), which always acts.
 """
 
 EXAMPLES = r"""
@@ -87,6 +91,10 @@ operation:
     done, C(pending) when the module did not wait.'
   returned: always
   type: dict
+state:
+  description: The C(state) of the instance, read after the operation.
+  returned: when an expected state is declared for the action
+  type: str
 """
 
 from ansible.module_utils.basic import AnsibleModule  # noqa: E402
@@ -194,6 +202,8 @@ MODULE = ActionModule(
                 path_params={"id": "id"},
                 is_async=True,
             ),
+            expected_state="running",
+            always=True,
         ),
         Action(
             name="remove_protection",
@@ -261,6 +271,7 @@ MODULE = ActionModule(
                 body_params={"rescue_profile": "rescue-profile"},
                 is_async=True,
             ),
+            expected_state="running",
         ),
         Action(
             name="stop",
@@ -270,7 +281,14 @@ MODULE = ActionModule(
                 path_params={"id": "id"},
                 is_async=True,
             ),
+            expected_state="stopped",
         ),
+    ),
+    state_field="state",
+    read_operation=Operation(
+        id="get-instance",
+        method="get_instance",
+        path_params={"id": "id"},
     ),
 )
 

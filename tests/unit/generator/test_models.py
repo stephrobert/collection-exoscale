@@ -231,3 +231,24 @@ def test_une_action_sur_un_singleton_na_ni_selecteur_ni_identifiant(
     quota = _spec(specs, "gadget_quota_action")
     assert quota.selector is None
     assert [name for name, entry in quota.options.items() if entry.get("required")] == ["action"]
+
+
+def test_un_etat_attendu_embarque_la_lecture_de_la_ressource(gadget_plan: ProductPlan) -> None:
+    """`success` sur l'opération ne dit pas que le gadget tourne : le module
+    d'action porte la lecture unitaire, et chaque action son état et si elle
+    agit toujours."""
+    specs, _ = build_module_specs(gadget_plan, LAB_COLLECTION)
+    action = _spec(specs, "gadget_action")
+    assert action.state_field == "state"
+    assert action.read_operation is not None and action.read_operation.id == "get-gadget"
+    par_nom = {a.name: a for a in action.actions}
+    assert par_nom["start"].expected_state == "running" and not par_nom["start"].always_acts
+    assert par_nom["scale"].expected_state == "running" and par_nom["scale"].always_acts
+    assert par_nom["stop"].expected_state is None if "stop" in par_nom else True
+    assert "state" in action.return_documentation()
+    assert any("changed=false" in note for note in action.documentation()["notes"])
+
+
+def test_sans_etat_attendu_aucune_lecture_nest_embarquee(gadget_plan: ProductPlan) -> None:
+    specs, _ = build_module_specs(gadget_plan, LAB_COLLECTION)
+    assert _spec(specs, "gadget_widget_action").read_operation is None
