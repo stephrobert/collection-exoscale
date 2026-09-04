@@ -1,0 +1,104 @@
+# mise : outillage épinglé et lanceur de tâches.
+#
+#   mise install        installe l'outillage et crée le venv
+#   mise run setup      installe les dépendances de développement
+#   mise tasks          liste ce qui est lançable
+#   mise run check      ce qu'une pull request doit passer
+#
+# Une seule définition par tâche, et la CI appelle ces tâches plutôt que de
+# recopier leurs commandes.
+
+[tools]
+python = "3.12"
+ruff = "0.16.5"
+uv = "0.11.26"
+
+[env]
+_.python.venv = { path = ".venv", create = true }
+
+# Le produit par défaut. `compute` est le premier : la chaîne complète marche
+# sur lui avant qu'un second n'arrive.
+PRODUCT = "{{ get_env(name='PRODUCT', default='compute') }}"
+
+# ---- Environnement ---------------------------------------------------------
+
+[tasks.setup]
+description = "Installer les dépendances de développement depuis le verrou"
+# `--require-hashes` : pip refuse une archive dont l'empreinte ne correspond
+# pas, et toute dépendance absente du verrou. `uv pip` et non `python -m pip` :
+# un venv créé par uv ne contient pas pip.
+run = """
+uv pip install --require-hashes --requirement requirements-dev.lock
+uv pip install --editable . --no-deps --no-build-isolation
+"""
+
+[tasks.lock]
+description = "Recalculer le verrou des dépendances après un changement de pyproject.toml"
+run = "uv pip compile pyproject.toml --extra dev --generate-hashes --quiet -o requirements-dev.lock"
+
+# ---- Contrôles rapides -----------------------------------------------------
+
+[tasks.test]
+description = "Lancer les tests du générateur et de la collection"
+run = "python -m pytest tests/unit"
+
+[tasks.lint]
+description = "Vérifier le style"
+run = """
+ruff check generator scripts tests
+ruff format --check generator scripts tests
+"""
+
+[tasks.typecheck]
+description = "Vérifier les types"
+run = "python -m mypy"
+
+[tasks.falsify]
+description = "Prouver que les gardes mordent, en les neutralisant hors dépôt"
+run = "python scripts/falsify.py"
+
+# ---- Générateur ------------------------------------------------------------
+
+[tasks.products]
+description = "Recenser le document entier, produit par produit, avec les UNKNOWN de chacun"
+run = "python -m generator products --classify"
+
+[tasks.report]
+description = "Recensement, puis rapport strict de chaque produit indexé"
+run = "python scripts/report_all.py"
+
+[tasks.generate]
+description = "Écrire les modules du produit dans plugins/modules"
+run = "python -m generator generate $PRODUCT"
+
+[tasks."sync:api"]
+description = "Retélécharger le contrat depuis openapi-v2.exoscale.com"
+run = "python scripts/sync_specs.py"
+
+[tasks."golden:update"]
+description = "Régénérer les golden fixtures, après lecture du diff"
+run = "python scripts/update_golden.py"
+
+# ---- Dérive ----------------------------------------------------------------
+
+[tasks."check:generated"]
+description = "Échouer si un artefact versionné n'est plus à jour"
+depends = ["golden:update", "generate"]
+run = "python scripts/check_generated.py tests/fixtures ansible_collections"
+
+[tasks."check:worktree"]
+description = "Échouer si un build a laissé un fichier non ignoré"
+run = "python scripts/check_generated.py ."
+
+# ---- Le tout ---------------------------------------------------------------
+
+[tasks.check]
+description = "Ce qu'une pull request doit passer"
+depends = ["lint", "typecheck", "test", "report", "check:generated", "falsify"]
+
+[tasks.clean]
+description = "Supprimer les artefacts d'exécution"
+run = """
+rm -rf build .pytest_cache .ruff_cache .mypy_cache
+find . -maxdepth 1 -name '*.egg-info' -exec rm -rf {} +
+"""

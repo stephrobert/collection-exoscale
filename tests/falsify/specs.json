@@ -1,0 +1,107 @@
+{
+  "_comment": [
+    "Mutations déclarées à côté des gardes qu'elles neutralisent.",
+    "Chaque entrée neutralise une condition en gardant tous les noms évalués :",
+    "une mutation qui supprime le terme casserait l'import, tous les tests",
+    "rougiraient, et ça ressemblerait exactement à une garde prouvée.",
+    "Lancer : python scripts/falsify.py"
+  ],
+  "mutations": [
+    {
+      "name": "override-sans-raison",
+      "why": "Un override qui change une classification sans raison est indéfendable à la relecture.",
+      "file": "generator/overrides/loader.py",
+      "find": "    if generation is not None and not raw.get(\"reason\"):",
+      "replace": "    if generation is not None and not raw.get(\"reason\") and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_une_classification_sans_raison_est_refusee"
+    },
+    {
+      "name": "override-champ-inconnu",
+      "why": "Une faute de frappe dans un champ produirait un override silencieusement inerte.",
+      "file": "generator/overrides/loader.py",
+      "find": "    unknown = set(raw) - KNOWN_FIELDS\n    if unknown:",
+      "replace": "    unknown = set(raw) - KNOWN_FIELDS\n    if unknown and False:",
+      "test": "tests/unit/generator/test_overrides.py::test_un_champ_inconnu_est_refuse"
+    },
+    {
+      "name": "renommage-sans-raison",
+      "why": "Renommer une option du contrat est un arbitrage : sans raison, personne ne saura pourquoi `id` s'appelle `snapshot_id`.",
+      "file": "generator/overrides/loader.py",
+      "find": "        decide = any(declaration.get(champ) is not None for champ in arbitrages)",
+      "replace": "        decide = any(declaration.get(champ) is not None for champ in arbitrages) and False",
+      "test": "tests/unit/generator/test_overrides.py::test_un_renommage_doption_sans_raison_est_refuse"
+    },
+    {
+      "name": "override-orphelin",
+      "why": "Un override qui ne désigne plus rien décrit une API qui n'existe plus, et le rapport doit le dire.",
+      "file": "generator/overrides/loader.py",
+      "find": "        return tuple(sorted(key for key in self.operations if key not in known))",
+      "replace": "        return tuple(sorted(key for key in self.operations if key not in known and False))",
+      "test": "tests/unit/generator/test_overrides.py::test_un_override_orphelin_est_signale"
+    },
+    {
+      "name": "no_log",
+      "why": "Un paramètre sensible qui perd no_log écrit un secret dans le journal d'Ansible.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    return any(fragment in name for fragment in _SENSITIVE_FRAGMENTS)",
+      "replace": "    return any(fragment in name for fragment in _SENSITIVE_FRAGMENTS) and False",
+      "test": "tests/unit/generator/test_mapping.py::test_un_champ_sensible_recoit_no_log"
+    },
+    {
+      "name": "identifiant-masque-comme-un-secret",
+      "why": "L'identifiant d'une clé n'est pas le secret qu'elle protège : le masquer prive l'opérateur d'une information utile sans rien protéger.",
+      "file": "generator/ansible/mapping.py",
+      "find": "    if name.endswith(\"_id\"):\n        return False",
+      "replace": "    if name.endswith(\"_id\") and False:\n        return False",
+      "test": "tests/unit/generator/test_mapping.py::test_un_identifiant_nest_jamais_le_secret_quil_designe"
+    },
+    {
+      "name": "put-a-verbe-daction",
+      "why": "Sans cette règle, 52 actions d'Exoscale portées par PUT (start, scale, rotate) restent UNKNOWN.",
+      "file": "generator/classifier/rules.py",
+      "find": "    if method in _WRITE_METHODS:",
+      "replace": "    if method in _WRITE_METHODS and False:",
+      "test": "tests/unit/generator/test_classifier.py::test_un_put_qui_porte_un_verbe_daction_est_une_action"
+    },
+    {
+      "name": "reset-field-nest-pas-une-suppression",
+      "why": "Un DELETE sur `{field}` remet un champ à sa valeur par défaut ; le ranger en suppression ou en UNKNOWN trahit le contrat.",
+      "file": "generator/classifier/rules.py",
+      "find": "    if verb in _RESET_VERBS and method is HTTPMethod.DELETE:",
+      "replace": "    if verb in _RESET_VERBS and method is HTTPMethod.DELETE and False:",
+      "test": "tests/unit/generator/test_classifier.py::test_un_delete_sur_un_champ_ne_supprime_pas_la_ressource"
+    },
+    {
+      "name": "selecteur-enumere",
+      "why": "Un paramètre de chemin énuméré (`{field}`) n'identifie pas une ressource ; le prendre pour un sélecteur privait quatre ressources de leur module d'action.",
+      "file": "generator/ansible/models.py",
+      "find": "    return parameter.location is ParameterLocation.PATH and not parameter.enum_values",
+      "replace": "    return parameter.location is ParameterLocation.PATH and not (parameter.enum_values and False)",
+      "test": "tests/unit/generator/test_models.py::test_une_ressource_dont_la_seule_action_remet_un_champ_a_zero_a_un_selecteur"
+    },
+    {
+      "name": "parametre-sans-type",
+      "why": "Un paramètre dont le contrat tait le type ne doit pas devenir une chaîne par défaut : le module est écarté en nommant le paramètre.",
+      "file": "generator/ansible/models.py",
+      "find": "        if parameter.type is ApiType.UNKNOWN:\n            raise UntypedParameter(",
+      "replace": "        if parameter.type is ApiType.UNKNOWN and False:\n            raise UntypedParameter(",
+      "test": "tests/unit/generator/test_models.py::test_un_parametre_sans_type_ecarte_le_module_avec_sa_raison"
+    },
+    {
+      "name": "runtime-nom-du-contrat",
+      "why": "Le runtime doit envoyer le nom du contrat, pas celui de l'option : sinon `id` part à la place de `instance-id` et l'API refuse ou, pire, vise une autre ressource.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "                kwargs[api_name.replace(\"-\", \"_\")] = value",
+      "replace": "                kwargs[option.replace(\"-\", \"_\")] = value",
+      "test": "tests/unit/collection/test_runtime.py::test_le_runtime_envoie_le_nom_du_contrat_et_non_celui_de_loption"
+    },
+    {
+      "name": "runtime-attend-loperation",
+      "why": "Un module qui rend `changed` sans attendre la fin de l'opération asynchrone ment.",
+      "file": "ansible_collections/stephrobert/exoscale/plugins/module_utils/exoscale.py",
+      "find": "    if operation.is_async and isinstance(result, dict) and module.params.get(\"wait\", True):",
+      "replace": "    if operation.is_async and isinstance(result, dict) and module.params.get(\"wait\", True) and False:",
+      "test": "tests/unit/collection/test_runtime.py::test_une_action_attend_la_fin_de_loperation"
+    }
+  ]
+}

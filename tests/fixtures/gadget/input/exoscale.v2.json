@@ -1,0 +1,884 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "version": "2.0.0",
+    "title": "Gadget API",
+    "description": "Un produit de test.\n\nCe second paragraphe ne doit pas se retrouver dans l'IR."
+  },
+  "_comment": [
+    "Contrat de laboratoire. Il reproduit délibérément les formes mesurées sur le",
+    "contrat réel d'Exoscale : operationId en kebab-case, zone dans l'URL du",
+    "serveur, actions portées par PUT et par un suffixe `:verbe`, remise à zéro",
+    "d'un champ par DELETE sur `{field}` énuméré, réponse `operation` asynchrone,",
+    "enveloppe de liste inline à une propriété, `required` sur un corps,",
+    "propriété readOnly, paramètre de chemin sans schéma, tag employé sans",
+    "être déclaré, opération sans tag, lecture portée par POST, segment",
+    "d'action terminal (`/maintenance/start`), et aucune pagination."
+  ],
+  "servers": [
+    {
+      "url": "https://api-{zone}.exoscale.com/v2",
+      "variables": {
+        "zone": {
+          "default": "ch-gva-2",
+          "enum": [
+            "ch-gva-2",
+            "de-fra-1"
+          ]
+        }
+      }
+    }
+  ],
+  "tags": [
+    {
+      "name": "gadget",
+      "description": "Gadgets"
+    },
+    {
+      "name": "gizmo",
+      "parent": "gadget"
+    },
+    {
+      "name": "widget",
+      "parent": "gadget"
+    },
+    {
+      "name": "other",
+      "description": "Un autre produit"
+    }
+  ],
+  "paths": {
+    "/gadget": {
+      "get": {
+        "operationId": "list-gadgets",
+        "summary": "List gadgets",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "labels",
+            "in": "query",
+            "schema": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gadgets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/gadget"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "create-gadget",
+        "summary": "Create a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string"
+                  },
+                  "disk-size": {
+                    "type": "integer",
+                    "format": "int64"
+                  }
+                },
+                "required": [
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}": {
+      "get": {
+        "operationId": "get-gadget",
+        "summary": "Retrieve gadget details",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/gadget"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "update-gadget",
+        "summary": "Update a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "nullable": true
+                  },
+                  "labels": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "created-at": {
+                    "type": "string",
+                    "readOnly": true,
+                    "description": "Creation date"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "operationId": "delete-gadget",
+        "summary": "Delete a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}:start": {
+      "put": {
+        "operationId": "start-gadget",
+        "summary": "Start a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "rescue-profile": {
+                    "type": "string",
+                    "enum": [
+                      "netboot",
+                      "netboot-efi"
+                    ],
+                    "description": "Boot in rescue mode"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}:scale": {
+      "put": {
+        "operationId": "scale-gadget",
+        "summary": "Scale a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "gadget-type": {
+                    "$ref": "#/components/schemas/gadget-type"
+                  }
+                },
+                "required": [
+                  "gadget-type"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}/{field}": {
+      "delete": {
+        "operationId": "reset-gadget-field",
+        "summary": "Reset a gadget field to its default value",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "labels",
+                "user-data"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}:password": {
+      "get": {
+        "operationId": "reveal-gadget-password",
+        "summary": "Reveal the gadget password",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/gadget-password"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{gadget-id}:revert-snapshot": {
+      "post": {
+        "operationId": "revert-gadget-to-snapshot",
+        "summary": "Revert a snapshot for a gadget",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "gadget-id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "description": "Snapshot ID"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}/maintenance/start": {
+      "put": {
+        "operationId": "start-gadget-maintenance",
+        "summary": "Start a maintenance",
+        "tags": [
+          "gadget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}/gizmo": {
+      "get": {
+        "operationId": "list-gadget-gizmos",
+        "summary": "List the gizmos of a gadget",
+        "tags": [
+          "gizmo"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "gizmos": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/gizmo"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/gadget/{id}/gizmo/{gizmo-id}": {
+      "get": {
+        "operationId": "get-gadget-gizmo",
+        "summary": "Retrieve a gizmo",
+        "tags": [
+          "gizmo"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "gizmo-id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/gizmo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widget": {
+      "get": {
+        "operationId": "list-widgets",
+        "summary": "List widgets",
+        "tags": [
+          "widget"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "widgets": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/widget"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widget/{name}": {
+      "get": {
+        "operationId": "get-widget",
+        "summary": "Retrieve a widget",
+        "tags": [
+          "widget"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/widget"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/usage-report": {
+      "post": {
+        "operationId": "get-usage-report",
+        "summary": "Return a usage report",
+        "tags": [
+          "gadget"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "period": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "host": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stray": {
+      "get": {
+        "operationId": "list-strays",
+        "summary": "Un tag employé sans être déclaré",
+        "tags": [
+          "stray"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/gizmo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/orphan": {
+      "get": {
+        "operationId": "get-orphan",
+        "summary": "Une opération sans tag",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/gizmo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/other": {
+      "get": {
+        "operationId": "list-others",
+        "summary": "Un autre produit",
+        "tags": [
+          "other"
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/gizmo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/widget/{id}/{field}": {
+      "delete": {
+        "operationId": "reset-widget-field",
+        "summary": "Reset a widget field to its default value",
+        "tags": [
+          "widget"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "field",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "labels"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/operation"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "gadget": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "name": {
+            "type": "string"
+          },
+          "labels": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "state": {
+            "$ref": "#/components/schemas/gadget-state",
+            "readOnly": true
+          },
+          "disk-size": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "gadget-state": {
+        "type": "string",
+        "enum": [
+          "running",
+          "stopped",
+          "error"
+        ],
+        "description": "Gadget state"
+      },
+      "gadget-type": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "gadget-password": {
+        "type": "object",
+        "properties": {
+          "password": {
+            "type": "string"
+          }
+        }
+      },
+      "gizmo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "widget": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        }
+      },
+      "operation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "readOnly": true
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "failure",
+              "pending",
+              "success",
+              "timeout"
+            ],
+            "readOnly": true
+          },
+          "reason": {
+            "type": "string",
+            "readOnly": true
+          }
+        }
+      }
+    }
+  }
+}

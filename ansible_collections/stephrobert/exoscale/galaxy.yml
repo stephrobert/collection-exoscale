@@ -1,0 +1,30 @@
+# Identité de la collection. Le générateur lit ce fichier : le namespace, le
+# nom et la version qu'il déclare finissent dans chaque module produit.
+#
+# `stephrobert.exoscale` dit ce que ce dépôt est : une chaîne de génération et
+# la collection de démonstration qu'elle produit. `exoscale.*` appartient à
+# Exoscale, et le namespace existe sur Galaxy, vide : le prendre serait un
+# squat. `ngine_io.exoscale` est déprécié et archivé, et il ne parle pas à
+# l'API v2.
+#
+# Le renommer se fait ici **et** dans le chemin du répertoire :
+# `load_collection` exige que les deux concordent.
+namespace: stephrobert
+name: exoscale
+version: 0.1.0
+readme: README.md
+authors:
+  - Stéphane Robert (@stephrobert)
+description: >-
+  Modules Ansible Day-2 pour l'API v2 d'Exoscale, produits par le générateur de
+  ce dépôt. Terraform provisionne les ressources, cette collection exploite
+  les ressources existantes.
+license:
+  - GPL-3.0-or-later
+tags:
+  - exoscale
+  - cloud
+  - infrastructure
+dependencies: {}
+build_ignore:
+  - tests/output

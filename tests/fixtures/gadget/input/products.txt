@@ -1,0 +1,2 @@
+# Index du contrat de laboratoire : un seul produit, la famille du tag `gadget`.
+gadget v2

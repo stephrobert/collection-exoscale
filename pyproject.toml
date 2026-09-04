@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "exoscale-ansible-generator"
+version = "0.1.0"
+description = "Générateur de modules Ansible Day-2 pour l'API v2 d'Exoscale"
+readme = "README.md"
+requires-python = ">=3.12"
+license = { text = "GPL-3.0-or-later" }
+dependencies = [
+    "PyYAML>=6.0",
+    "Jinja2>=3.1",
+]
+
+[project.optional-dependencies]
+dev = [
+    "setuptools>=68",
+    "pytest>=8.0",
+    "ruff>=0.6",
+    "mypy>=1.11",
+    "types-PyYAML>=6.0",
+    # Le SDK et ansible-core ne sont pas des dépendances du générateur : ils
+    # sont des dépendances de ce que le générateur produit. Les tests en ont
+    # besoin pour prouver que le module produit s'importe, que son
+    # argument_spec est accepté, et que le SDK expose chaque méthode qu'un
+    # module appelle.
+    "ansible-core>=2.16",
+    "exoscale>=0.16",
+]
+
+[tool.setuptools.packages.find]
+include = ["generator*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+addopts = "-q"
+# Les noms de tests sont en français : un nom de test est une phrase que
+# quelqu'un doit pouvoir lire.
+python_functions = ["test_*"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+# Un golden est une donnée, pas du code.
+extend-exclude = ["tests/fixtures"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+ignore = [
+    # Le projet écrit ses messages et ses commentaires en français ; RUF001/002
+    # signalerait chaque caractère accentué comme ambigu.
+    "RUF001",
+    "RUF002",
+    "RUF003",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["A002"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_ignores = true
+# La collection n'est pas ici : un module Ansible s'appuie sur
+# `ansible.module_utils`, qui n'est pas typé. C'est `ansible-test sanity` qui
+# contrôle `ansible_collections/`.
+files = ["generator", "scripts"]
+
+[[tool.mypy.overrides]]
+module = "yaml"
+ignore_missing_imports = true

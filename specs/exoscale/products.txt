@@ -1,0 +1,22 @@
+# Produits Exoscale suivis par le générateur, un par ligne.
+#
+#   <tag-racine> [<nom-produit>] <version>
+#
+# Exoscale publie UN SEUL document OpenAPI pour tous ses produits
+# (https://openapi-v2.exoscale.com/source.json). Un produit n'est donc pas un
+# fichier, c'est une famille de tags : `instance` a pour parent `compute`,
+# `vpc-subnet` a pour parent `vpc` qui a pour parent `compute`. La ligne indexe
+# le tag RACINE, et `generator/source/base.py` découpe le document sur toute
+# sa descendance.
+#
+# Le tag se vérifie dans la liste `tags` du document, pas dans l'URL du portail
+# ni dans le SDK : `python -m generator products` recense chaque racine avec
+# son nombre d'opérations, nomme les tags employés sans être déclarés (mesuré :
+# ccm, organization, quotas) et les opérations sans aucun tag (mesuré : 2).
+#
+# `compute` sert de premier produit : c'est la plus grande famille (111
+# opérations sur 374, 17 tags) et celle où les actions Day-2 sont les plus
+# nombreuses (start, stop, reboot, scale, resize, reset). La chaîne complète
+# doit fonctionner sur lui avant qu'un second produit n'arrive.
+
+compute v2

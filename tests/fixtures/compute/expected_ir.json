@@ -1,0 +1,4396 @@
+{
+  "product": "compute",
+  "version": "v2",
+  "title": "Exoscale API",
+  "description": "Infrastructure automation API, allowing programmatic access to all Exoscale products and services.",
+  "source": "exoscale.v2.json",
+  "zones": [
+    "ch-gva-2",
+    "ch-dk-2",
+    "de-fra-1",
+    "de-muc-1",
+    "at-vie-1",
+    "at-vie-2",
+    "bg-sof-1",
+    "hr-zag-1"
+  ],
+  "enums": [
+    {
+      "name": "public-ip-assignment",
+      "values": [
+        "inet4",
+        "dual",
+        "none"
+      ],
+      "description": "Assign public IP to the Instance"
+    }
+  ],
+  "operations": [
+    {
+      "key": "compute.v2.SecurityGroup.add-external-source-to-security-group",
+      "id": "add-external-source-to-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "PUT",
+      "path": "/security-group/{id}:add-source",
+      "summary": "Add an external source as a member of a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "cidr",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "CIDR-formatted network to add"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.add-instance-protection",
+      "id": "add-instance-protection",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:add-protection",
+      "summary": "Set instance destruction protection",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroupRule.add-rule-to-security-group",
+      "id": "add-rule-to-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group_rule",
+      "http_method": "POST",
+      "path": "/security-group/{id}/rules",
+      "summary": "Create a Security Group rule",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "flow-direction",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Network flow direction to match",
+          "enum_values": [
+            "ingress",
+            "egress"
+          ]
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Security Group rule description"
+        },
+        {
+          "name": "network",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "CIDR-formatted network allowed"
+        },
+        {
+          "name": "security-group",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Security Group allowed",
+          "ref": "security-group-resource"
+        },
+        {
+          "name": "protocol",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Network protocol",
+          "enum_values": [
+            "tcp",
+            "esp",
+            "icmp",
+            "udp",
+            "gre",
+            "ah",
+            "ipip",
+            "icmpv6"
+          ]
+        },
+        {
+          "name": "icmp",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "ICMP details (default: -1 (ANY))"
+        },
+        {
+          "name": "start-port",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Start port of the range",
+          "format": "int64"
+        },
+        {
+          "name": "end-port",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "End port of the range",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancerService.add-service-to-load-balancer",
+      "id": "add-service-to-load-balancer",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer_service",
+      "http_method": "POST",
+      "path": "/load-balancer/{id}/service",
+      "summary": "Add a Load Balancer Service",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Load Balancer Service name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer Service description"
+        },
+        {
+          "name": "instance-pool",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instance Pool to forward traffic to",
+          "ref": "instance-pool"
+        },
+        {
+          "name": "protocol",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Network traffic protocol",
+          "enum_values": [
+            "tcp",
+            "udp"
+          ]
+        },
+        {
+          "name": "strategy",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Load balancing strategy",
+          "enum_values": [
+            "round-robin",
+            "maglev-hash",
+            "source-hash"
+          ]
+        },
+        {
+          "name": "port",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Port exposed on the Load Balancer's public IP",
+          "format": "int64"
+        },
+        {
+          "name": "target-port",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Port on which the network traffic will be forwarded to on the receiving instance",
+          "format": "int64"
+        },
+        {
+          "name": "healthcheck",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Healthcheck configuration",
+          "ref": "load-balancer-service-healthcheck"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.attach-instance-to-elastic-ip",
+      "id": "attach-instance-to-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "PUT",
+      "path": "/elastic-ip/{id}:attach",
+      "summary": "Attach a Compute instance to an Elastic IP",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.attach-instance-to-private-network",
+      "id": "attach-instance-to-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "PUT",
+      "path": "/private-network/{id}:attach",
+      "summary": "Attach a Compute instance to a Private Network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Static IP address lease for the corresponding network interface",
+          "format": "ipv4"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.attach-instance-to-security-group",
+      "id": "attach-instance-to-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "PUT",
+      "path": "/security-group/{id}:attach",
+      "summary": "Attach a Compute instance to a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.attach-instance-to-subnet",
+      "id": "attach-instance-to-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "PUT",
+      "path": "/vpc/{vpc-id}/subnet/{subnet-id}/attach",
+      "summary": "[BETA] Attach a Compute instance to a Subnet",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "subnet-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance-ref"
+        },
+        {
+          "name": "ipv4",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance IPv4",
+          "format": "ipv4"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Template.copy-template",
+      "id": "copy-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "POST",
+      "path": "/template/{id}",
+      "summary": "Copy a Template from a zone to another",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "target-zone",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Target Zone name",
+          "ref": "zone"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.AntiAffinityGroup.create-anti-affinity-group",
+      "id": "create-anti-affinity-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "anti_affinity_group",
+      "http_method": "POST",
+      "path": "/anti-affinity-group",
+      "summary": "Create an Anti-affinity Group",
+      "tags": [
+        "anti-affinity-group"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Anti-affinity Group name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Anti-affinity Group description"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.create-elastic-ip",
+      "id": "create-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "POST",
+      "path": "/elastic-ip",
+      "summary": "Create an Elastic IP",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "addressfamily",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Elastic IP address family (default: :inet4)",
+          "enum_values": [
+            "inet4",
+            "inet6"
+          ]
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Elastic IP description"
+        },
+        {
+          "name": "healthcheck",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Elastic IP healthcheck",
+          "ref": "elastic-ip-healthcheck"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.create-instance",
+      "id": "create-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "POST",
+      "path": "/instance",
+      "summary": "Create a Compute instance",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "application-consistent-snapshot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable application-consistent snapshot for the instance"
+        },
+        {
+          "name": "anti-affinity-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Anti-affinity Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Assign public IP to the Instance",
+          "enum_name": "public-ip-assignment",
+          "enum_values": [
+            "inet4",
+            "dual",
+            "none"
+          ],
+          "ref": "public-ip-assignment"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "auto-start",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Start Instance on creation (default: true)"
+        },
+        {
+          "name": "security-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Security Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance name"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instance Type",
+          "ref": "instance-type-ref"
+        },
+        {
+          "name": "template",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instance Template",
+          "ref": "template-ref"
+        },
+        {
+          "name": "secureboot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable secure boot"
+        },
+        {
+          "name": "ssh-key",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instance SSH Key",
+          "deprecated": true,
+          "ref": "ssh-key-ref"
+        },
+        {
+          "name": "user-data",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance Cloud-init user-data (base64 encoded)"
+        },
+        {
+          "name": "tpm-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable Trusted Platform Module (TPM)"
+        },
+        {
+          "name": "deploy-target",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instance Deploy Target",
+          "ref": "deploy-target-ref"
+        },
+        {
+          "name": "ipv6-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable IPv6. DEPRECATED: use `public-ip-assignments`."
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Instance disk size in GiB",
+          "format": "int64"
+        },
+        {
+          "name": "ssh-keys",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance SSH Keys",
+          "item_type": "object"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.create-instance-pool",
+      "id": "create-instance-pool",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "POST",
+      "path": "/instance-pool",
+      "summary": "Create an Instance Pool",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "application-consistent-snapshot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable application consistent snapshots"
+        },
+        {
+          "name": "anti-affinity-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Anti-affinity Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool description"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Determines public IP assignment of the Instances. Type `none` is final and can't be changed later on.",
+          "enum_values": [
+            "inet4",
+            "dual",
+            "none"
+          ]
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Labels",
+          "ref": "labels"
+        },
+        {
+          "name": "security-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Security Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "elastic-ips",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instances Elastic IPs",
+          "item_type": "object"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Instance Pool name"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instances type",
+          "ref": "instance-type-ref"
+        },
+        {
+          "name": "min-available",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Minimum number of running Instances",
+          "format": "int64"
+        },
+        {
+          "name": "private-networks",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Private Networks",
+          "item_type": "object"
+        },
+        {
+          "name": "template",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instances template",
+          "ref": "template-ref"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of Instances",
+          "format": "int64"
+        },
+        {
+          "name": "ssh-key",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instances SSH key",
+          "ref": "ssh-key-ref"
+        },
+        {
+          "name": "instance-prefix",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Prefix to apply to Instances names (default: pool)"
+        },
+        {
+          "name": "user-data",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instances Cloud-init user-data"
+        },
+        {
+          "name": "deploy-target",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Deploy Target to deploy Instances on",
+          "ref": "deploy-target-ref"
+        },
+        {
+          "name": "ipv6-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable IPv6. DEPRECATED: use `public-ip-assignments`."
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Instances disk size in GiB",
+          "format": "int64"
+        },
+        {
+          "name": "ssh-keys",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instances SSH Keys",
+          "item_type": "object"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.create-load-balancer",
+      "id": "create-load-balancer",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "POST",
+      "path": "/load-balancer",
+      "summary": "Create a Load Balancer",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer description"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Load Balancer name"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Load balancer labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.create-private-network",
+      "id": "create-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "POST",
+      "path": "/private-network",
+      "summary": "Create a Private Network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Private Network name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network description"
+        },
+        {
+          "name": "netmask",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network netmask",
+          "format": "ipv4"
+        },
+        {
+          "name": "start-ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network start IP address",
+          "format": "ipv4"
+        },
+        {
+          "name": "end-ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network end IP address",
+          "format": "ipv4"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "DHCP options",
+          "ref": "private-network-options"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcRoute.create-route",
+      "id": "create-route",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_route",
+      "http_method": "POST",
+      "path": "/vpc/{vpc-id}/subnet/{subnet-id}/route",
+      "summary": "[BETA] Create a route",
+      "tags": [
+        "vpc-route"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "subnet-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Route description"
+        },
+        {
+          "name": "destination",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Route destination CIDR"
+        },
+        {
+          "name": "target",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Route target"
+        }
+      ],
+      "response": {
+        "schema": "route",
+        "payload_schema": "route"
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.create-security-group",
+      "id": "create-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "POST",
+      "path": "/security-group",
+      "summary": "Create a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Security Group name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Security Group description"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.create-snapshot",
+      "id": "create-snapshot",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "POST",
+      "path": "/instance/{id}:create-snapshot",
+      "summary": "Create a Snapshot of a Compute instance",
+      "tags": [
+        "instance",
+        "snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.create-subnet",
+      "id": "create-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "POST",
+      "path": "/vpc/{vpc-id}/subnet",
+      "summary": "[BETA] Create a Subnet",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Subnet name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subnet description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "addressfamily",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Subnet address family",
+          "enum_values": [
+            "inet4"
+          ]
+        },
+        {
+          "name": "address-space",
+          "type": "enum",
+          "required": true,
+          "location": "body",
+          "description": "Subnet address space",
+          "enum_values": [
+            "private"
+          ]
+        },
+        {
+          "name": "ipv4-block",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subnet ipv4 CIDR"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Vpc.create-vpc",
+      "id": "create-vpc",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc",
+      "http_method": "POST",
+      "path": "/vpc",
+      "summary": "[BETA] Create a VPC",
+      "tags": [
+        "vpc-management"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "VPC name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "VPC description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.AntiAffinityGroup.delete-anti-affinity-group",
+      "id": "delete-anti-affinity-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "anti_affinity_group",
+      "http_method": "DELETE",
+      "path": "/anti-affinity-group/{id}",
+      "summary": "Delete an Anti-affinity Group",
+      "tags": [
+        "anti-affinity-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.delete-elastic-ip",
+      "id": "delete-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "DELETE",
+      "path": "/elastic-ip/{id}",
+      "summary": "Delete an Elastic IP",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.delete-instance",
+      "id": "delete-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "DELETE",
+      "path": "/instance/{id}",
+      "summary": "Delete a Compute instance",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.delete-instance-pool",
+      "id": "delete-instance-pool",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "DELETE",
+      "path": "/instance-pool/{id}",
+      "summary": "Delete an Instance Pool",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.delete-load-balancer",
+      "id": "delete-load-balancer",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "DELETE",
+      "path": "/load-balancer/{id}",
+      "summary": "Delete a Load Balancer",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancerService.delete-load-balancer-service",
+      "id": "delete-load-balancer-service",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer_service",
+      "http_method": "DELETE",
+      "path": "/load-balancer/{id}/service/{service-id}",
+      "summary": "Delete a Load Balancer Service",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "service-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.delete-private-network",
+      "id": "delete-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "DELETE",
+      "path": "/private-network/{id}",
+      "summary": "Delete a Private Network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsElasticIp.delete-reverse-dns-elastic-ip",
+      "id": "delete-reverse-dns-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_elastic_ip",
+      "http_method": "DELETE",
+      "path": "/reverse-dns/elastic-ip/{id}",
+      "summary": "Delete the PTR DNS record for an elastic IP",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsInstance.delete-reverse-dns-instance",
+      "id": "delete-reverse-dns-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_instance",
+      "http_method": "DELETE",
+      "path": "/reverse-dns/instance/{id}",
+      "summary": "Delete the PTR DNS record for an instance",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcRoute.delete-route",
+      "id": "delete-route",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_route",
+      "http_method": "DELETE",
+      "path": "/vpc/{vpc-id}/subnet/{subnet-id}/route/{id}",
+      "summary": "[BETA] Delete a route",
+      "tags": [
+        "vpc-route"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "subnet-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "empty",
+        "payload_schema": "empty"
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroupRule.delete-rule-from-security-group",
+      "id": "delete-rule-from-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group_rule",
+      "http_method": "DELETE",
+      "path": "/security-group/{id}/rules/{rule-id}",
+      "summary": "Delete a Security Group rule",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "rule-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.delete-security-group",
+      "id": "delete-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "DELETE",
+      "path": "/security-group/{id}",
+      "summary": "Delete a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Snapshot.delete-snapshot",
+      "id": "delete-snapshot",
+      "product": "compute",
+      "version": "v2",
+      "resource": "snapshot",
+      "http_method": "DELETE",
+      "path": "/snapshot/{id}",
+      "summary": "Delete a Snapshot",
+      "tags": [
+        "snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SshKey.delete-ssh-key",
+      "id": "delete-ssh-key",
+      "product": "compute",
+      "version": "v2",
+      "resource": "ssh_key",
+      "http_method": "DELETE",
+      "path": "/ssh-key/{name}",
+      "summary": "Delete a SSH key",
+      "tags": [
+        "ssh-key"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.delete-subnet",
+      "id": "delete-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "DELETE",
+      "path": "/vpc/{vpc-id}/subnet/{id}",
+      "summary": "[BETA] Delete a Subnet",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "empty",
+        "payload_schema": "empty"
+      }
+    },
+    {
+      "key": "compute.v2.Template.delete-template",
+      "id": "delete-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "DELETE",
+      "path": "/template/{id}",
+      "summary": "Delete a Template",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Vpc.delete-vpc",
+      "id": "delete-vpc",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc",
+      "http_method": "DELETE",
+      "path": "/vpc/{id}",
+      "summary": "[BETA] Delete a VPC",
+      "tags": [
+        "vpc-management"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "empty",
+        "payload_schema": "empty"
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.detach-instance-from-elastic-ip",
+      "id": "detach-instance-from-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "PUT",
+      "path": "/elastic-ip/{id}:detach",
+      "summary": "Detach a Compute instance from an Elastic IP",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.detach-instance-from-private-network",
+      "id": "detach-instance-from-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "PUT",
+      "path": "/private-network/{id}:detach",
+      "summary": "Detach a Compute instance from a Private Network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.detach-instance-from-security-group",
+      "id": "detach-instance-from-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "PUT",
+      "path": "/security-group/{id}:detach",
+      "summary": "Detach a Compute instance from a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.detach-instance-from-subnet",
+      "id": "detach-instance-from-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "PUT",
+      "path": "/vpc/{vpc-id}/subnet/{subnet-id}/detach",
+      "summary": "[BETA] Detach a Compute instance from a Subnet",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "subnet-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Compute instance",
+          "ref": "instance-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.enable-tpm",
+      "id": "enable-tpm",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "POST",
+      "path": "/instance/{id}:enable-tpm",
+      "summary": "Enable tpm for the instance.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.evict-instance-pool-members",
+      "id": "evict-instance-pool-members",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "PUT",
+      "path": "/instance-pool/{id}:evict",
+      "summary": "Evict Instance Pool members",
+      "description": "This operation evicts the specified Compute instances member from the Instance Pool, shrinking it to `&lt;current pool size&gt; - &lt;# evicted members&gt;`.",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instances",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "item_type": "string"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Snapshot.export-snapshot",
+      "id": "export-snapshot",
+      "product": "compute",
+      "version": "v2",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/snapshot/{id}:export",
+      "summary": "Export a Snapshot",
+      "tags": [
+        "snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.AntiAffinityGroup.get-anti-affinity-group",
+      "id": "get-anti-affinity-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "anti_affinity_group",
+      "http_method": "GET",
+      "path": "/anti-affinity-group/{id}",
+      "summary": "Retrieve Anti-affinity Group details",
+      "tags": [
+        "anti-affinity-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "anti-affinity-group",
+        "payload_schema": "anti-affinity-group"
+      }
+    },
+    {
+      "key": "compute.v2.Console.get-console-proxy-url",
+      "id": "get-console-proxy-url",
+      "product": "compute",
+      "version": "v2",
+      "resource": "console",
+      "http_method": "GET",
+      "path": "/console/{id}",
+      "summary": "Retrieve signed url valid for 60 seconds to connect via console-proxy websocket to VM VNC console.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {}
+    },
+    {
+      "key": "compute.v2.DeployTarget.get-deploy-target",
+      "id": "get-deploy-target",
+      "product": "compute",
+      "version": "v2",
+      "resource": "deploy_target",
+      "http_method": "GET",
+      "path": "/deploy-target/{id}",
+      "summary": "Retrieve Deploy Target details",
+      "tags": [
+        "deploy-target"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "deploy-target",
+        "payload_schema": "deploy-target"
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.get-elastic-ip",
+      "id": "get-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "GET",
+      "path": "/elastic-ip/{id}",
+      "summary": "Retrieve Elastic IP details",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "elastic-ip",
+        "payload_schema": "elastic-ip"
+      }
+    },
+    {
+      "key": "compute.v2.Instance.get-instance",
+      "id": "get-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "GET",
+      "path": "/instance/{id}",
+      "summary": "Retrieve Compute instance details",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "instance",
+        "payload_schema": "instance"
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.get-instance-pool",
+      "id": "get-instance-pool",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "GET",
+      "path": "/instance-pool/{id}",
+      "summary": "Retrieve Instance Pool details",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "instance-pool",
+        "payload_schema": "instance-pool"
+      }
+    },
+    {
+      "key": "compute.v2.InstanceType.get-instance-type",
+      "id": "get-instance-type",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_type",
+      "http_method": "GET",
+      "path": "/instance-type/{id}",
+      "summary": "Retrieve Instance Type details",
+      "tags": [
+        "instance-type"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "instance-type",
+        "payload_schema": "instance-type"
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.get-load-balancer",
+      "id": "get-load-balancer",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "GET",
+      "path": "/load-balancer/{id}",
+      "summary": "Retrieve Load Balancer details",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "load-balancer",
+        "payload_schema": "load-balancer"
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancerService.get-load-balancer-service",
+      "id": "get-load-balancer-service",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer_service",
+      "http_method": "GET",
+      "path": "/load-balancer/{id}/service/{service-id}",
+      "summary": "Retrieve Load Balancer Service details",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "service-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "load-balancer-service",
+        "payload_schema": "load-balancer-service"
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.get-private-network",
+      "id": "get-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "GET",
+      "path": "/private-network/{id}",
+      "summary": "Retrieve Private Network details",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "private-network",
+        "payload_schema": "private-network"
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsElasticIp.get-reverse-dns-elastic-ip",
+      "id": "get-reverse-dns-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_elastic_ip",
+      "http_method": "GET",
+      "path": "/reverse-dns/elastic-ip/{id}",
+      "summary": "Query the PTR DNS records for an elastic IP",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "reverse-dns-record",
+        "payload_schema": "reverse-dns-record"
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsInstance.get-reverse-dns-instance",
+      "id": "get-reverse-dns-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_instance",
+      "http_method": "GET",
+      "path": "/reverse-dns/instance/{id}",
+      "summary": "Query the PTR DNS records for an instance",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "reverse-dns-record",
+        "payload_schema": "reverse-dns-record"
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.get-security-group",
+      "id": "get-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "GET",
+      "path": "/security-group/{id}",
+      "summary": "Retrieve Security Group details",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "security-group",
+        "payload_schema": "security-group"
+      }
+    },
+    {
+      "key": "compute.v2.Snapshot.get-snapshot",
+      "id": "get-snapshot",
+      "product": "compute",
+      "version": "v2",
+      "resource": "snapshot",
+      "http_method": "GET",
+      "path": "/snapshot/{id}",
+      "summary": "Retrieve Snapshot details",
+      "tags": [
+        "snapshot"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "snapshot",
+        "payload_schema": "snapshot"
+      }
+    },
+    {
+      "key": "compute.v2.SshKey.get-ssh-key",
+      "id": "get-ssh-key",
+      "product": "compute",
+      "version": "v2",
+      "resource": "ssh_key",
+      "http_method": "GET",
+      "path": "/ssh-key/{name}",
+      "summary": "Retrieve SSH key details",
+      "tags": [
+        "ssh-key"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "path"
+        }
+      ],
+      "response": {
+        "schema": "ssh-key",
+        "payload_schema": "ssh-key"
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.get-subnet",
+      "id": "get-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "GET",
+      "path": "/vpc/{vpc-id}/subnet/{id}",
+      "summary": "[BETA] Retrieve Subnet details",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "subnet",
+        "payload_schema": "subnet"
+      }
+    },
+    {
+      "key": "compute.v2.Template.get-template",
+      "id": "get-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "GET",
+      "path": "/template/{id}",
+      "summary": "Retrieve Template details",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "template",
+        "payload_schema": "template"
+      }
+    },
+    {
+      "key": "compute.v2.Vpc.get-vpc",
+      "id": "get-vpc",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc",
+      "http_method": "GET",
+      "path": "/vpc/{id}",
+      "summary": "[BETA] Retrieve VPC details",
+      "tags": [
+        "vpc-management"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "vpc",
+        "payload_schema": "vpc"
+      }
+    },
+    {
+      "key": "compute.v2.AntiAffinityGroup.list-anti-affinity-groups",
+      "id": "list-anti-affinity-groups",
+      "product": "compute",
+      "version": "v2",
+      "resource": "anti_affinity_group",
+      "http_method": "GET",
+      "path": "/anti-affinity-group",
+      "summary": "List Anti-affinity Groups",
+      "tags": [
+        "anti-affinity-group"
+      ],
+      "response": {
+        "payload_field": "anti-affinity-groups",
+        "payload_schema": "anti-affinity-group",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.DeployTarget.list-deploy-targets",
+      "id": "list-deploy-targets",
+      "product": "compute",
+      "version": "v2",
+      "resource": "deploy_target",
+      "http_method": "GET",
+      "path": "/deploy-target",
+      "summary": "List Deploy Targets",
+      "tags": [
+        "deploy-target"
+      ],
+      "response": {
+        "payload_field": "deploy-targets",
+        "payload_schema": "deploy-target",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.list-elastic-ips",
+      "id": "list-elastic-ips",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "GET",
+      "path": "/elastic-ip",
+      "summary": "List Elastic IPs",
+      "tags": [
+        "elastic-ip"
+      ],
+      "response": {
+        "payload_field": "elastic-ips",
+        "payload_schema": "elastic-ip",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.list-instance-pools",
+      "id": "list-instance-pools",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "GET",
+      "path": "/instance-pool",
+      "summary": "List Instance Pools",
+      "tags": [
+        "instance-pool"
+      ],
+      "response": {
+        "payload_field": "instance-pools",
+        "payload_schema": "instance-pool",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.InstanceType.list-instance-types",
+      "id": "list-instance-types",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_type",
+      "http_method": "GET",
+      "path": "/instance-type",
+      "summary": "List Compute instance Types",
+      "tags": [
+        "instance-type"
+      ],
+      "response": {
+        "payload_field": "instance-types",
+        "payload_schema": "instance-type",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.list-instances",
+      "id": "list-instances",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "GET",
+      "path": "/instance",
+      "summary": "List Compute instances",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "manager-id",
+          "type": "string",
+          "required": false,
+          "location": "query",
+          "format": "uuid"
+        },
+        {
+          "name": "manager-type",
+          "type": "enum",
+          "required": false,
+          "location": "query",
+          "enum_values": [
+            "instance-pool"
+          ]
+        },
+        {
+          "name": "ip-address",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        },
+        {
+          "name": "labels",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "payload_field": "instances",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.list-load-balancers",
+      "id": "list-load-balancers",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "GET",
+      "path": "/load-balancer",
+      "summary": "List Load Balancers",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "response": {
+        "payload_field": "load-balancers",
+        "payload_schema": "load-balancer",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.list-private-networks",
+      "id": "list-private-networks",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "GET",
+      "path": "/private-network",
+      "summary": "List Private Networks",
+      "tags": [
+        "private-network"
+      ],
+      "response": {
+        "payload_field": "private-networks",
+        "payload_schema": "private-network",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcRoute.list-routes",
+      "id": "list-routes",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_route",
+      "http_method": "GET",
+      "path": "/vpc/{vpc-id}/subnet/{subnet-id}/route",
+      "summary": "[BETA] List Subnet routes",
+      "tags": [
+        "vpc-route"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "subnet-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "routes",
+        "payload_schema": "list-route-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.list-security-groups",
+      "id": "list-security-groups",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "GET",
+      "path": "/security-group",
+      "summary": "List Security Groups.",
+      "description": "Lists security groups. When visibility is set to public, lists public security groups.\nPublic security groups are objects maintained by Exoscale which contain source addresses for\nrelevant services hosted by Exoscale. They can be used a source in ingress rules and as a destination\nin egress rules.",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "visibility",
+          "type": "enum",
+          "required": false,
+          "location": "query",
+          "enum_values": [
+            "private",
+            "public"
+          ]
+        }
+      ],
+      "response": {
+        "payload_field": "security-groups",
+        "payload_schema": "security-group",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.Snapshot.list-snapshots",
+      "id": "list-snapshots",
+      "product": "compute",
+      "version": "v2",
+      "resource": "snapshot",
+      "http_method": "GET",
+      "path": "/snapshot",
+      "summary": "List Snapshots",
+      "tags": [
+        "snapshot"
+      ],
+      "response": {
+        "payload_field": "snapshots",
+        "payload_schema": "snapshot",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.SshKey.list-ssh-keys",
+      "id": "list-ssh-keys",
+      "product": "compute",
+      "version": "v2",
+      "resource": "ssh_key",
+      "http_method": "GET",
+      "path": "/ssh-key",
+      "summary": "List SSH keys",
+      "tags": [
+        "ssh-key"
+      ],
+      "response": {
+        "payload_field": "ssh-keys",
+        "payload_schema": "ssh-key",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.list-subnets",
+      "id": "list-subnets",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "GET",
+      "path": "/vpc/{vpc-id}/subnet",
+      "summary": "[BETA] List Subnets",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "subnets",
+        "payload_schema": "list-subnet-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.Template.list-templates",
+      "id": "list-templates",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "GET",
+      "path": "/template",
+      "summary": "List Templates",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "visibility",
+          "type": "enum",
+          "required": false,
+          "location": "query",
+          "enum_values": [
+            "private",
+            "public"
+          ]
+        },
+        {
+          "name": "family",
+          "type": "string",
+          "required": false,
+          "location": "query"
+        }
+      ],
+      "response": {
+        "payload_field": "templates",
+        "payload_schema": "template",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcRoute.list-vpc-routes",
+      "id": "list-vpc-routes",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_route",
+      "http_method": "GET",
+      "path": "/vpc/{vpc-id}/route",
+      "summary": "[BETA] List VPC routes",
+      "tags": [
+        "vpc-route"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "payload_field": "routes",
+        "payload_schema": "list-route-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.Vpc.list-vpcs",
+      "id": "list-vpcs",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc",
+      "http_method": "GET",
+      "path": "/vpc",
+      "summary": "[BETA] List VPCs",
+      "tags": [
+        "vpc-management"
+      ],
+      "response": {
+        "payload_field": "vpcs",
+        "payload_schema": "list-vpc-entry",
+        "is_list": true
+      }
+    },
+    {
+      "key": "compute.v2.Snapshot.promote-snapshot-to-template",
+      "id": "promote-snapshot-to-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "snapshot",
+      "http_method": "POST",
+      "path": "/snapshot/{id}:promote",
+      "summary": "Promote a Snapshot to a Template",
+      "tags": [
+        "snapshot",
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Template name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template description"
+        },
+        {
+          "name": "default-user",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template default user"
+        },
+        {
+          "name": "ssh-key-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable SSH key-based login in the template"
+        },
+        {
+          "name": "password-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable password-based login in the template"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.reboot-instance",
+      "id": "reboot-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:reboot",
+      "summary": "Reboot a Compute instance",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SshKey.register-ssh-key",
+      "id": "register-ssh-key",
+      "product": "compute",
+      "version": "v2",
+      "resource": "ssh_key",
+      "http_method": "POST",
+      "path": "/ssh-key",
+      "summary": "Import SSH key",
+      "tags": [
+        "ssh-key"
+      ],
+      "parameters": [
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "SSH key name"
+        },
+        {
+          "name": "public-key",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Public key value"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Template.register-template",
+      "id": "register-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "POST",
+      "path": "/template",
+      "summary": "Register a Template",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "application-consistent-snapshot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Template with support for Application Consistent Snapshots"
+        },
+        {
+          "name": "maintainer",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template maintainer"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template description"
+        },
+        {
+          "name": "ssh-key-enabled",
+          "type": "boolean",
+          "required": true,
+          "location": "body",
+          "description": "Enable SSH key-based login"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Template name"
+        },
+        {
+          "name": "default-user",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template default user"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Template size",
+          "format": "int64"
+        },
+        {
+          "name": "password-enabled",
+          "type": "boolean",
+          "required": true,
+          "location": "body",
+          "description": "Enable password-based login"
+        },
+        {
+          "name": "build",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template build"
+        },
+        {
+          "name": "checksum",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Template MD5 checksum"
+        },
+        {
+          "name": "boot-mode",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Boot mode (default: legacy)",
+          "enum_values": [
+            "legacy",
+            "uefi"
+          ]
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Template source URL"
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template version"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.SecurityGroup.remove-external-source-from-security-group",
+      "id": "remove-external-source-from-security-group",
+      "product": "compute",
+      "version": "v2",
+      "resource": "security_group",
+      "http_method": "PUT",
+      "path": "/security-group/{id}:remove-source",
+      "summary": "Remove an external source from a Security Group",
+      "tags": [
+        "security-group"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "cidr",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "CIDR-formatted network to remove"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.remove-instance-protection",
+      "id": "remove-instance-protection",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:remove-protection",
+      "summary": "Remove instance destruction protection",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.reset-elastic-ip-field",
+      "id": "reset-elastic-ip-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "DELETE",
+      "path": "/elastic-ip/{id}/{field}",
+      "summary": "Reset an Elastic IP field to its default value",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "description"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.reset-instance",
+      "id": "reset-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:reset",
+      "summary": "Reset a Compute instance to a base/target template",
+      "description": "This operation re-installs a Compute instance to a base template. If target template is provided it will be used to recreated instance from. Warning: the operation wipes all data stored on the disk.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "template",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Template to recreate Instance from",
+          "ref": "template-ref"
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Instance disk size in GiB",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.reset-instance-field",
+      "id": "reset-instance-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "DELETE",
+      "path": "/instance/{id}/{field}",
+      "summary": "Reset Instance field",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "labels"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.reset-instance-password",
+      "id": "reset-instance-password",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:reset-password",
+      "summary": "Reset a compute instance password",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.reset-instance-pool-field",
+      "id": "reset-instance-pool-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "DELETE",
+      "path": "/instance-pool/{id}/{field}",
+      "summary": "Reset an Instance Pool field to its default value",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "anti-affinity-groups",
+            "description",
+            "labels",
+            "security-groups",
+            "elastic-ips",
+            "private-networks",
+            "ssh-key",
+            "user-data",
+            "deploy-target",
+            "ipv6-enabled"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.reset-load-balancer-field",
+      "id": "reset-load-balancer-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "DELETE",
+      "path": "/load-balancer/{id}/{field}",
+      "summary": "Reset a Load Balancer field to its default value",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "description",
+            "labels"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancerService.reset-load-balancer-service-field",
+      "id": "reset-load-balancer-service-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer_service",
+      "http_method": "DELETE",
+      "path": "/load-balancer/{id}/service/{service-id}/{field}",
+      "summary": "Reset a Load Balancer Service field to its default value",
+      "tags": [
+        "network-load-balancer",
+        "compute"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "service-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "description"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.reset-private-network-field",
+      "id": "reset-private-network-field",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "DELETE",
+      "path": "/private-network/{id}/{field}",
+      "summary": "Reset Private Network field",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "field",
+          "type": "enum",
+          "required": true,
+          "location": "path",
+          "enum_values": [
+            "labels"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.resize-instance-disk",
+      "id": "resize-instance-disk",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:resize-disk",
+      "summary": "Resize a Compute instance disk",
+      "description": "This operation resizes a Compute instance's disk volume. Note: the disk can only grow, cannot be shrunk.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Instance disk size in GiB",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.reveal-instance-password",
+      "id": "reveal-instance-password",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "GET",
+      "path": "/instance/{id}:password",
+      "summary": "Reveal the password used during instance creation or the latest password reset.",
+      "description": "Reveal the password used during instance creation or the latest password reset.\n            This is only available for VMs created against templates having the `password-enabled`\n            property set to `true`.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "instance-password",
+        "payload_schema": "instance-password"
+      }
+    },
+    {
+      "key": "compute.v2.Instance.revert-instance-to-snapshot",
+      "id": "revert-instance-to-snapshot",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "POST",
+      "path": "/instance/{instance-id}:revert-snapshot",
+      "summary": "Revert a snapshot for an instance",
+      "description": "This operation reverts the snapshot to the Compute instance volume, restoring stored data as it was at the time of the snapshot.\nThe Compute instance must be previously stopped.",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "instance-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "body",
+          "description": "Snapshot ID",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.scale-instance",
+      "id": "scale-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:scale",
+      "summary": "Scale a Compute instance to a new Instance Type",
+      "description": "This operation changes the Compute instance's type. Note: the new Instance Type must be within the same family (e.g. a standard instance cannot be scaled to gpu2 or storage).",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": true,
+          "location": "body",
+          "description": "Instance Type",
+          "ref": "instance-type-ref"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.scale-instance-pool",
+      "id": "scale-instance-pool",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "PUT",
+      "path": "/instance-pool/{id}:scale",
+      "summary": "Scale an Instance Pool",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "size",
+          "type": "integer",
+          "required": true,
+          "location": "body",
+          "description": "Number of managed Instances",
+          "format": "int64"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.start-instance",
+      "id": "start-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:start",
+      "summary": "Start a Compute instance",
+      "description": "This operation starts a virtual machine, potentially using a rescue profile if specified",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "rescue-profile",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Boot in Rescue Mode, using named profile (supported: netboot, netboot-efi)",
+          "enum_values": [
+            "netboot-efi",
+            "netboot"
+          ]
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.stop-instance",
+      "id": "stop-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}:stop",
+      "summary": "Stop a Compute instance",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ElasticIp.update-elastic-ip",
+      "id": "update-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "elastic_ip",
+      "http_method": "PUT",
+      "path": "/elastic-ip/{id}",
+      "summary": "Update an Elastic IP",
+      "tags": [
+        "elastic-ip"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Elastic IP description"
+        },
+        {
+          "name": "healthcheck",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Elastic IP healthcheck",
+          "ref": "elastic-ip-healthcheck"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Instance.update-instance",
+      "id": "update-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance",
+      "http_method": "PUT",
+      "path": "/instance/{id}",
+      "summary": "Update a Compute instance",
+      "tags": [
+        "instance"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance name"
+        },
+        {
+          "name": "user-data",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance Cloud-init user-data (base64 encoded)"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Assign public IP to the Instance",
+          "enum_name": "public-ip-assignment",
+          "enum_values": [
+            "inet4",
+            "dual",
+            "none"
+          ],
+          "ref": "public-ip-assignment"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "application-consistent-snapshot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable/Disable Application Consistent Snapshot for Instance"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.InstancePool.update-instance-pool",
+      "id": "update-instance-pool",
+      "product": "compute",
+      "version": "v2",
+      "resource": "instance_pool",
+      "http_method": "PUT",
+      "path": "/instance-pool/{id}",
+      "summary": "Update an Instance Pool",
+      "tags": [
+        "instance-pool"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "application-consistent-snapshot-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable application consistent snapshots"
+        },
+        {
+          "name": "anti-affinity-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Anti-affinity Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool description"
+        },
+        {
+          "name": "public-ip-assignment",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Determines public IP assignment of the Instances.",
+          "enum_values": [
+            "inet4",
+            "dual"
+          ]
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Labels",
+          "ref": "labels"
+        },
+        {
+          "name": "security-groups",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Security Groups",
+          "item_type": "object"
+        },
+        {
+          "name": "elastic-ips",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instances Elastic IPs",
+          "item_type": "object"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool name"
+        },
+        {
+          "name": "instance-type",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instances type",
+          "ref": "instance-type-ref"
+        },
+        {
+          "name": "min-available",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Minimum number of running Instances",
+          "format": "int64"
+        },
+        {
+          "name": "private-networks",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Private Networks",
+          "item_type": "object"
+        },
+        {
+          "name": "template",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instances template",
+          "ref": "template-ref"
+        },
+        {
+          "name": "ssh-key",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instances SSH key",
+          "ref": "ssh-key-ref"
+        },
+        {
+          "name": "instance-prefix",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Prefix to apply to Instances names (default: pool)"
+        },
+        {
+          "name": "user-data",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Instances Cloud-init user-data"
+        },
+        {
+          "name": "deploy-target",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Instance Pool Deploy Target",
+          "ref": "deploy-target-ref"
+        },
+        {
+          "name": "ipv6-enabled",
+          "type": "boolean",
+          "required": false,
+          "location": "body",
+          "description": "Enable IPv6. DEPRECATED: use `public-ip-assignments`."
+        },
+        {
+          "name": "disk-size",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Instances disk size in GiB",
+          "format": "int64"
+        },
+        {
+          "name": "ssh-keys",
+          "type": "array",
+          "required": false,
+          "location": "body",
+          "description": "Instances SSH keys",
+          "item_type": "object"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancer.update-load-balancer",
+      "id": "update-load-balancer",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer",
+      "http_method": "PUT",
+      "path": "/load-balancer/{id}",
+      "summary": "Update a Load Balancer",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.LoadBalancerService.update-load-balancer-service",
+      "id": "update-load-balancer-service",
+      "product": "compute",
+      "version": "v2",
+      "resource": "load_balancer_service",
+      "http_method": "PUT",
+      "path": "/load-balancer/{id}/service/{service-id}",
+      "summary": "Update a Load Balancer Service",
+      "tags": [
+        "network-load-balancer"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "service-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer Service name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Load Balancer Service description"
+        },
+        {
+          "name": "protocol",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Network traffic protocol",
+          "enum_values": [
+            "tcp",
+            "udp"
+          ]
+        },
+        {
+          "name": "strategy",
+          "type": "enum",
+          "required": false,
+          "location": "body",
+          "description": "Load balancing strategy",
+          "enum_values": [
+            "round-robin",
+            "maglev-hash",
+            "source-hash"
+          ]
+        },
+        {
+          "name": "port",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Port exposed on the Load Balancer's public IP",
+          "format": "int64"
+        },
+        {
+          "name": "target-port",
+          "type": "integer",
+          "required": false,
+          "location": "body",
+          "description": "Port on which the network traffic will be forwarded to on the receiving instance",
+          "format": "int64"
+        },
+        {
+          "name": "healthcheck",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "Healthcheck configuration",
+          "ref": "load-balancer-service-healthcheck"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.update-private-network",
+      "id": "update-private-network",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "PUT",
+      "path": "/private-network/{id}",
+      "summary": "Update a Private Network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network description"
+        },
+        {
+          "name": "netmask",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network netmask",
+          "format": "ipv4"
+        },
+        {
+          "name": "start-ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network start IP address",
+          "format": "ipv4"
+        },
+        {
+          "name": "end-ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Private Network end IP address",
+          "format": "ipv4"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "options",
+          "type": "object",
+          "required": false,
+          "location": "body",
+          "description": "DHCP options",
+          "ref": "private-network-options"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.PrivateNetwork.update-private-network-instance-ip",
+      "id": "update-private-network-instance-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "private_network",
+      "http_method": "PUT",
+      "path": "/private-network/{id}:update-ip",
+      "summary": "Update the IP address of an instance attached to a managed private network",
+      "tags": [
+        "private-network"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "ip",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Static IP address lease for the corresponding network interface",
+          "format": "ipv4"
+        },
+        {
+          "name": "instance",
+          "type": "object",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsElasticIp.update-reverse-dns-elastic-ip",
+      "id": "update-reverse-dns-elastic-ip",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_elastic_ip",
+      "http_method": "POST",
+      "path": "/reverse-dns/elastic-ip/{id}",
+      "summary": "Update/Create the PTR DNS record for an elastic IP",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "domain-name",
+          "type": "string",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.ReverseDnsInstance.update-reverse-dns-instance",
+      "id": "update-reverse-dns-instance",
+      "product": "compute",
+      "version": "v2",
+      "resource": "reverse_dns_instance",
+      "http_method": "POST",
+      "path": "/reverse-dns/instance/{id}",
+      "summary": "Update/Create the PTR DNS record for an instance",
+      "tags": [
+        "reverse-dns"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "domain-name",
+          "type": "string",
+          "required": false,
+          "location": "body"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.VpcSubnet.update-subnet",
+      "id": "update-subnet",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc_subnet",
+      "http_method": "PUT",
+      "path": "/vpc/{vpc-id}/subnet/{id}",
+      "summary": "[BETA] Update a Subnet",
+      "tags": [
+        "vpc-subnet"
+      ],
+      "parameters": [
+        {
+          "name": "vpc-id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subnet name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subnet description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        },
+        {
+          "name": "ipv4-block",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Subnet CIDR"
+        }
+      ],
+      "response": {
+        "schema": "subnet",
+        "payload_schema": "subnet"
+      }
+    },
+    {
+      "key": "compute.v2.Template.update-template",
+      "id": "update-template",
+      "product": "compute",
+      "version": "v2",
+      "resource": "template",
+      "http_method": "PUT",
+      "path": "/template/{id}",
+      "summary": "Update template attributes",
+      "tags": [
+        "template"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "Template Description"
+        }
+      ],
+      "response": {
+        "schema": "operation",
+        "is_operation": true
+      }
+    },
+    {
+      "key": "compute.v2.Vpc.update-vpc",
+      "id": "update-vpc",
+      "product": "compute",
+      "version": "v2",
+      "resource": "vpc",
+      "http_method": "PUT",
+      "path": "/vpc/{id}",
+      "summary": "[BETA] Update a VPC",
+      "tags": [
+        "vpc-management"
+      ],
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string",
+          "required": true,
+          "location": "path",
+          "format": "uuid"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "VPC name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "required": false,
+          "location": "body",
+          "description": "VPC description"
+        },
+        {
+          "name": "labels",
+          "type": "map",
+          "required": false,
+          "location": "body",
+          "description": "Resource labels",
+          "ref": "labels"
+        }
+      ],
+      "response": {
+        "schema": "vpc",
+        "payload_schema": "vpc"
+      }
+    }
+  ],
+  "warnings": [
+    "aucune opération ne déclare de paramètre de pagination (page, limit, offset, cursor) : une liste est rendue en une réponse, et le contrat ne promet pas qu'elle soit complète",
+    "get-console-proxy-url : réponse inline à 3 propriétés, charge utile indécidable"
+  ]
+}

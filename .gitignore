@@ -1,0 +1,22 @@
+# Ce qu'une commande peut reproduire ne se versionne pas, et `git status` doit
+# rester vide après `mise run check`.
+
+# Artefacts des tâches : build/reports
+build/
+
+# Environnements et caches d'outils
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+
+# `ansible-test` écrit ici quand il tourne depuis le dépôt.
+/ansible_collections/stephrobert/exoscale/tests/output/
+
+# Collections installées pour un essai local, et archives.
+.ansible/
+*.tar.gz
+*.retry

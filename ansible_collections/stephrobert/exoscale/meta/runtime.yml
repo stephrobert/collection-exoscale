@@ -1,0 +1,5 @@
+---
+# La borne basse est celle que les modules générés emploient réellement :
+# `required_if` et `supports_check_mode` existent depuis longtemps, et le
+# runtime n'importe rien de plus récent que `ansible.module_utils.basic`.
+requires_ansible: ">=2.16.0"

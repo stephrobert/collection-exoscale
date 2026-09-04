@@ -1,0 +1,161 @@
+# Décisions humaines sur le produit compute de l'API v2 d'Exoscale.
+#
+# Chaque entrée corrige ce qu'une règle mécanique ne peut pas savoir : ce que
+# l'opération veut dire pour un opérateur, et si Ansible a une raison de
+# l'exposer. La clé est celle que l'IR calcule
+# (`<produit>.<version>.<Ressource>.<operation-id>`), et `reason` est
+# obligatoire dès qu'on change une classification.
+#
+# Ce que ce fichier ne fait pas : rattraper une règle qui se trompe partout.
+# Une correction qui se répète sur dix opérations est une règle manquante dans
+# `generator/classifier/rules.py`, pas dix overrides.
+
+operations:
+
+  # --- Topologie : Terraform relie, Ansible n'attache pas --------------------
+  #
+  # Attacher une instance à un groupe de sécurité, à un réseau privé, à un
+  # sous-réseau ou à une IP élastique crée une relation entre deux ressources.
+  # Le fournisseur Terraform d'Exoscale déclare ces relations sur
+  # `exoscale_compute_instance` (`security_group_ids`, `private_network_ids`,
+  # `elastic_ip_ids`) : un module qui les modifierait produirait un écart entre
+  # l'état déclaré et l'état réel, invisible jusqu'au prochain `terraform apply`.
+
+  compute.v2.ElasticIp.attach-instance-to-elastic-ip:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.ElasticIp.detach-instance-from-elastic-ip:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.PrivateNetwork.attach-instance-to-private-network:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.PrivateNetwork.detach-instance-from-private-network:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.PrivateNetwork.update-private-network-instance-ip:
+    generation: ignore
+    reason: >-
+      Change l'adresse d'une instance dans un réseau privé : c'est un attribut
+      de la relation instance/réseau, que Terraform déclare. Même frontière que
+      attach-instance-to-private-network.
+
+  compute.v2.SecurityGroup.attach-instance-to-security-group:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.SecurityGroup.detach-instance-from-security-group:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.SecurityGroup.add-external-source-to-security-group:
+    generation: ignore
+    reason: >-
+      Une source externe (CIDR) est le contenu d'un groupe de sécurité, au même
+      titre qu'une règle, et Terraform le déclare. Ajouter par Ansible ce que
+      Terraform décrit produirait un écart silencieux.
+
+  compute.v2.SecurityGroup.remove-external-source-from-security-group:
+    generation: ignore
+    reason: Même frontière que add-external-source-to-security-group.
+
+  compute.v2.VpcSubnet.attach-instance-to-subnet:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  compute.v2.VpcSubnet.detach-instance-from-subnet:
+    generation: ignore
+    reason: Relation entre deux ressources, déclarée par Terraform et non par Ansible.
+
+  # --- Créations que le verbe ne nomme pas `create` ---------------------------
+  #
+  # La règle range en LIFECYCLE ce qui commence par `create`. Ces opérations
+  # créent une ressource sous un autre verbe ; le contrat le dit dans leur
+  # réponse ou leur résumé, et la frontière est la même.
+
+  compute.v2.SecurityGroupRule.add-rule-to-security-group:
+    generation: lifecycle
+    reason: Crée une règle de groupe de sécurité ; delete-rule-from-security-group la supprime. Périmètre Terraform.
+
+  compute.v2.LoadBalancerService.add-service-to-load-balancer:
+    generation: lifecycle
+    reason: Crée un service de répartiteur de charge ; delete-load-balancer-service le supprime. Périmètre Terraform.
+
+  compute.v2.SshKey.register-ssh-key:
+    generation: lifecycle
+    reason: Crée une clé SSH dans le compte ; delete-ssh-key la supprime. Périmètre Terraform.
+
+  compute.v2.Template.register-template:
+    generation: lifecycle
+    reason: Crée un modèle personnalisé depuis une URL ; delete-template le supprime. Périmètre Terraform.
+
+  compute.v2.Template.copy-template:
+    generation: lifecycle
+    reason: Crée une copie du modèle dans une autre zone (`target-zone` obligatoire). Périmètre Terraform.
+
+  compute.v2.Snapshot.promote-snapshot-to-template:
+    generation: lifecycle
+    reason: Crée un modèle depuis un snapshot ; le contrat exige `name` pour la nouvelle ressource. Périmètre Terraform.
+
+  # --- Destructions déguisées en action ---------------------------------------
+
+  compute.v2.Instance.reset-instance:
+    generation: ignore
+    reason: >-
+      « Reset a Compute instance to a base/target template » : réinstalle le
+      système et efface le disque. C'est un remplacement de ressource, que
+      Terraform exprime par `-replace`, pas une exploitation de l'existant.
+
+  compute.v2.InstancePool.evict-instance-pool-members:
+    generation: ignore
+    reason: >-
+      Retire des instances nommées d'un pool, ce qui les détruit. La taille
+      d'un pool se pilote par scale-instance-pool, qui reste exposée.
+
+  # --- Ressources que le chemin nomme mal ------------------------------------
+
+  compute.v2.Console.get-console-proxy-url:
+    resource: instance_console
+    # Le chemin `/console/{id}` ne dit pas que l'identifiant est celui d'une
+    # instance ; le résumé le dit : « connect via console-proxy websocket to VM
+    # VNC console ».
+
+  compute.v2.Instance.reveal-instance-password:
+    resource: instance_password
+    # Une seconde lecture unitaire sur `instance` entrerait en collision avec
+    # get-instance dans compute_instance_info. Le mot de passe est une chose à
+    # part, et son module le dit dans son nom.
+
+  compute.v2.VpcRoute.list-routes:
+    resource: vpc_subnet_route
+    # `/vpc/{vpc-id}/subnet/{subnet-id}/route` et `/vpc/{vpc-id}/route` donnent
+    # tous deux `vpc_route` à la règle « premier et dernier segment ». Ce sont
+    # deux collections distinctes, les routes d'un sous-réseau et celles d'un
+    # VPC : deux ressources, un seul nom, l'inverse du piège de Scaleway.
+
+  compute.v2.VpcRoute.create-route:
+    resource: vpc_subnet_route
+
+  compute.v2.VpcRoute.delete-route:
+    resource: vpc_subnet_route
+
+  # --- Un identifiant qui ne porte pas le même nom que ses voisins -----------
+
+  compute.v2.Instance.revert-instance-to-snapshot:
+    parameters:
+      instance-id:
+        option: id
+        reason: >-
+          Le chemin dit `{instance-id}` là où les treize autres actions sur
+          l'instance disent `{id}`. Le module d'action a un seul sélecteur, et
+          c'est `id` ; le runtime envoie `instance-id` au SDK, parce que le
+          module garde le nom du contrat à côté du nom de l'option.
+      id:
+        option: snapshot_id
+        reason: >-
+          Le corps porte un champ `id` qui est celui du snapshot à restaurer.
+          Sous le nom `id`, il se confondrait avec le sélecteur de l'instance.

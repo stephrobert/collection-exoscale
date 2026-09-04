@@ -1,0 +1,21 @@
+# Overrides de laboratoire : les mêmes arbitrages que compute.yml, sur le
+# contrat gadget. Ils ne changent aucune classification : ils renomment ce que
+# le contrat nomme mal, pour que les modules du laboratoire se construisent.
+
+operations:
+
+  gadget.v2.Gadget.reveal-gadget-password:
+    resource: gadget_password
+    # Une seconde lecture unitaire sur `gadget` entrerait en collision avec
+    # get-gadget dans gadget_gadget_info.
+
+  gadget.v2.Gadget.revert-gadget-to-snapshot:
+    parameters:
+      gadget-id:
+        option: id
+        reason: >-
+          Le chemin dit `{gadget-id}` là où les autres actions disent `{id}`.
+          Reproduit revert-instance-to-snapshot du contrat réel.
+      id:
+        option: snapshot_id
+        reason: Le corps porte l'identifiant du snapshot, pas celui du gadget.
