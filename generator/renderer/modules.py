@@ -226,8 +226,15 @@ def _operation_literal(operation: OperationBinding, *, indent: int) -> str:
 
 
 def _environment() -> Environment:
-    """`StrictUndefined` : une variable mal orthographiée fait échouer le rendu."""
-    return Environment(
+    """`StrictUndefined` : une variable mal orthographiée fait échouer le rendu.
+
+    `autoescape=False` est délibéré et sans risque : la sortie est du code
+    Python écrit sur disque, jamais du HTML servi à un navigateur, et
+    l'échapper serait le défaut. CodeQL le signale quand même
+    (`py/jinja2/autoescape-false`) ; la suppression est portée par la ligne où
+    l'alerte commence, parce que c'est la seule que l'outil lit.
+    """
+    return Environment(  # codeql[py/jinja2/autoescape-false]
         loader=FileSystemLoader(str(TEMPLATE_ROOT)),
         undefined=StrictUndefined,
         trim_blocks=True,
