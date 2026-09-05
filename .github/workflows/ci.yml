@@ -214,3 +214,68 @@ jobs:
           name: collection
           path: build/dist/*.tar.gz
           if-no-files-found: error
+
+  exemple:
+    # La plateforme d'exemple, contre l'émulateur : elle se bâtit par le SDK,
+    # l'inventaire dynamique retrouve ce qu'elle a bâti, le playbook appelle
+    # chaque module qui a une cible, puis tout est détruit et le contrôle de
+    # résidu compare l'émulateur avant et après. C'est la seule preuve de
+    # comportement du dépôt, et c'est elle qui a trouvé une adresse orpheline
+    # et une contrainte du TPM avant tout run réel.
+    #
+    # **La cible réelle n'est pas ici et ne le sera pas.** Elle crée des
+    # ressources facturées sur le compte du mainteneur, et ne se lance qu'avec
+    # son accord, demandé à chaque fois.
+    #
+    # Ce que ce job ne prouve pas : ce que feint décline (VPC, console, mot de
+    # passe, DNS inverse, export d'instantané, et sept produits entiers). Le
+    # playbook le tolère contre l'émulateur seul et le recense ; l'artefact
+    # publié dit ce qui a réellement tourné.
+    name: Plateforme d'exemple
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Durcir le runner
+        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        with:
+          # Le job télécharge le binaire de l'émulateur : `audit` documente ce
+          # trafic au lieu de le deviner.
+          egress-policy: audit
+
+      - name: Récupérer le dépôt
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Installer mise
+        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        with:
+          version: 2026.2.23
+
+      - name: Installer
+        run: mise run setup
+
+      # Épinglé par SHA : `v1` est une référence mobile. L'action télécharge le
+      # binaire, contrôle sa somme SHA-256 contre `checksums.txt`, puis lance
+      # `feint start`. Sur le port que `scripts/example.py` attend, qui n'est
+      # ni le 4599 par défaut ni le 4877 de collection-scaleway. Le lanceur
+      # adopte un émulateur déjà en écoute et ne l'arrête pas : le cycle de vie
+      # appartient à qui l'a démarré.
+      - name: Démarrer l'émulateur
+        uses: stephrobert/setup-feint@b7eba1d4fcaccf65cf9124bf97a0d995996709b9 # v1
+        with:
+          version: "0.12.1"
+          addr: 127.0.0.1:4993
+
+      - name: La plateforme d'exemple se bâtit, s'exploite et se détruit
+        run: mise run example
+
+      - name: Publier l'artefact de couverture
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: exemple
+          path: build/example/*.json
+          if-no-files-found: warn
