@@ -86,6 +86,8 @@ LE LIVRABLE, à l'emplacement qu'Ansible impose
 ansible_collections/stephrobert/exoscale/
     galaxy.yml          l'identité, seule source du namespace
     plugins/module_utils/exoscale.py   client SDK, appel, attente de l'opération, erreurs
+    plugins/module_utils/inventory/    le moteur d'inventaire, en couches sans nom de produit
+    plugins/inventory/compute.py       le dialogue avec Ansible, et rien d'autre
     plugins/modules/    les modules générés
     plugins/doc_fragments/  les paramètres communs, et le fragment `wait`
     meta/               requires_ansible mesuré, et les métadonnées d'EE
@@ -202,6 +204,24 @@ appelée, `ansible-test sanity` passe de 2.17 à 2.21 et l'archive s'installe
 et répond à `ansible-doc`. **Aucun module n'a encore été joué contre le cloud
 réel, et il n'existe pas d'émulateur de l'API Exoscale.** Le dire vaut mieux
 qu'un vert qui ne mesure pas ça.
+
+## L'inventaire : un cœur qui ne nomme aucun produit
+
+`plugins/module_utils/inventory/` est en couches (`config`, `providers`,
+`network`, `address`, `hostname`, `groups`, `filtering`, `models`, `errors`,
+`discovery`), et un test parcourt le code de chaque couche du cœur par AST
+pour y refuser tout nom de produit : ajouter un produit coûte un fichier de
+provider et une ligne dans `discovery.py`, jamais une modification du cœur.
+Un second test confronte les champs que le provider lit, lus dans son code,
+au schéma `instance` du contrat versionné : un champ renommé en amont rougit
+la CI au lieu de rendre un parc muet.
+
+Ce qu'Exoscale impose au moteur, mesuré : un client SDK par zone, parce que
+l'hôte porte la zone ; les adresses privées lues dans les **baux** de chaque
+réseau privé, parce que l'instance ne les porte pas ; des labels et non des
+tags ; un `manager` (pool, nodepool SKS) qu'un playbook doit connaître avant
+d'arrêter une machine. `EXOSCALE_API_URL` reste honoré : avec une URL, toutes
+les zones parlent au même hôte.
 
 ## Le témoin du mode strict
 
