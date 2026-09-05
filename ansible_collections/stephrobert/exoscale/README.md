@@ -98,9 +98,9 @@ Exoscale's Block Storage offers persistent externally attached volumes for your 
 
 | module | what it does |
 |---|---|
-| `block_storage_action` | Perform an action on an Exoscale block storage |
-| `block_storage_info` | Gather information about Exoscale block storages |
 | `block_storage_snapshot_info` | Gather information about Exoscale block storage snapshots |
+| `block_storage_volume_action` | Perform an action on an Exoscale block storage volume |
+| `block_storage_volume_info` | Gather information about Exoscale block storage volumes |
 
 ### ccm (1 module)
 

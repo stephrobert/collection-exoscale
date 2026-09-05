@@ -83,9 +83,9 @@ collection stephrobert.exoscale: 136 modules written, 179 planned, 43 set aside 
   ai_model_info                            Gather information about Exoscale ai models
   ai_quota_info                            Gather information about Exoscale ai quotas
   audit_trail_event_info                   Gather information about Exoscale events
-  block_storage_action                     Perform an action on an Exoscale block storage
-  block_storage_info                       Gather information about Exoscale block storages
   block_storage_snapshot_info              Gather information about Exoscale block storage snapshots
+  block_storage_volume_action              Perform an action on an Exoscale block storage volume
+  block_storage_volume_info                Gather information about Exoscale block storage volumes
   ccm_quota_info                           Gather information about Exoscale quotas
   compute_anti_affinity_group_info         Gather information about Exoscale anti affinity groups
   compute_deploy_target_info               Gather information about Exoscale deploy targets

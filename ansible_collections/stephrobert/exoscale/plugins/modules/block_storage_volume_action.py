@@ -13,20 +13,20 @@
 from __future__ import annotations
 
 DOCUMENTATION = r"""
-module: block_storage_action
-short_description: Perform an action on an Exoscale block storage
+module: block_storage_volume_action
+short_description: Perform an action on an Exoscale block storage volume
 version_added: 0.1.0
 description:
-- 'Trigger one of the following actions on an existing block storage: C(resize_volume).'
+- 'Trigger one of the following actions on an existing block storage volume: C(resize).'
 author:
 - Stéphane Robert (@stephrobert)
 options:
   action:
-    description: The action to trigger on the block storage.
+    description: The action to trigger on the block storage volume.
     type: str
     required: true
     choices:
-    - resize_volume
+    - resize
   id:
     description: Not documented by the Exoscale API contract.
     type: str
@@ -42,10 +42,10 @@ notes:
 """
 
 EXAMPLES = r"""
-- name: Run resize_volume on a block storage
-  stephrobert.exoscale.block_storage_action:
+- name: Run resize on a block storage volume
+  stephrobert.exoscale.block_storage_volume_action:
     zone: ch-gva-2
-    action: resize_volume
+    action: resize
     id: 11111111-2222-3333-4444-555555555555
 """
 
@@ -72,7 +72,7 @@ MODULE_ARGUMENT_SPEC = {
     "action": {
         "type": "str",
         "required": True,
-        "choices": ["resize_volume"],
+        "choices": ["resize"],
     },
     "id": {"type": "str", "required": True},
     "size": {"type": "int"},
@@ -82,7 +82,7 @@ MODULE_ARGUMENT_SPEC = {
 REQUIRED_IF = [
     [
         "action",
-        "resize_volume",
+        "resize",
         ["size"],
     ],
 ]
@@ -94,11 +94,11 @@ ARGUMENT_SPEC.update(MODULE_ARGUMENT_SPEC)
 
 #: Ce que le module exécute, et les décisions que le générateur a prises.
 MODULE = ActionModule(
-    resource="block_storage",
+    resource="block_storage_volume",
     selector="id",
     actions=(
         Action(
-            name="resize_volume",
+            name="resize",
             operation=Operation(
                 id="resize-block-storage-volume",
                 method="resize_block_storage_volume",

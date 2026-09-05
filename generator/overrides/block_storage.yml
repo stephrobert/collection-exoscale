@@ -17,3 +17,37 @@ operations:
     reason: >-
       Relation entre deux ressources, déclarée par Terraform et non par
       Ansible. Même frontière que attach-block-storage-volume-to-instance.
+
+  # --- La ressource s'appelle volume, pas block-storage ----------------------
+  #
+  # Le chemin dit `/block-storage/{id}`, mais le schéma s'appelle
+  # `block-storage-volume` et chaque operationId le dit aussi
+  # (`get-block-storage-volume`, `resize-block-storage-volume`). Dérivée du
+  # chemin, la ressource s'appelait `block_storage`, le module
+  # `block_storage_info`, et sa liste sortait sous `block_storages` : un nom
+  # que personne ne cherche. Mesuré par le playbook d'exemple, qui a cherché
+  # `block_storage_volumes` et ne l'a pas trouvé.
+
+  block_storage.v2.BlockStorage.list-block-storage-volumes:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
+
+  block_storage.v2.BlockStorage.get-block-storage-volume:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
+
+  block_storage.v2.BlockStorage.create-block-storage-volume:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
+
+  block_storage.v2.BlockStorage.delete-block-storage-volume:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
+
+  block_storage.v2.BlockStorage.update-block-storage-volume:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
+
+  block_storage.v2.BlockStorage.resize-block-storage-volume:
+    resource: block_storage_volume
+    reason: Le schéma et l'operationId nomment la ressource `block-storage-volume`.
