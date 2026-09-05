@@ -13,12 +13,12 @@
 from __future__ import annotations
 
 DOCUMENTATION = r"""
-module: block_storage_info
-short_description: Gather information about Exoscale block storages
+module: block_storage_volume_info
+short_description: Gather information about Exoscale block storage volumes
 version_added: 0.1.0
 description:
-- Read one Exoscale block storage by its identifier, or list them. This module never changes
-  anything.
+- Read one Exoscale block storage volume by its identifier, or list them. This module never
+  changes anything.
 author:
 - Stéphane Robert (@stephrobert)
 options:
@@ -33,24 +33,24 @@ extends_documentation_fragment:
 """
 
 EXAMPLES = r"""
-- name: List block storages
-  stephrobert.exoscale.block_storage_info:
+- name: List block storage volumes
+  stephrobert.exoscale.block_storage_volume_info:
     zone: ch-gva-2
   register: result
-- name: Read one block storage
-  stephrobert.exoscale.block_storage_info:
+- name: Read one block storage volume
+  stephrobert.exoscale.block_storage_volume_info:
     zone: ch-gva-2
     id: 11111111-2222-3333-4444-555555555555
   register: result
 """
 
 RETURN = r"""
-block_storage:
-  description: The block storage, when a selector is given.
+block_storage_volume:
+  description: The block storage volume, when a selector is given.
   returned: when the selector is given
   type: dict
-block_storages:
-  description: The block storages.
+block_storage_volumes:
+  description: The block storage volumes.
   returned: when no selector is given
   type: list
   elements: dict
@@ -81,7 +81,7 @@ ARGUMENT_SPEC.update(MODULE_ARGUMENT_SPEC)
 
 #: Ce que le module exécute, et les décisions que le générateur a prises.
 MODULE = InfoModule(
-    resource="block_storage",
+    resource="block_storage_volume",
     get_operation=Operation(
         id="get-block-storage-volume",
         method="get_block_storage_volume",
