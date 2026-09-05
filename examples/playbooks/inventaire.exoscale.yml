@@ -1,0 +1,61 @@
+# L'inventaire de la plateforme bâtie par `examples/stack/platform.py`.
+#
+# Il ne nomme aucune machine : c'est le plugin qui les découvre, et c'est
+# précisément ce qu'on veut prouver. Un exemple qui listerait les machines à la
+# main ne démontrerait rien de l'inventaire dynamique.
+#
+# Le point qui distingue ce plugin se joue ici : dans cette plateforme, **seul
+# le bastion porte une adresse élastique**. Les tiers web et applicatif n'en
+# ont aucune, et sont joints par l'adresse que leur bail donne sur le réseau
+# `backend`, lue sur le réseau privé et non sur l'instance. Un inventaire qui
+# ne saurait pas faire ça ne verrait que le bastion.
+plugin: stephrobert.exoscale.compute
+
+# Les identifiants et l'endpoint viennent de l'environnement, ce que
+# `feint env exoscale` exporte : rien n'est écrit ici.
+
+products:
+  - instance
+
+# Aucune zone écrite ici : un fichier d'inventaire n'est pas templaté par
+# Ansible, et la zone de l'exercice vient de `EXOSCALE_ZONE`, que le plugin lit
+# comme `default_zone`. Contre feint, une seule zone est servie par processus ;
+# contre le compte réel, c'est la zone où la plateforme a été bâtie.
+
+# L'adresse privée d'abord : c'est la seule que les tiers web et applicatif
+# possèdent, et le bastion en a une aussi.
+address_priority:
+  - private_ipv4
+  - public_ipv4
+
+# Les groupes que le playbook utilise. `labels` porte les rôles posés par la
+# plateforme : `role=bastion`, `role=web`, `role=app`, `role=pool`.
+group_by:
+  - product
+  - zone
+  - state
+  - labels
+  - private_network
+  - manager
+
+hostnames:
+  - name
+  - id
+
+# Les machines de cet exemple, et rien d'autre : le compte peut en porter
+# d'autres, et un exemple qui les emporterait serait un piège. Le label
+# `exemple` porte le run ; toute valeur convient ici, le playbook filtre par
+# préfixe ensuite.
+labels:
+  exemple: ""
+
+strict: true
+cache: false
+
+# Ce qu'Ansible construit lui-même par-dessus, pour montrer que les mécanismes
+# natifs sont réellement appliqués et pas seulement documentés.
+compose:
+  ansible_user: "'ubuntu'"
+keyed_groups:
+  - prefix: type
+    key: exoscale_instance.type
