@@ -69,6 +69,9 @@
             "context": "Archive"
           },
           {
+            "context": "Plateforme d'exemple"
+          },
+          {
             "context": "Actionlint (syntaxe des workflows)"
           },
           {

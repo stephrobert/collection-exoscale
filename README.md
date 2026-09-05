@@ -213,7 +213,7 @@ collection stephrobert.exoscale: 136 modules written, 179 planned, 43 set aside 
   sos_presigned_url_info                   Gather information about Exoscale sos presigned urls
   compute (inventory)                      dynamic inventory
   933 unit tests · 43 guards proven by mise run falsify
-  CI: 3 jobs, Générateur · collection · Archive
+  CI: 4 jobs, Générateur · collection · Archive · Plateforme d'exemple
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```
 <!-- counters:end -->
@@ -227,7 +227,7 @@ The proof of behaviour is the **example platform** (`examples/`): built
 through the SDK against [feint](https://github.com/stephrobert/feint), the
 local emulator, discovered by the inventory plugin, operated by a playbook
 that calls every module with a target, then destroyed under a differential
-residue check. **No module has been played against the real cloud yet**, and
+residue check. It runs on every pull request. **No module has been played against the real cloud yet**, and
 the real target never runs without the maintainer's explicit agreement.
 Saying so is worth more than a green that does not measure it.
 
@@ -281,7 +281,7 @@ and checks out with `persist-credentials: false`. What runs:
 
 | workflow | what it holds |
 |---|---|
-| `ci` | lint, types, tests, strict report, generated-artifact drift, changelog fragments, falsification, README counters; `ansible-test sanity` and `antsibull-docs` on ansible-core 2.17 to 2.21; the archive built, installed and queried |
+| `ci` | lint, types, tests, strict report, generated-artifact drift, changelog fragments, falsification, README counters; `ansible-test sanity` and `antsibull-docs` on ansible-core 2.17 to 2.21; the archive built, installed and queried; the example platform built, operated and destroyed against the emulator |
 | `Sécurité des workflows` | actionlint, zizmor, poutine, and the applied ruleset compared to `.github/rulesets/main.json` |
 | `Plumber` | trust policy on third-party actions, from `.plumber.yaml` |
 | `CodeQL`, `OSV-Scanner`, `Revue des dépendances`, `Secrets`, `SBOM`, `Scorecard` | static analysis, known vulnerabilities, licences, secrets, software bill of materials, posture |
