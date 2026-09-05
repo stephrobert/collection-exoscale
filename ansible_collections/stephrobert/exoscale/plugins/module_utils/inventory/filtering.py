@@ -4,11 +4,9 @@
 
 """Le filtrage qui reste à faire une fois les réponses reçues.
 
-`list-instances` accepte un filtre `labels`, et le contrat ne dit pas s'il
-applique un ET ou un OU sur plusieurs paires. Ce que le contrat ne dit pas ne
-se suppose pas : le provider ne passe le filtre à l'API que pour **un** label,
-où les deux lectures coïncident, et tout le reste se décide ici, sur le
-modèle normalisé, par des fonctions pures.
+`list-instances` déclare un filtre `labels` que le contrat type en chaîne nue,
+sans format : le provider ne le passe jamais à l'API, et tout se décide ici,
+sur le modèle normalisé, par des fonctions pures.
 """
 
 from __future__ import annotations
@@ -28,20 +26,6 @@ class Filters:
     states: tuple[str, ...] = ()
     exclude_labels: Mapping[str, str] = field(default_factory=dict)
     exclude_states: tuple[str, ...] = ()
-
-    def api_labels(self) -> Mapping[str, str]:
-        """Le filtre à passer à l'API, et rien d'autre.
-
-        Un seul label, avec sa valeur : le contrat ne dit pas ce que l'API fait
-        de plusieurs paires, et une clé sans valeur n'est pas un filtre qu'elle
-        sait exprimer. Dans les deux autres cas on transfère, et on affine ici :
-        le filtrage local ne peut pas récupérer ce qu'il n'a pas reçu.
-        """
-        if len(self.labels) == 1:
-            ((cle, valeur),) = self.labels.items()
-            if valeur:
-                return {cle: valeur}
-        return {}
 
 
 def _matches(labels: Mapping[str, str], cle: str, valeur: str) -> bool:

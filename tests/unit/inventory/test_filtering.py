@@ -43,10 +43,3 @@ def test_une_exclusion_par_label_lemporte_sur_tout() -> None:
         LABELS, "running", Filters(labels={"env": "prod"}, exclude_labels={"role": "web"})
     )
     assert not garde and "exclue" in raison
-
-
-def test_lapi_ne_recoit_quun_label_avec_sa_valeur() -> None:
-    """Le contrat ne dit pas ce que l'API fait de plusieurs paires : on ne suppose pas."""
-    assert Filters(labels={"env": "prod"}).api_labels() == {"env": "prod"}
-    assert Filters(labels={"env": "prod", "role": "web"}).api_labels() == {}
-    assert Filters(labels={"role": ""}).api_labels() == {}

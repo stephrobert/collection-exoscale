@@ -43,8 +43,6 @@ class DiscoveryContext:
     """Ce que l'utilisateur a demandé, tel qu'un provider en a besoin."""
 
     zones: tuple[str, ...] = ()
-    #: Le filtre de labels que l'API sait appliquer, déjà réduit.
-    api_labels: Mapping[str, str] | None = None
     include_raw: bool = False
     #: Les index réseau, par zone, construits une fois pour tous les providers.
     network: Mapping[str, Any] | None = None

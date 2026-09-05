@@ -153,12 +153,11 @@ def test_instance_interroge_les_huit_zones_par_defaut() -> None:
     assert tuple(zones) == EXOSCALE_ZONES
 
 
-def test_instance_passe_le_filtre_de_label_que_lapi_sait_appliquer() -> None:
+def test_instance_ne_passe_aucun_filtre_a_lapi() -> None:
+    """Le contrat type `labels` en chaîne nue : tout encodage serait inventé."""
     client = _Client("ch-gva-2", {})
-    instance.InstanceProvider(lambda zone: client).discover(
-        DiscoveryContext(zones=("ch-gva-2",), api_labels={"env": "prod"})
-    )
-    assert client.appels == [{"labels": {"env": "prod"}}]
+    instance.InstanceProvider(lambda zone: client).discover(DiscoveryContext(zones=("ch-gva-2",)))
+    assert client.appels == [{}]
 
 
 def test_un_refus_dauthentification_est_fatal() -> None:

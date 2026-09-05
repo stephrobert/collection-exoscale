@@ -49,11 +49,12 @@ options:
       - name: EXOSCALE_API_SECRET
   api_url:
     description:
-      - Full base URL of the API, replacing the one built from each zone.
+      - Full base URL of the API, C(/v2) included, replacing the one built from each zone.
       - Point it at a local emulator to build an inventory without a real account.
     type: str
     env:
       - name: EXOSCALE_API_URL
+      - name: EXOSCALE_API_ENDPOINT
   products:
     description:
       - Products to discover hosts from.
@@ -63,10 +64,21 @@ options:
     default: [all]
   zones:
     description:
-      - Zones to query. Empty means every zone the API contract declares.
+      - Zones to query. Empty means every zone the API contract declares,
+        or only I(default_zone) when I(api_url) is set.
     type: list
     elements: str
     default: []
+  default_zone:
+    description:
+      - The zone an explicit I(api_url) serves.
+      - >-
+        The API host normally carries the zone, so an explicit URL reaches a
+        single zone; querying every zone through it would list each machine
+        once per zone. Used when I(api_url) is set and I(zones) is empty.
+    type: str
+    env:
+      - name: EXOSCALE_ZONE
   hostnames:
     description:
       - Sources for C(inventory_hostname), in order of precedence.
@@ -288,7 +300,22 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         client_for = discovery.client_factory(
             self.get_option("api_key"), self.get_option("api_secret"), self.get_option("api_url")
         )
-        zones = settings.zones or EXOSCALE_ZONES
+        # Avec une URL explicite, un seul hôte répond, donc une seule zone : la
+        # parcourir huit fois listerait chaque machine huit fois. Mesuré contre
+        # feint, qui ne sert qu'une zone par processus.
+        zones = settings.zones
+        if not zones:
+            zone_par_defaut = self.get_option("default_zone")
+            if self.get_option("api_url") and zone_par_defaut:
+                zones = (str(zone_par_defaut),)
+            elif self.get_option("api_url"):
+                raise AnsibleParserError(
+                    "api_url est donné sans zones ni default_zone : une URL explicite "
+                    "sert une seule zone, et le plugin ne sait pas laquelle. Donner "
+                    "`zones`, `default_zone`, ou EXOSCALE_ZONE."
+                )
+            else:
+                zones = EXOSCALE_ZONES
         report = discovery.DiscoveryReport()
 
         # L'index réseau coûte une liste par zone plus une lecture par réseau,
@@ -302,8 +329,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             )
 
         context = DiscoveryContext(
-            zones=settings.zones,
-            api_labels=settings.filters.api_labels() or None,
+            zones=zones,
             include_raw=settings.include_raw,
             network=index,
         )
