@@ -123,12 +123,12 @@ class InstanceProvider:
 
         for zone in context.scoped_zones(ZONES):
             client = self._client_for(zone)
-            kwargs: dict[str, Any] = {}
-            if context.api_labels:
-                kwargs["labels"] = dict(context.api_labels)
             try:
                 appels += 1
-                reponse = client.list_instances(**kwargs)
+                # Aucun filtre passé à l'API : le contrat type `labels` en chaîne
+                # nue sans format, et tout encodage serait inventé. Le filtrage
+                # se fait sur le modèle normalisé, après.
+                reponse = client.list_instances()
             except Exception as erreur:
                 categorie = classify(erreur)
                 if categorie is AuthenticationFailed:

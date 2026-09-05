@@ -212,7 +212,7 @@ collection stephrobert.exoscale: 136 modules written, 179 planned, 43 set aside 
   sos_bucket_usage_info                    Gather information about Exoscale sos bucket usages
   sos_presigned_url_info                   Gather information about Exoscale sos presigned urls
   compute (inventory)                      dynamic inventory
-  914 unit tests · 40 guards proven by mise run falsify
+  913 unit tests · 40 guards proven by mise run falsify
   CI: 3 jobs, Générateur · collection · Archive
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```

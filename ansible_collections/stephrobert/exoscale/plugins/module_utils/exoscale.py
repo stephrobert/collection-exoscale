@@ -128,7 +128,11 @@ def exoscale_argument_spec():
         },
         "api_url": {
             "type": "str",
-            "fallback": (env_fallback, ["EXOSCALE_API_URL"]),
+            # `EXOSCALE_API_ENDPOINT` est le nom que l'écosystème emploie, le CLI
+            # `exo` et `feint env exoscale` compris : un `eval $(feint env
+            # exoscale)` doit suffire à viser l'émulateur. `EXOSCALE_API_URL`
+            # reste honoré, c'est le nom que ce dépôt a documenté en premier.
+            "fallback": (env_fallback, ["EXOSCALE_API_URL", "EXOSCALE_API_ENDPOINT"]),
         },
     }
 
@@ -146,7 +150,11 @@ def build_client(module):
     if not HAS_EXOSCALE:
         module.fail_json(msg=missing_required_lib("exoscale"), exception=EXOSCALE_IMPORT_ERROR)
     params = module.params
-    api_url = params.get("api_url") or os.environ.get("EXOSCALE_API_URL")
+    api_url = (
+        params.get("api_url")
+        or os.environ.get("EXOSCALE_API_URL")
+        or os.environ.get("EXOSCALE_API_ENDPOINT")
+    )
     if api_url:
         return Client(params["api_key"], params["api_secret"], url=api_url)
     return Client(params["api_key"], params["api_secret"], zone=params["zone"])
