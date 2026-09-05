@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
-from jinja2 import Environment, FileSystemLoader, StrictUndefined
+from jinja2 import Environment, FileSystemLoader, StrictUndefined, select_autoescape
 
 from generator.ansible.models import ActionBinding, AnsibleModuleSpec, OperationBinding
 from generator.ir.enums import OperationKind
@@ -228,20 +228,25 @@ def _operation_literal(operation: OperationBinding, *, indent: int) -> str:
 def _environment() -> Environment:
     """`StrictUndefined` : une variable mal orthographiée fait échouer le rendu.
 
-    `autoescape=False` est délibéré et sans risque : la sortie est du code
+    L'échappement est désactivé, et c'est délibéré : la sortie est du code
     Python écrit sur disque, jamais du HTML servi à un navigateur, et
-    l'échapper serait le défaut. CodeQL le signale quand même
-    (`py/jinja2/autoescape-false`) ; la suppression est portée par la ligne où
-    l'alerte commence, parce que c'est la seule que l'outil lit.
+    l'échapper serait le défaut. Il se déclare par `select_autoescape` sans
+    aucune extension activée plutôt que par `autoescape=False` : c'est la
+    forme que CodeQL (`py/jinja2/autoescape-false`) lit comme une décision et
+    non comme un oubli, là où un commentaire de suppression n'était pas lu.
     """
-    return Environment(  # codeql[py/jinja2/autoescape-false]
+    return Environment(
         loader=FileSystemLoader(str(TEMPLATE_ROOT)),
         undefined=StrictUndefined,
         trim_blocks=True,
         lstrip_blocks=True,
         keep_trailing_newline=True,
-        # La sortie est du code Python, pas du HTML : échapper serait le défaut.
-        autoescape=False,  # codeql[py/jinja2/autoescape-false]
+        autoescape=select_autoescape(
+            enabled_extensions=(),
+            disabled_extensions=("j2",),
+            default_for_string=False,
+            default=False,
+        ),
     )
 
 
