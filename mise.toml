@@ -195,6 +195,48 @@ description = "Échouer si les compteurs d'un README ont vieilli"
 depends = ["report", "generate"]
 run = "python scripts/readme_counters.py --check"
 
+# ---- La plateforme d'exemple ----------------------------------------------
+
+[tasks.example]
+description = "Bâtir la plateforme d'exemple contre l'émulateur, l'exploiter, la détruire"
+# feint émule Exoscale, sur un port qui n'est ni le sien par défaut (4599) ni
+# celui de collection-scaleway (4877) : deux exercices qui se partagent un
+# émulateur se détruisent l'un l'autre. La plateforme se bâtit par le SDK, pas
+# par Terraform : le fournisseur Terraform d'Exoscale n'honore
+# EXOSCALE_API_ENDPOINT qu'à moitié, et feint refuse qu'on le lui pointe.
+depends = ["generate"]
+run = "python scripts/example.py emulateur"
+
+[tasks."example:reel"]
+description = "La même, contre l'organisation Exoscale réelle, encadrée par le contrôle de résidu"
+# À lancer à la main, jamais depuis la CI, et jamais sans l'accord explicite du
+# mainteneur : cette cible crée des ressources facturées sur le compte réel.
+# Le lanceur la refuse sans `--compte-reel-accorde`, à passer soi-même après
+# avoir demandé. La destruction est dans un `finally`, et le contrôle de résidu
+# compare l'organisation avant et après.
+depends = ["generate"]
+run = "python scripts/example.py reel"
+
+[tasks."example:residu"]
+description = "Vérifier qu'aucune ressource de l'exemple ne survit sur l'organisation réelle"
+run = "python scripts/residue.py verify"
+
+[tasks."coverage:check"]
+description = "Refuser un module livré qu'aucun playbook d'exemple n'appelle sans raison déclarée"
+# Dans `check` : hors ligne, déterministe, il lit les clés de tâches des
+# playbooks et le répertoire des modules, jamais un artefact de run. Un module
+# écrit que rien n'exerce est un module dont on ignore s'il marche.
+depends = ["generate"]
+run = "python scripts/example_coverage.py --check"
+
+[tasks."coverage:diff"]
+description = "Comparer le dernier run réel au dernier run contre l'émulateur"
+run = "python scripts/example_coverage.py --diff"
+
+[tasks."coverage:example"]
+description = "Les étages de couverture, et ce que le dernier run a joué"
+run = "python scripts/example_coverage.py"
+
 # ---- Le tout ---------------------------------------------------------------
 
 [tasks.check]
@@ -212,6 +254,7 @@ depends = [
   "lint:changelog",
   "falsify",
   "readme:check",
+  "coverage:check",
   "package",
 ]
 

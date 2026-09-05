@@ -1,0 +1,689 @@
+---
+# Les modules de la collection, appelés sur la plateforme d'exemple.
+#
+# **Ce playbook est le test différentiel de l'émulateur.** Il tourne à
+# l'identique contre feint et contre l'organisation Exoscale réelle, avec la
+# même plateforme et les mêmes assertions. Un écart entre les deux exécutions
+# est un défaut de l'émulateur, ou du cloud, et se remonte.
+#
+# **Aucun identifiant n'est écrit à la main.** Tout vient de l'inventaire
+# dynamique ou d'un module appelé plus haut. Un exemple qui code en dur un
+# `id` ne prouve ni l'inventaire ni les modules : il prouve qu'on sait recopier
+# un UUID.
+#
+# **Ce que feint ne sert pas est toléré contre lui seul, et recensé.** Une
+# route déclinée rend 404 `feint does not serve ...` (ou `resource not found`
+# pour le mot de passe), mesuré le 5 septembre 2026 sur feint 0.12.1. Le
+# playbook ne dit `failed_when: false` à personne : il tolère ce message-là,
+# contre cette cible-là, et le compte en fin de jeu dit combien de routes n'ont
+# pas été exercées. Contre le compte réel, le même échec est un vrai échec.
+#
+# **Écrire puis réécrire.** Une écriture unique ne prouve aucune idempotence :
+# `stop` et `start` sont joués deux fois, et le compte des idempotences lit
+# `changed` sur la seconde, il ne fait pas confiance aux assertions.
+
+- name: Les modules de la collection, sur la plateforme que l'inventaire a découverte
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  vars:
+    # Ce que feint répond sur une route qu'il décline. Toléré contre lui seul.
+    non_servi: "does not serve|resource not found"
+    tolere: "{{ cible == 'emulateur' }}"
+    zone: "{{ hostvars[groups['exo_label_role_bastion'][0]].exoscale_zone }}"
+    bastion_id: "{{ hostvars[groups['exo_label_role_bastion'][0]].exoscale_id }}"
+    worker_a_id: "{{ (groups['exo_label_role_app'] | map('extract', hostvars) | selectattr('exoscale_name', 'search', '-worker-a$') | first).exoscale_id }}"
+    worker_b_id: "{{ (groups['exo_label_role_app'] | map('extract', hostvars) | selectattr('exoscale_name', 'search', '-worker-b$') | first).exoscale_id }}"
+
+  tasks:
+    # ---- Le parc, vu par les modules de liste ---------------------------
+
+    - name: Les machines de la zone
+      stephrobert.exoscale.compute_instance_info:
+        zone: "{{ zone }}"
+      register: machines
+
+    - name: L'API rend les six machines que la plateforme a créées, cinq plus le membre du pool
+      ansible.builtin.assert:
+        that:
+          - machines.instances | selectattr('name', 'search', prefixe) | list | length == 6
+          - machines is not changed
+        fail_msg: >-
+          {{ machines.instances | selectattr('name', 'search', prefixe) | list | length }}
+          machine(s) au lieu de 6.
+        quiet: true
+
+    - name: Le bastion, lu par son identifiant
+      stephrobert.exoscale.compute_instance_info:
+        zone: "{{ zone }}"
+        id: "{{ bastion_id }}"
+      register: bastion
+
+    - name: La lecture unitaire rend la machine sous `instance`, et elle porte une adresse élastique
+      ansible.builtin.assert:
+        that:
+          - bastion.instance.id == bastion_id
+          - bastion.instance['elastic-ips'] | length == 1
+        quiet: true
+
+    - name: Les groupes de sécurité
+      stephrobert.exoscale.compute_security_group_info:
+        zone: "{{ zone }}"
+      register: groupes
+
+    - name: Trois groupes de sécurité, un par étage
+      ansible.builtin.assert:
+        that:
+          - groupes.security_groups | selectattr('name', 'search', prefixe) | list | length == 3
+        quiet: true
+
+    - name: Le groupe de l'étage web, lu par son identifiant
+      stephrobert.exoscale.compute_security_group_info:
+        zone: "{{ zone }}"
+        id: "{{ (groupes.security_groups | selectattr('name', 'search', prefixe ~ '-web') | first).id }}"
+      register: groupe_web
+
+    - name: Le groupe web porte ses deux règles
+      ansible.builtin.assert:
+        that:
+          - groupe_web.security_group.rules | length == 2
+        quiet: true
+
+    - name: Les groupes d'anti-affinité
+      stephrobert.exoscale.compute_anti_affinity_group_info:
+        zone: "{{ zone }}"
+      register: anti_affinite
+
+    - name: Un seul groupe d'anti-affinité, celui du tier applicatif, et il porte deux machines
+      ansible.builtin.assert:
+        that:
+          - anti_affinite.anti_affinity_groups | selectattr('name', 'search', prefixe) | list | length == 1
+        quiet: true
+
+    - name: Le groupe d'anti-affinité, lu par son identifiant
+      stephrobert.exoscale.compute_anti_affinity_group_info:
+        zone: "{{ zone }}"
+        id: "{{ (anti_affinite.anti_affinity_groups | selectattr('name', 'search', prefixe) | first).id }}"
+      register: aag
+
+    - name: Les réseaux privés
+      stephrobert.exoscale.compute_private_network_info:
+        zone: "{{ zone }}"
+      register: reseaux
+
+    - name: Deux réseaux privés, backend et monitoring
+      ansible.builtin.assert:
+        that:
+          - reseaux.private_networks | selectattr('name', 'search', prefixe) | list | length == 2
+        quiet: true
+
+    - name: Le réseau backend, avec ses baux
+      stephrobert.exoscale.compute_private_network_info:
+        zone: "{{ zone }}"
+        id: "{{ (reseaux.private_networks | selectattr('name', 'search', prefixe ~ '-backend') | first).id }}"
+      register: backend
+
+    - name: Les cinq machines de la plateforme ont un bail sur backend
+      ansible.builtin.assert:
+        that:
+          - backend.private_network.leases | length == 5
+        fail_msg: "{{ backend.private_network.leases | length }} bail(s) sur backend au lieu de 5."
+        quiet: true
+
+    - name: Les adresses élastiques
+      stephrobert.exoscale.compute_elastic_ip_info:
+        zone: "{{ zone }}"
+      register: adresses
+
+    - name: L'adresse élastique du bastion, lue par son identifiant
+      stephrobert.exoscale.compute_elastic_ip_info:
+        zone: "{{ zone }}"
+        id: "{{ bastion.instance['elastic-ips'][0].id }}"
+      register: adresse_bastion
+
+    - name: Les clés SSH, puis celle de la plateforme par son nom
+      stephrobert.exoscale.compute_ssh_key_info:
+        zone: "{{ zone }}"
+      register: cles
+
+    - name: La clé de la plateforme
+      stephrobert.exoscale.compute_ssh_key_info:
+        zone: "{{ zone }}"
+        name: "{{ prefixe }}-cle"
+      register: cle
+
+    - name: La clé lue est celle que la plateforme a enregistrée
+      ansible.builtin.assert:
+        that:
+          - cle.ssh_key.name == prefixe ~ '-cle'
+        quiet: true
+
+    - name: Les modèles d'instance
+      stephrobert.exoscale.compute_template_info:
+        zone: "{{ zone }}"
+        visibility: public
+      register: modeles
+
+    - name: Un modèle, lu par son identifiant
+      stephrobert.exoscale.compute_template_info:
+        zone: "{{ zone }}"
+        id: "{{ modeles.templates[0].id }}"
+      register: modele
+
+    - name: Les types d'instance
+      stephrobert.exoscale.compute_instance_type_info:
+        zone: "{{ zone }}"
+      register: types
+
+    - name: Un type, lu par son identifiant
+      stephrobert.exoscale.compute_instance_type_info:
+        zone: "{{ zone }}"
+        id: "{{ types.instance_types[0].id }}"
+      register: type_lu
+
+    - name: Les pools d'instances
+      stephrobert.exoscale.compute_instance_pool_info:
+        zone: "{{ zone }}"
+      register: pools
+
+    - name: Un pool, d'une machine
+      ansible.builtin.assert:
+        that:
+          - pools.instance_pools | selectattr('name', 'search', prefixe) | list | length == 1
+          - (pools.instance_pools | selectattr('name', 'search', prefixe) | first).size == 1
+        quiet: true
+
+    - name: Le pool, lu par son identifiant
+      stephrobert.exoscale.compute_instance_pool_info:
+        zone: "{{ zone }}"
+        id: "{{ (pools.instance_pools | selectattr('name', 'search', prefixe) | first).id }}"
+      register: pool
+
+    - name: Les load balancers
+      stephrobert.exoscale.compute_load_balancer_info:
+        zone: "{{ zone }}"
+      register: balanceurs
+
+    - name: Le load balancer de la plateforme, avec son service
+      stephrobert.exoscale.compute_load_balancer_info:
+        zone: "{{ zone }}"
+        id: "{{ (balanceurs.load_balancers | selectattr('name', 'search', prefixe) | first).id }}"
+      register: balanceur
+
+    - name: Le load balancer porte un service vers le pool
+      ansible.builtin.assert:
+        that:
+          - balanceur.load_balancer.services | length == 1
+          - balanceur.load_balancer.services[0]['instance-pool'].id == pool.instance_pool.id
+        quiet: true
+
+    - name: Le service du load balancer, par ses deux identifiants
+      stephrobert.exoscale.compute_load_balancer_service_info:
+        zone: "{{ zone }}"
+        id: "{{ balanceur.load_balancer.id }}"
+        service_id: "{{ balanceur.load_balancer.services[0].id }}"
+      register: service
+
+    - name: Les instantanés
+      stephrobert.exoscale.compute_snapshot_info:
+        zone: "{{ zone }}"
+      register: instantanes
+
+    - name: Un instantané, celui de worker-a
+      ansible.builtin.assert:
+        that:
+          - instantanes.snapshots | selectattr('instance.id', 'equalto', worker_a_id) | list | length == 1
+        quiet: true
+
+    - name: L'instantané, lu par son identifiant
+      stephrobert.exoscale.compute_snapshot_info:
+        zone: "{{ zone }}"
+        id: "{{ (instantanes.snapshots | selectattr('instance.id', 'equalto', worker_a_id) | first).id }}"
+      register: instantane
+
+    - name: Les volumes Block Storage
+      stephrobert.exoscale.block_storage_volume_info:
+        zone: "{{ zone }}"
+      register: volumes
+
+    - name: Le volume de worker-b, lu par l'instance qui le porte
+      stephrobert.exoscale.block_storage_volume_info:
+        zone: "{{ zone }}"
+        instance_id: "{{ worker_b_id }}"
+      register: volumes_worker_b
+
+    - name: Le volume, lu par son identifiant
+      stephrobert.exoscale.block_storage_volume_info:
+        zone: "{{ zone }}"
+        id: "{{ (volumes.block_storage_volumes | selectattr('name', 'search', prefixe) | first).id }}"
+      register: volume
+
+    - name: Les instantanés Block Storage
+      stephrobert.exoscale.block_storage_snapshot_info:
+        zone: "{{ zone }}"
+      register: instantanes_block
+
+    - name: L'instantané Block, lu par son identifiant
+      stephrobert.exoscale.block_storage_snapshot_info:
+        zone: "{{ zone }}"
+        id: "{{ (instantanes_block.block_storage_snapshots | selectattr('name', 'search', prefixe) | first).id }}"
+      register: instantane_block
+
+    - name: Les cibles de déploiement
+      stephrobert.exoscale.compute_deploy_target_info:
+        zone: "{{ zone }}"
+      register: cibles_deploiement
+
+    - name: Les zones
+      stephrobert.exoscale.general_zone_info:
+        zone: "{{ zone }}"
+      register: zones
+
+    - name: Les quotas de l'organisation
+      stephrobert.exoscale.quotas_quota_info:
+        zone: "{{ zone }}"
+      register: quotas
+
+    - name: Le quota d'instances
+      stephrobert.exoscale.quotas_quota_info:
+        zone: "{{ zone }}"
+        entity: instance
+      register: quota_instance
+
+    - name: Les quotas, vus par le produit ccm
+      stephrobert.exoscale.ccm_quota_info:
+        zone: "{{ zone }}"
+      register: quotas_ccm
+
+    - name: L'organisation
+      stephrobert.exoscale.organization_info:
+        zone: "{{ zone }}"
+      register: organisation
+
+    - name: Les événements de l'audit trail
+      stephrobert.exoscale.audit_trail_event_info:
+        zone: "{{ zone }}"
+      register: evenements
+
+    # ---- Ce que feint décline, toléré contre lui seul --------------------
+
+    - name: Le solde de l'organisation
+      stephrobert.exoscale.organization_live_balance_info:
+        zone: "{{ zone }}"
+      register: solde
+      failed_when: solde.failed and not (tolere and (solde.msg | default('')) is search(non_servi))
+
+    - name: Le rapport d'usage
+      stephrobert.exoscale.organization_usage_report_info:
+        zone: "{{ zone }}"
+      register: usage
+      failed_when: usage.failed and not (tolere and (usage.msg | default('')) is search(non_servi))
+
+    - name: L'impact environnemental
+      stephrobert.exoscale.organization_env_impact_info:
+        zone: "{{ zone }}"
+        period: "2026-08"
+      register: impact
+      failed_when: impact.failed and not (tolere and (impact.msg | default('')) is search(non_servi))
+
+    - name: La console du bastion
+      stephrobert.exoscale.compute_instance_console_info:
+        zone: "{{ zone }}"
+        id: "{{ bastion_id }}"
+      register: console
+      failed_when: console.failed and not (tolere and (console.msg | default('')) is search(non_servi))
+
+    - name: Le mot de passe du bastion
+      stephrobert.exoscale.compute_instance_password_info:
+        zone: "{{ zone }}"
+        id: "{{ bastion_id }}"
+      register: mot_de_passe
+      failed_when: mot_de_passe.failed and not (tolere and (mot_de_passe.msg | default('')) is search(non_servi))
+      no_log: true
+
+    - name: Le DNS inverse de l'adresse élastique
+      stephrobert.exoscale.compute_reverse_dns_elastic_ip_info:
+        zone: "{{ zone }}"
+        id: "{{ adresse_bastion.elastic_ip.id }}"
+      register: rdns_adresse
+      failed_when: rdns_adresse.failed and not (tolere and (rdns_adresse.msg | default('')) is search(non_servi))
+
+    - name: Le DNS inverse du bastion
+      stephrobert.exoscale.compute_reverse_dns_instance_info:
+        zone: "{{ zone }}"
+        id: "{{ bastion_id }}"
+      register: rdns_bastion
+      failed_when: rdns_bastion.failed and not (tolere and (rdns_bastion.msg | default('')) is search(non_servi))
+
+    - name: Les VPC
+      stephrobert.exoscale.compute_vpc_info:
+        zone: "{{ zone }}"
+      register: vpcs
+      failed_when: vpcs.failed and not (tolere and (vpcs.msg | default('')) is search(non_servi))
+
+    # La plateforme ne crée pas de VPC, dont l'API est en bêta : les lectures
+    # imbriquées n'ont de cible que si le compte en porte un. Une tâche sautée
+    # n'est pas comptée comme jouée, et c'est dit dans l'artefact.
+    - name: Les routes du premier VPC
+      stephrobert.exoscale.compute_vpc_route_info:
+        zone: "{{ zone }}"
+        vpc_id: "{{ vpcs.vpcs[0].id }}"
+      register: routes_vpc
+      when: vpcs.vpcs is defined and vpcs.vpcs | length > 0
+
+    - name: Les sous-réseaux du premier VPC
+      stephrobert.exoscale.compute_vpc_subnet_info:
+        zone: "{{ zone }}"
+        vpc_id: "{{ vpcs.vpcs[0].id }}"
+      register: sous_reseaux
+      when: vpcs.vpcs is defined and vpcs.vpcs | length > 0
+
+    - name: Les routes du premier sous-réseau
+      stephrobert.exoscale.compute_vpc_subnet_route_info:
+        zone: "{{ zone }}"
+        vpc_id: "{{ vpcs.vpcs[0].id }}"
+        subnet_id: "{{ sous_reseaux.subnets[0].id }}"
+      register: routes_sous_reseau
+      when: sous_reseaux.subnets is defined and sous_reseaux.subnets | length > 0
+
+    # ---- Les actions : écrire, puis réécrire ------------------------------
+
+    - name: Arrêter worker-b
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: stop
+        id: "{{ worker_b_id }}"
+      register: arret
+
+    - name: L'arrêt a été envoyé, attendu, et la machine est arrêtée
+      ansible.builtin.assert:
+        that:
+          - arret is changed
+          - arret.state == 'stopped'
+        quiet: true
+
+    - name: Arrêter worker-b, une seconde fois
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: stop
+        id: "{{ worker_b_id }}"
+      register: arret_bis
+
+    - name: L'opération de l'arrêt, lue par son identifiant
+      stephrobert.exoscale.general_operation_info:
+        zone: "{{ zone }}"
+        id: "{{ arret.operation.id }}"
+      register: operation
+
+    - name: Redimensionner le disque de worker-b, arrêté
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: resize_disk
+        id: "{{ worker_b_id }}"
+        disk_size: 20
+      register: disque
+      failed_when: disque.failed and not (tolere and (disque.msg | default('')) is search(non_servi))
+
+    - name: Changer worker-b de type, arrêté
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: scale
+        id: "{{ worker_b_id }}"
+        instance_type:
+          id: "{{ (types.instance_types | rejectattr('id', 'equalto', bastion.instance['instance-type'].id) | first).id }}"
+      register: gabarit
+      failed_when: gabarit.failed and not (tolere and (gabarit.msg | default('')) is search(non_servi))
+
+    # Le TPM ne s'active que sur une instance arrêtée : « the instance must be
+    # stopped before a TPM can be attached », mesuré sur feint, qui reproduit
+    # la contrainte du contrat. C'est pendant l'arrêt de worker-b que ça se joue.
+    - name: Activer le TPM de worker-b, arrêté
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: enable_tpm
+        id: "{{ worker_b_id }}"
+      register: tpm
+      failed_when: tpm.failed and not (tolere and (tpm.msg | default('')) is search(non_servi))
+
+    - name: Démarrer worker-b
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: start
+        id: "{{ worker_b_id }}"
+      register: demarrage
+
+    - name: Démarrer worker-b, une seconde fois
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: start
+        id: "{{ worker_b_id }}"
+      register: demarrage_bis
+
+    - name: Redémarrer worker-b, qui tourne, et qui doit quand même redémarrer
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: reboot
+        id: "{{ worker_b_id }}"
+      register: redemarrage
+
+    - name: Le redémarrage agit toujours, et la machine est revenue
+      ansible.builtin.assert:
+        that:
+          - redemarrage is changed
+          - redemarrage.state == 'running'
+        quiet: true
+
+    - name: Arrêter worker-a pour le ramener à son instantané
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: stop
+        id: "{{ worker_a_id }}"
+      register: arret_a
+
+    - name: Ramener worker-a à son instantané
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: revert_to_snapshot
+        id: "{{ worker_a_id }}"
+        snapshot_id: "{{ instantane.snapshot.id }}"
+      register: retour
+      failed_when: retour.failed and not (tolere and (retour.msg | default('')) is search(non_servi))
+
+    - name: Redémarrer worker-a
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: start
+        id: "{{ worker_a_id }}"
+      register: demarrage_a
+
+    - name: Protéger worker-a
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: add_protection
+        id: "{{ worker_a_id }}"
+      register: protection
+      failed_when: protection.failed and not (tolere and (protection.msg | default('')) is search(non_servi))
+
+    - name: Retirer la protection de worker-a
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: remove_protection
+        id: "{{ worker_a_id }}"
+      register: deprotection
+      failed_when: deprotection.failed and not (tolere and (deprotection.msg | default('')) is search(non_servi))
+
+    - name: Remettre les labels du membre du pool à zéro
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ pool.instance_pool.instances[0].id }}"
+        field: labels
+      register: labels_membre
+      failed_when: labels_membre.failed and not (tolere and (labels_membre.msg | default('')) is search(non_servi))
+
+    - name: Réinitialiser le mot de passe du membre du pool
+      stephrobert.exoscale.compute_instance_action:
+        zone: "{{ zone }}"
+        action: reset_password
+        id: "{{ pool.instance_pool.instances[0].id }}"
+      register: mot_de_passe_membre
+      failed_when: mot_de_passe_membre.failed and not (tolere and (mot_de_passe_membre.msg | default('')) is search(non_servi))
+      no_log: true
+
+    - name: Remettre la description de l'adresse élastique à zéro
+      stephrobert.exoscale.compute_elastic_ip_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ adresse_bastion.elastic_ip.id }}"
+        field: description
+      register: description_adresse
+      failed_when: description_adresse.failed and not (tolere and (description_adresse.msg | default('')) is search(non_servi))
+
+    - name: Porter le pool à deux machines
+      stephrobert.exoscale.compute_instance_pool_action:
+        zone: "{{ zone }}"
+        action: scale
+        id: "{{ pool.instance_pool.id }}"
+        size: 2
+      register: agrandissement
+
+    - name: Le pool, relu, porte deux machines
+      stephrobert.exoscale.compute_instance_pool_info:
+        zone: "{{ zone }}"
+        id: "{{ pool.instance_pool.id }}"
+      register: pool_agrandi
+
+    - name: Deux machines dans le pool
+      ansible.builtin.assert:
+        that:
+          - agrandissement is changed
+          - pool_agrandi.instance_pool.size == 2
+        quiet: true
+
+    - name: Ramener le pool à une machine
+      stephrobert.exoscale.compute_instance_pool_action:
+        zone: "{{ zone }}"
+        action: scale
+        id: "{{ pool.instance_pool.id }}"
+        size: 1
+      register: reduction
+
+    - name: Remettre la description du pool à zéro
+      stephrobert.exoscale.compute_instance_pool_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ pool.instance_pool.id }}"
+        field: description
+      register: description_pool
+      failed_when: description_pool.failed and not (tolere and (description_pool.msg | default('')) is search(non_servi))
+
+    - name: Remettre la description du load balancer à zéro
+      stephrobert.exoscale.compute_load_balancer_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ balanceur.load_balancer.id }}"
+        field: description
+      register: description_lb
+      failed_when: description_lb.failed and not (tolere and (description_lb.msg | default('')) is search(non_servi))
+
+    - name: Remettre la description du service à zéro
+      stephrobert.exoscale.compute_load_balancer_service_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ balanceur.load_balancer.id }}"
+        service_id: "{{ service.load_balancer_service.id }}"
+        field: description
+      register: description_service
+      failed_when: description_service.failed and not (tolere and (description_service.msg | default('')) is search(non_servi))
+
+    - name: Remettre les labels du réseau monitoring à zéro
+      stephrobert.exoscale.compute_private_network_action:
+        zone: "{{ zone }}"
+        action: reset_field
+        id: "{{ (reseaux.private_networks | selectattr('name', 'search', prefixe ~ '-monitoring') | first).id }}"
+        field: labels
+      register: labels_monitoring
+      failed_when: labels_monitoring.failed and not (tolere and (labels_monitoring.msg | default('')) is search(non_servi))
+
+    - name: Agrandir le volume de worker-b
+      stephrobert.exoscale.block_storage_volume_action:
+        zone: "{{ zone }}"
+        action: resize
+        id: "{{ volume.block_storage_volume.id }}"
+        size: 20
+      register: agrandissement_volume
+      failed_when: agrandissement_volume.failed and not (tolere and (agrandissement_volume.msg | default('')) is search(non_servi))
+
+    - name: Exporter l'instantané de worker-a
+      stephrobert.exoscale.compute_snapshot_action:
+        zone: "{{ zone }}"
+        action: export
+        id: "{{ instantane.snapshot.id }}"
+      register: export
+      failed_when: export.failed and not (tolere and (export.msg | default('')) is search(non_servi))
+
+    # ---- Le recensement : ce qui a été prouvé, et ce qui ne l'a pas été --
+
+    - name: Les routes que la cible n'a pas servies
+      ansible.builtin.set_fact:
+        non_emules: >-
+          {{ {
+            'organization_live_balance_info': solde,
+            'organization_usage_report_info': usage,
+            'organization_env_impact_info': impact,
+            'compute_instance_console_info': console,
+            'compute_instance_password_info': mot_de_passe,
+            'compute_reverse_dns_elastic_ip_info': rdns_adresse,
+            'compute_reverse_dns_instance_info': rdns_bastion,
+            'compute_vpc_info': vpcs,
+            'compute_instance_action.resize_disk': disque,
+            'compute_instance_action.scale': gabarit,
+            'compute_instance_action.revert_to_snapshot': retour,
+            'compute_instance_action.add_protection': protection,
+            'compute_instance_action.remove_protection': deprotection,
+            'compute_instance_action.reset_field': labels_membre,
+            'compute_instance_action.reset_password': mot_de_passe_membre,
+            'compute_instance_action.enable_tpm': tpm,
+            'compute_elastic_ip_action': description_adresse,
+            'compute_instance_pool_action.reset_field': description_pool,
+            'compute_load_balancer_action': description_lb,
+            'compute_load_balancer_service_action': description_service,
+            'compute_private_network_action': labels_monitoring,
+            'block_storage_volume_action': agrandissement_volume,
+            'compute_snapshot_action': export,
+          } | dict2items | selectattr('value.msg', 'defined')
+            | selectattr('value.msg', 'search', non_servi) | map(attribute='key') | list }}
+
+    - name: Contre le compte réel, aucune route ne doit manquer
+      ansible.builtin.assert:
+        that:
+          - non_emules | length == 0
+        fail_msg: "Routes injoignables sur le compte réel : {{ non_emules }}."
+        quiet: true
+      when: cible != 'emulateur'
+
+    # `changed` lu sur la seconde écriture, jamais une assertion écrite à côté :
+    # une réécriture qui change encore quelque chose n'a rien prouvé.
+    - name: Les idempotences réellement prouvées
+      ansible.builtin.set_fact:
+        idempotences_prouvees: >-
+          {{ {
+            'compute_instance_action.stop': arret_bis,
+            'compute_instance_action.start': demarrage_bis,
+          } | dict2items | rejectattr('value.changed') | map(attribute='key') | list }}
+
+    - name: Un arrêt et un démarrage rejoués ne changent rien, et le disent
+      ansible.builtin.assert:
+        that:
+          - "'compute_instance_action.stop' in idempotences_prouvees"
+          - "'compute_instance_action.start' in idempotences_prouvees"
+          - arret_bis.state == 'stopped'
+          - demarrage_bis.state == 'running'
+        quiet: true
+
+    - name: Ce que cette exécution a couvert
+      ansible.builtin.debug:
+        msg: >-
+          {{ idempotences_prouvees | length }} idempotence(s) prouvée(s),
+          {{ non_emules | length }} route(s) non servie(s) par la cible{{ ' : ' ~ (non_emules | join(', ')) if non_emules else '' }}.

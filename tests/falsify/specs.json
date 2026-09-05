@@ -326,6 +326,30 @@
       "find": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats:",
       "replace": "    hors_etats = sorted(set(always) - set(states))\n    if hors_etats and False:",
       "test": "tests/unit/generator/test_overrides.py::test_une_action_always_sans_etat_attendu_est_refusee"
+    },
+    {
+      "name": "artefact-route-declinee-pas-jouee",
+      "why": "Un 404 `feint does not serve` n'exerce rien ; le compter comme joué ferait passer une limite de l'émulateur pour une preuve de couverture.",
+      "file": "scripts/example.py",
+      "find": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and not NON_SERVI.search(",
+      "replace": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and True or NON_SERVI.search(",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_route_que_feint_decline_est_appelee_mais_pas_jouee"
+    },
+    {
+      "name": "artefact-tache-sautee-pas-jouee",
+      "why": "Une tâche sautée par un `when` n'a parlé à personne ; la compter ferait de l'artefact un compteur de bonnes intentions.",
+      "file": "scripts/example.py",
+      "find": "        if tache.get(\"verdict\") in (\"ok\", \"changed\") and not NON_SERVI.search(",
+      "replace": "        if tache.get(\"verdict\") in (\"ok\", \"changed\", \"skipped\") and not NON_SERVI.search(",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_tache_sautee_nest_pas_une_couverture"
+    },
+    {
+      "name": "residu-ressource-apparue",
+      "why": "Le différentiel de résidu est la seule garantie qu'aucune ressource ne survit ; sans lui, une adresse orpheline passe pour un compte inchangé, mesuré contre feint.",
+      "file": "scripts/residue.py",
+      "find": "        if identifiant not in avant.get(nom, {})\n    ]\n    disparus",
+      "replace": "        if identifiant not in avant.get(nom, {}) and False\n    ]\n    disparus",
+      "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_ressource_apparue_est_un_residu"
     }
   ]
 }
