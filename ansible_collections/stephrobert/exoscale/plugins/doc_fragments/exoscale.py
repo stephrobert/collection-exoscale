@@ -31,9 +31,10 @@ options:
     required: true
   api_url:
     description:
-      - Full base URL of the API, overriding the one built from I(zone).
+      - Full base URL of the API, C(/v2) included, overriding the one built from I(zone).
       - Meant for a local emulator or a test endpoint.
-      - Falls back to the E(EXOSCALE_API_URL) environment variable.
+      - Falls back to the E(EXOSCALE_API_URL) environment variable, then to
+        E(EXOSCALE_API_ENDPOINT), the name the C(exo) CLI and feint use.
     type: str
 requirements:
   - exoscale >= 0.16 (the official Python SDK)

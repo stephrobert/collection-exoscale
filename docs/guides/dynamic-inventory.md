@@ -102,10 +102,12 @@ exclude:
     - stopped
 ```
 
-The API accepts a `labels` filter on `list-instances`, but the contract does
-not say whether several pairs combine with AND or OR. The plugin therefore
-passes a single label with its value to the API, where both readings agree,
-and decides everything else locally on the normalised model.
+`list-instances` declares a `labels` filter, but the contract types it as a
+bare string with no format, and the Python SDK encodes a mapping in no
+documented way; feint refuses the parameter with a 400 for the same reason.
+Any encoding chosen here would be an invented format, so the plugin never
+sends it and filters locally on the normalised model. The cost is transferring
+what gets discarded, which beats a filter nobody knows the API's reading of.
 
 ## Groups
 
