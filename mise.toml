@@ -18,9 +18,16 @@ ruff = "0.16.5"
 # uv ne sert qu'à recalculer le verrou des dépendances. Épinglé pour la même
 # raison : l'outil qui décide quelles versions entrent ne change pas d'avis.
 uv = "0.11.26"
+# Terraform déploie la plateforme d'exemple. Épinglé pour la même raison que
+# le fournisseur l'est dans `examples/stack/providers.tf` : ce qui applique
+# une stack ne change pas de version sans qu'une ligne ait bougé ici.
+terraform = "1.15.4"
 
 [env]
 _.python.venv = { path = ".venv", create = true }
+# Le feint que `feint:install` construit prime sur celui du poste : la release
+# publiée refuse encore le fournisseur Terraform, voir la tâche.
+_.path = ["{{config_root}}/build/bin"]
 
 # ---- Environnement ---------------------------------------------------------
 
@@ -197,13 +204,25 @@ run = "python scripts/readme_counters.py --check"
 
 # ---- La plateforme d'exemple ----------------------------------------------
 
+[tasks."feint:install"]
+description = "Construire feint depuis le commit qui accepte le fournisseur Terraform, dans build/bin"
+# La release 0.12.1 de feint, du 1er septembre, refuse encore le fournisseur
+# Terraform d'Exoscale par user agent ; le refus est levé sur `main` au commit
+# 9074c0f du 5 septembre, sur une mesure. Tant qu'aucune release ne le porte,
+# le poste et la CI construisent ce commit-là, par cette même commande, dans
+# `build/bin` que `[env]` place en tête du PATH. Épinglé par SHA et non par
+# branche, pour la raison qui vaut aux actions GitHub. Le jour où une release
+# le porte, revenir à `stephrobert/setup-feint` en CI et retirer cette tâche.
+run = "GOBIN={{config_root}}/build/bin go install github.com/stephrobert/feint/cmd/feint@9074c0fd1d267254bb51a3d097fe8510eafcc775"
+
 [tasks.example]
-description = "Bâtir la plateforme d'exemple contre l'émulateur, l'exploiter, la détruire"
+description = "Déployer la plateforme d'exemple contre l'émulateur, l'exploiter, la détruire"
 # feint émule Exoscale, sur un port qui n'est ni le sien par défaut (4599) ni
 # celui de collection-scaleway (4877) : deux exercices qui se partagent un
-# émulateur se détruisent l'un l'autre. La plateforme se bâtit par le SDK, pas
-# par Terraform : le fournisseur Terraform d'Exoscale n'honore
-# EXOSCALE_API_ENDPOINT qu'à moitié, et feint refuse qu'on le lui pointe.
+# émulateur se détruisent l'un l'autre. La stack Terraform épingle le
+# fournisseur à 0.71.0 : en dessous, il n'honorait EXOSCALE_API_ENDPOINT que
+# pour un de ses deux clients, et un apply se scindait entre l'émulateur et un
+# compte payant. Le lanceur relit la version résolue avant d'appliquer.
 depends = ["generate"]
 run = "python scripts/example.py emulateur"
 

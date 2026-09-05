@@ -209,7 +209,8 @@ a voyagé jusqu'en CI chez scaleway faute d'y être.
 | une garde, une validation, un refus | `mise run falsify` | que le test mord sans le correctif |
 | le parser, l'IR | `mise run golden:update` puis lire le diff | ce que le changement fait vraiment aux opérations |
 | un module généré, un template, le runtime | `mise run sanity` | qu'Ansible accepte le fichier produit, sur la version du verrou ; la matrice de CI fait les autres |
-| un module, un plugin, une option d'inventaire | `mise run example` | que ça marche contre l'émulateur : plateforme bâtie, inventaire découvert, module joué, tout détruit sans résidu |
+| un module, un plugin, une option d'inventaire | `mise run example` | que ça marche contre l'émulateur : stack appliquée, inventaire découvert, module joué, tout détruit sans résidu |
+| la stack d'exemple, `examples/stack/` | `mise run example` | qu'un `apply` puis un `destroy` ne laissent aucun résidu, et que le playbook trouve encore ses cibles |
 | le contrat | `mise run sync:api`, `mise run drift`, `mise run check` | ce qui a bougé, produit par produit, indexé ou non |
 | un workflow, une action, `.github/` | `mise run security` | qu'actionlint, zizmor et poutine acceptent le pipeline |
 | `pyproject.toml` | `mise run lock` puis lire le diff | quelle dépendance apparaît vraiment, et sous quelle empreinte |
@@ -221,17 +222,23 @@ Les modules s'importent, leur `argument_spec` est accepté par Ansible, le
 runtime est mesuré par des doubles, le SDK installé expose chaque méthode
 appelée, `ansible-test sanity` passe de 2.17 à 2.21 et l'archive s'installe
 et répond à `ansible-doc`. La plateforme d'exemple (`examples/`, skill
-`example-stack-author`) se bâtit par le SDK contre feint, l'inventaire la
-découvre, le playbook appelle chaque module qui a une cible, et le contrôle de
-résidu différentiel dit qu'il ne reste rien : mesuré le 5 septembre 2026,
-29 modules joués, 2 idempotences prouvées, 10 routes déclinées par feint et
-nommées. **Aucun module n'a encore été joué contre le cloud réel**, et ça ne
-se fait pas sans demander. Le dire vaut mieux qu'un vert qui ne mesure pas ça.
+`example-stack-author`) se déploie par Terraform contre feint, avec le
+fournisseur épinglé à 0.71.0, le plancher sous lequel un `apply` se scindait
+entre l'émulateur et un compte payant ; l'inventaire la découvre, le playbook
+appelle chaque module qui a une cible, et le contrôle de résidu différentiel
+dit qu'il ne reste rien : mesuré le 5 septembre 2026 contre feint construit
+depuis `main` à 9074c0f (la 0.12.1 publiée refuse encore le fournisseur),
+23 ressources appliquées et détruites, 29 modules joués, 2 idempotences
+prouvées, 9 routes déclinées par feint et nommées. **Aucun module n'a encore
+été joué contre le cloud réel**, et ça ne se fait pas sans demander. Le dire
+vaut mieux qu'un vert qui ne mesure pas ça.
 
 Ce que feint ne sert pas, mesuré : sept produits entiers (DBaaS, SKS, AI, IAM,
 KMS, DNS, SOS), le VPC en bêta, la console et le mot de passe d'instance, le
-DNS inverse, l'export d'instantané. Leurs modules sont déclarés sans cible
-dans `scripts/example_coverage.py`, avec cette mesure pour raison.
+DNS inverse. Ce que la stack ne peut pas porter : l'instantané d'instance, que
+le fournisseur 0.71.0 ne sait pas créer et que la collection ne crée pas non
+plus. Leurs modules sont déclarés sans cible dans
+`scripts/example_coverage.py`, avec cette mesure pour raison.
 
 ## L'inventaire : un cœur qui ne nomme aucun produit
 

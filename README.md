@@ -212,7 +212,7 @@ collection stephrobert.exoscale: 136 modules written, 179 planned, 43 set aside 
   sos_bucket_usage_info                    Gather information about Exoscale sos bucket usages
   sos_presigned_url_info                   Gather information about Exoscale sos presigned urls
   compute (inventory)                      dynamic inventory
-  933 unit tests · 43 guards proven by mise run falsify
+  942 unit tests · 44 guards proven by mise run falsify
   CI: 4 jobs, Générateur · collection · Archive · Plateforme d'exemple
   ansible-test sanity: reported by `mise run sanity`, not counted here
 ```
@@ -223,9 +223,11 @@ runtime is measured with test doubles, every guard is falsified, the installed
 SDK exposes every method a module calls, and `ansible-test sanity` passes on
 ansible-core 2.17 to 2.21.
 
-The proof of behaviour is the **example platform** (`examples/`): built
-through the SDK against [feint](https://github.com/stephrobert/feint), the
-local emulator, discovered by the inventory plugin, operated by a playbook
+The proof of behaviour is the **example platform** (`examples/`): deployed
+by Terraform against [feint](https://github.com/stephrobert/feint), the
+local emulator, with the provider pinned at 0.71.0, the floor below which an
+`apply` split between the emulator and a paying account; discovered by the
+inventory plugin, operated by a playbook
 that calls every module with a target, then destroyed under a differential
 residue check. It runs on every pull request. **No module has been played against the real cloud yet**, and
 the real target never runs without the maintainer's explicit agreement.

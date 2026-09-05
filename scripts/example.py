@@ -1,18 +1,24 @@
-"""Bâtit la plateforme d'exemple, l'exploite avec la collection, puis la détruit.
+"""Déploie la plateforme d'exemple, l'exploite avec la collection, puis la détruit.
 
-Deux cibles, une seule plateforme et un seul playbook :
+Deux cibles, une seule stack Terraform et un seul playbook :
 
     emulateur     feint en `--vm off`. Le plan de contrôle seul : rapide,
                   gratuit, hors ligne. C'est la cible de la CI et du poste.
-    reel          l'organisation Exoscale réelle. Même plateforme, même
-                  playbook, et un contrôle de résidu qui encadre l'exécution.
+    reel          l'organisation Exoscale réelle. Même stack, même playbook,
+                  et un contrôle de résidu qui encadre l'exécution.
 
 **La cible réelle ne se lance pas sans l'accord du mainteneur, demandé à
 chaque fois.** Elle coûte de l'argent, et une ressource qui survit à un run
 raté est un résidu payant. Le drapeau `--compte-reel-accorde` est la trace de
 cet accord dans la commande, et son absence est un refus.
 
-**La destruction est dans un `finally`.** Elle a lieu quand la construction
+**Le fournisseur Terraform est tenu à un plancher.** Sous 0.71.0, il n'honorait
+`EXOSCALE_API_ENDPOINT` que pour un de ses deux clients, et un `apply` se
+scindait entre l'émulateur et un compte payant. La stack épingle 0.71.0, et ce
+lanceur relit la version que `terraform init` a résolue avant d'appliquer quoi
+que ce soit : une épingle se modifie, un contrôle mord.
+
+**La destruction est dans un `finally`.** Elle a lieu quand l'application
 échoue, quand le playbook échoue, et quand l'utilisateur interrompt. C'est la
 seule forme qui tienne la promesse « aucune ressource ne subsiste ».
 
@@ -41,7 +47,7 @@ from typing import Any
 from generator.ansible.collection import load_collection
 
 ROOT = Path(__file__).resolve().parents[1]
-STACK = ROOT / "examples" / "stack" / "platform.py"
+STACK = ROOT / "examples" / "stack"
 PLAYBOOKS = ROOT / "examples" / "playbooks"
 RAPPELS = ROOT / "examples" / "callback_plugins"
 TRAVAIL = ROOT / "build" / "example"
@@ -63,6 +69,18 @@ NON_SERVI = re.compile(r"does not serve|resource not found")
 #: précis.
 ADRESSE = os.environ.get("FEINT_ADDR", "127.0.0.1:4993")
 ENDPOINT = f"http://{ADRESSE}"
+
+#: La zone quand rien ne la dit. Contre l'émulateur, `feint env exoscale`
+#: exporte la sienne et elle prime.
+ZONE_PAR_DEFAUT = "ch-gva-2"
+
+#: Le plancher du fournisseur Terraform, et la raison est mesurée : en dessous,
+#: le client v2 du fournisseur ignorait `EXOSCALE_API_ENDPOINT`, et un `apply`
+#: se scindait entre l'émulateur et un compte payant (feint#525, en amont
+#: exoscale/terraform-provider-exoscale#573, corrigé dans 0.71.0). La stack
+#: épingle une version exacte ; ce plancher est la seconde barrière, celle qui
+#: tient quand quelqu'un abaisse l'épingle.
+PLANCHER_PROVIDER = (0, 71, 0)
 
 CIBLES: dict[str, dict[str, Any]] = {
     "emulateur": {"emulateur": True},
@@ -91,6 +109,13 @@ def binaire(nom: str) -> str:
             "un exemple qui se saute tout seul finit par ne plus jamais tourner."
         )
     return chemin
+
+
+def version_de(commande: list[str]) -> str:
+    """La première ligne de ce qu'un outil répond à `version`, pour l'artefact."""
+    resultat = lancer(commande, capture=True)
+    premiere = (resultat.stdout or resultat.stderr).strip().splitlines()
+    return premiere[0] if premiere else "inconnue"
 
 
 def cle_ssh() -> str:
@@ -157,25 +182,113 @@ def environnement_emulateur() -> dict[str, str]:
     if valeurs.get("EXOSCALE_API_ENDPOINT") != attendu:
         raise ExempleError(
             f"`feint env` n'a pas donné EXOSCALE_API_ENDPOINT={attendu}. L'exercice s'arrête : "
-            "sans cette variable, la plateforme et les playbooks parleraient à l'API réelle."
+            "sans cette variable, Terraform et les playbooks parleraient à l'API réelle."
         )
     return valeurs
 
 
-def plateforme(action: str, env: dict[str, str], run_id: str, sorties: Path | None = None) -> None:
-    commande = [sys.executable, str(STACK), action, "--run-id", run_id]
-    if action == "apply":
-        commande += ["--ssh-public-key", cle_ssh(), "--output", str(sorties)]
-    resultat = lancer(commande, env=env, capture=True)
-    print(resultat.stderr.strip(), file=sys.stderr) if resultat.stderr.strip() else None
+# ---- Terraform ---------------------------------------------------------------
+
+
+def terraform(
+    action: str,
+    env: dict[str, str],
+    variables: dict[str, str],
+    *,
+    json_sortie: bool = False,
+) -> subprocess.CompletedProcess[str]:
+    commande = [binaire("terraform"), f"-chdir={STACK}", action, "-no-color", "-input=false"]
+    if action in ("apply", "destroy"):
+        commande.append("-auto-approve")
+    if action == "output":
+        commande = [binaire("terraform"), f"-chdir={STACK}", "output", "-json"]
+    else:
+        for nom, valeur in variables.items():
+            commande += ["-var", f"{nom}={valeur}"]
+    return lancer(commande, env=env, capture=json_sortie)
+
+
+def version_lisible(version: str) -> tuple[int, ...] | None:
+    """`0.71.0` en `(0, 71, 0)`, et `None` pour ce qui ne se lit pas."""
+    try:
+        return tuple(int(segment) for segment in version.strip().lstrip("v").split("."))
+    except ValueError:
+        return None
+
+
+def sous_le_plancher(version: str) -> bool:
+    """Vrai quand la version résolue du fournisseur ne doit pas appliquer.
+
+    Une version illisible est **sous** le plancher : ce lanceur s'apprête à
+    créer des ressources, et ce qu'il ne sait pas lire ne l'y autorise pas.
+    C'est l'inverse du choix de feint, qui sert un agent qu'il ne sait pas
+    lire, et les deux se justifient : lui refuse une version mesurée
+    défaillante, ce lanceur n'applique que sur une version mesurée saine.
+    """
+    lue = version_lisible(version)
+    if lue is None:
+        return True
+    return lue < PLANCHER_PROVIDER
+
+
+def provider_resolu(env: dict[str, str]) -> str:
+    """La version du fournisseur exoscale que `terraform init` a installée.
+
+    Lue dans `terraform version -json`, dont la clé porte l'hôte du registre :
+    `registry.terraform.io` pour Terraform, `registry.opentofu.org` pour
+    OpenTofu. La fin de la clé suffit, et c'est ce qui laisse un jour un
+    binaire remplacer l'autre.
+    """
+    resultat = lancer(
+        [binaire("terraform"), f"-chdir={STACK}", "version", "-json"], env=env, capture=True
+    )
     if resultat.returncode != 0:
-        raise ExempleError(f"`platform.py {action}` a échoué :\n{resultat.stdout[-2000:]}")
-    if action == "destroy":
-        print(resultat.stdout.strip())
+        raise ExempleError(f"`terraform version -json` a échoué :\n{resultat.stderr}")
+    selections = json.loads(resultat.stdout or "{}").get("provider_selections") or {}
+    for source, version in selections.items():
+        if str(source).endswith("/exoscale/exoscale"):
+            return str(version)
+    raise ExempleError(
+        "aucun fournisseur exoscale résolu après `terraform init` : la stack ne le "
+        "déclare plus, ou l'initialisation n'a rien installé."
+    )
+
+
+def exiger_le_plancher(env: dict[str, str]) -> str:
+    """Refuse d'appliquer avec un fournisseur sous le plancher, et rend la version.
+
+    La stack épingle une version exacte, et ce contrôle existe quand même :
+    une épingle se modifie dans un fichier, et le jour où quelqu'un l'abaisse
+    pour essayer quelque chose, c'est ici que ça s'arrête, avant le premier
+    appel d'API.
+    """
+    version = provider_resolu(env)
+    plancher = ".".join(str(segment) for segment in PLANCHER_PROVIDER)
+    if sous_le_plancher(version):
+        raise ExempleError(
+            f"le fournisseur exoscale résolu est {version}, sous le plancher {plancher}. "
+            "En dessous, un apply se scinde entre l'émulateur et un compte payant "
+            "(feint#525, exoscale/terraform-provider-exoscale#573) : rien n'est appliqué. "
+            "Relever la version dans examples/stack/providers.tf, puis `terraform init`."
+        )
+    print(f"fournisseur exoscale {version}, au niveau du plancher {plancher} ou au-dessus")
+    return version
+
+
+def sorties_terraform(brut: dict[str, Any]) -> dict[str, Any]:
+    """Ce que `terraform output -json` rend, débarrassé de son enveloppe.
+
+    Chaque sortie arrive sous `{"value": ..., "type": ..., "sensitive": ...}` ;
+    le reste du lanceur ne veut que la valeur.
+    """
+    return {nom: item["value"] for nom, item in brut.items()}
+
+
+# ---- Les contrôles -----------------------------------------------------------
 
 
 def inventaire(env: dict[str, str]) -> dict[str, Any]:
-    """Le graphe que le plugin construit sur la plateforme bâtie."""
+    """Le graphe que le plugin construit sur la plateforme déployée."""
     binaire_ansible = str(Path(sys.executable).parent / "ansible-inventory")
     resultat = lancer(
         [binaire_ansible, "-i", str(PLAYBOOKS / "inventaire.exoscale.yml"), "--list"],
@@ -199,7 +312,7 @@ def _valeur(brut: Any) -> Any:
 
 
 def controler_inventaire(graphe: dict[str, Any], sorties: dict[str, Any]) -> None:
-    """Ce que l'inventaire doit avoir trouvé, comparé à ce que la plateforme a bâti.
+    """Ce que l'inventaire doit avoir trouvé, comparé à ce que la stack a déployé.
 
     C'est le contrôle qui refuse un vert obtenu sur rien : un plugin qui ne
     trouve aucune machine construit un inventaire parfaitement valide.
@@ -214,7 +327,7 @@ def controler_inventaire(graphe: dict[str, Any], sorties: dict[str, Any]) -> Non
     if len(hostvars) != attendu["total"]:
         raise ExempleError(
             f"l'inventaire rend {len(hostvars)} machine(s) de la plateforme, "
-            f"elle en a bâti {attendu['total']}"
+            f"la stack en a déployé {attendu['total']}"
         )
     for role in ("bastion", "web", "app"):
         groupe = [
@@ -225,7 +338,7 @@ def controler_inventaire(graphe: dict[str, Any], sorties: dict[str, Any]) -> Non
         if len(groupe) != attendu[role]:
             raise ExempleError(
                 f"le groupe exo_label_role_{role} porte {len(groupe)} machine(s), "
-                f"la plateforme en a bâti {attendu[role]}"
+                f"la stack en a déployé {attendu[role]}"
             )
 
     # Le point qui distingue ce plugin : quatre machines sur cinq n'ont aucune
@@ -258,10 +371,12 @@ def controler_inventaire(graphe: dict[str, Any], sorties: dict[str, Any]) -> Non
 
 
 def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> None:
-    """Tout ce que la plateforme déclare, vérifié auprès de l'API par le SDK.
+    """Tout ce que la stack déclare, vérifié auprès de l'API par le SDK.
 
     Un contrôle qui se sert de la collection pour juger la collection ne mesure
-    plus rien : ces lectures passent par le client officiel.
+    plus rien : ces lectures passent par le client officiel. Et un état
+    Terraform qui s'accorde avec lui-même ne prouve pas qu'une plateforme
+    existe : c'est l'API qui est interrogée.
     """
     from exoscale.api.v2 import Client
 
@@ -273,6 +388,7 @@ def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> 
     )
     prefixe = sorties["prefixe"]
     attendu = sorties["attendu"]
+    ids = sorties["ids"]
     constats: list[str] = []
 
     def exige(condition: bool, message: str) -> None:
@@ -286,16 +402,33 @@ def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> 
     exige(
         len(machines) == attendu["total"], f"{attendu['total']} machines ({len(machines)} trouvées)"
     )
+    sans_adresse = [m["name"] for m in machines if not m.get("public-ip")]
+    exige(
+        len(sans_adresse) == attendu["web"] + attendu["app"],
+        f"{attendu['web'] + attendu['app']} machines sans adresse publique "
+        f"({len(sans_adresse)} trouvées)",
+    )
+    bastion = client.get_instance(id=ids["instances"]["bastion"])
+    exige(
+        any(e.get("id") == ids["elastic_ip"] for e in bastion.get("elastic-ips") or ()),
+        "le bastion porte l'adresse élastique de la stack",
+    )
     reseaux = [
         r
         for r in client.list_private_networks().get("private-networks") or ()
         if r["name"].startswith(prefixe)
     ]
     exige(len(reseaux) == 2, f"deux réseaux privés ({len(reseaux)} trouvés)")
-    backend = client.get_private_network(id=sorties["ids"]["private_networks"]["backend"])
+    backend = client.get_private_network(id=ids["private_networks"]["backend"])
     exige(
         len(backend.get("leases") or ()) == 5,
         f"cinq baux sur backend ({len(backend.get('leases') or ())})",
+    )
+    monitoring = client.get_private_network(id=ids["private_networks"]["monitoring"])
+    exige(
+        len(monitoring.get("leases") or ()) == attendu["app"],
+        f"{attendu['app']} baux sur monitoring, un par machine applicative "
+        f"({len(monitoring.get('leases') or ())})",
     )
     groupes = [
         g
@@ -303,28 +436,60 @@ def controler_plan_de_controle(env: dict[str, str], sorties: dict[str, Any]) -> 
         if g["name"].startswith(prefixe)
     ]
     exige(len(groupes) == 3, f"un groupe de sécurité par étage ({len(groupes)} trouvés)")
-    lb = client.get_load_balancer(id=sorties["ids"]["load_balancer"])
-    exige(len(lb.get("services") or ()) == 1, "un service sur le load balancer, vers le pool")
-    pool = client.get_instance_pool(id=sorties["ids"]["instance_pool"])
-    exige(pool.get("size") == 1, "un pool d'une machine")
-    snaps = [
+    aag = client.get_anti_affinity_group(id=ids["anti_affinity_group"])
+    exige(
+        len(aag.get("instances") or ()) == attendu["app"],
+        f"le groupe d'anti-affinité porte les {attendu['app']} machines applicatives",
+    )
+    lb = client.get_load_balancer(id=ids["load_balancer"])
+    services = list(lb.get("services") or [])
+    exige(
+        len(services) == 1
+        and (services[0].get("instance-pool") or {}).get("id") == ids["instance_pool"],
+        "un service sur le load balancer, vers le pool",
+    )
+    pool = client.get_instance_pool(id=ids["instance_pool"])
+    exige(pool.get("size") == attendu["pool"], f"un pool de {attendu['pool']} machine")
+    volume = client.get_block_storage_volume(id=ids["block_storage_volume"])
+    exige(
+        (volume.get("instance") or {}).get("id") == ids["instances"]["worker-b"],
+        "le volume Block Storage est attaché à worker-b",
+    )
+    instantanes_block = [
+        s
+        for s in client.list_block_storage_snapshots().get("block-storage-snapshots") or ()
+        if s["name"].startswith(prefixe)
+    ]
+    exige(len(instantanes_block) == 1, "un instantané Block Storage du volume")
+    # Écarté, et dit. Le fournisseur 0.71.0 n'a aucune ressource d'instantané
+    # d'instance, et la collection n'en crée pas : `create-snapshot` est
+    # LIFECYCLE. Le contrôle ne se tait pas pour autant : il affirme l'absence,
+    # sans quoi un instantané oublié un jour sur le compte passerait inaperçu.
+    miens = {i["id"] for i in machines}
+    instantanes = [
         s
         for s in client.list_snapshots().get("snapshots") or ()
-        if (s.get("instance") or {}).get("id") == sorties["ids"]["instances"]["worker-a"]
+        if (s.get("instance") or {}).get("id") in miens
     ]
-    exige(len(snaps) == 1, "un instantané de worker-a")
-    volumes = [
-        v
-        for v in client.list_block_storage_volumes().get("block-storage-volumes") or ()
-        if v["name"].startswith(prefixe)
-    ]
-    exige(len(volumes) == 1, "un volume Block Storage")
+    exige(
+        len(instantanes) == 0,
+        "aucun instantané d'instance : le fournisseur n'en crée pas, et il n'y en a pas",
+    )
     print("plan de contrôle vérifié :")
     for constat in constats:
         print(f"  {constat}")
 
 
-def artefact(journal: dict[str, Any], cible: str, run_id: str, residu: str) -> dict[str, Any]:
+# ---- L'artefact ----------------------------------------------------------------
+
+
+def artefact(
+    journal: dict[str, Any],
+    cible: str,
+    run_id: str,
+    residu: str,
+    outillage: dict[str, str] | None = None,
+) -> dict[str, Any]:
     """Ce que cette exécution a couvert, dérivé de ce qui s'est réellement joué.
 
     **Joué n'est pas appelé.** Une tâche gardée par un `when` non satisfait ne
@@ -332,6 +497,9 @@ def artefact(journal: dict[str, Any], cible: str, run_id: str, residu: str) -> d
     faire : ni l'une ni l'autre ne compte. Un module joué une fois et sauté
     ailleurs compte comme joué : la question est « a-t-il tourné contre cette
     API », pas « toutes ses tâches ont-elles tourné ».
+
+    `outillage` dit avec quoi : la version de feint, de Terraform et du
+    fournisseur. Un artefact qui ne nomme pas son instrument ne se relit pas.
     """
     joues: set[str] = set()
     vus: set[str] = set()
@@ -356,17 +524,24 @@ def artefact(journal: dict[str, Any], cible: str, run_id: str, residu: str) -> d
         "routes_non_servies": sorted(faits.get("non_emules", [])),
         "idempotence_prouvee": sorted(faits.get("idempotences_prouvees", [])),
         "residu": residu,
+        "outillage": dict(sorted((outillage or {}).items())),
     }
 
 
-def ecrire_artefact(chemin_journal: Path, cible: str, run_id: str, residu: str) -> Path | None:
+def ecrire_artefact(
+    chemin_journal: Path,
+    cible: str,
+    run_id: str,
+    residu: str,
+    outillage: dict[str, str] | None = None,
+) -> Path | None:
     """Écrit l'artefact à côté du journal. `None` quand rien n'a été journalisé :
     un artefact vide se lirait comme une exécution qui n'a rien couvert."""
     if not chemin_journal.is_file():
         return None
     journal = json.loads(chemin_journal.read_text(encoding="utf-8"))
     destination = TRAVAIL / f"{cible}-{run_id}.json"
-    contenu = artefact(journal, cible, run_id, residu)
+    contenu = artefact(journal, cible, run_id, residu, outillage)
     destination.write_text(
         json.dumps(contenu, indent=2, ensure_ascii=False, sort_keys=True) + "\n", encoding="utf-8"
     )
@@ -389,6 +564,9 @@ def jouer(playbook: str, env: dict[str, str], variables: dict[str, str]) -> int:
     print(f"\n--- {playbook} ---", flush=True)
     code: int = lancer(commande, env=env).returncode
     return code
+
+
+# ---- Le lanceur ------------------------------------------------------------------
 
 
 def main(argv: list[str]) -> int:
@@ -420,8 +598,10 @@ def main(argv: list[str]) -> int:
     verdict_residu = "non vérifié"
     env = dict(os.environ)
     adopte = False
+    outillage = {"terraform": version_de([binaire("terraform"), "version"])}
 
     if cible["emulateur"]:
+        outillage["feint"] = version_de([binaire("feint"), "version"])
         sonde = lancer(
             [binaire("feint"), "wait", "--addr", ADRESSE, "--timeout", "2s"], capture=True
         )
@@ -448,8 +628,28 @@ def main(argv: list[str]) -> int:
         env.pop("EXOSCALE_API_URL", None)
         if adopte:
             refuser_emulateur_habite(env)
+        endpoint = env["EXOSCALE_API_ENDPOINT"]
     else:
         print("cible : l'organisation Exoscale réelle.")
+        endpoint = ""
+        if env.get("EXOSCALE_API_ENDPOINT"):
+            # Dit plutôt que subi : un endpoint hérité du shell détournerait la
+            # cible réelle vers autre chose, et le résidu serait vérifié là-bas.
+            print(
+                f"  EXOSCALE_API_ENDPOINT={env['EXOSCALE_API_ENDPOINT']} est dans l'environnement."
+            )
+
+    # Une seule zone pour la stack, l'inventaire et le contrôle de résidu :
+    # contre l'émulateur, celle que `feint env` exporte ; sinon celle du shell.
+    zone = env.get("EXOSCALE_ZONE") or ZONE_PAR_DEFAUT
+    env["EXOSCALE_ZONE"] = zone
+    env["TF_IN_AUTOMATION"] = "1"
+    variables = {
+        "run_id": run_id,
+        "ssh_public_key": cle_ssh(),
+        "endpoint": endpoint,
+        "zone": zone,
+    }
 
     # La référence de résidu se prend sur les deux cibles : contre l'émulateur
     # elle ne coûte rien et exerce le contrôle lui-même, qui n'a sinon aucune
@@ -474,14 +674,21 @@ def main(argv: list[str]) -> int:
     # n'avait jamais été construit. Cette variable en fait une erreur.
     env["ANSIBLE_INVENTORY_ANY_UNPARSED_IS_FAILED"] = "True"
 
-    sorties_fichier = TRAVAIL / f"plateforme-{run_id}.json"
     code = 0
     try:
-        plateforme("apply", env, run_id, sorties_fichier)
-        sorties = json.loads(sorties_fichier.read_text(encoding="utf-8"))
+        if terraform("init", env, {}).returncode != 0:
+            raise ExempleError("`terraform init` a échoué")
+        # Avant le premier appel d'API, et après `init` : c'est lui qui résout.
+        outillage["provider_exoscale"] = exiger_le_plancher(env)
+        if terraform("apply", env, variables).returncode != 0:
+            raise ExempleError("`terraform apply` a échoué")
+
+        sorties = sorties_terraform(
+            json.loads(terraform("output", env, {}, json_sortie=True).stdout or "{}")
+        )
         print(
-            f"plateforme bâtie : {sorties['attendu']['total']} machines, "
-            f"préfixe {sorties['prefixe']}"
+            f"plateforme déployée : {sorties['attendu']['total']} machines, "
+            f"préfixe {sorties['prefixe']}, bastion {sorties['bastion_ip']}"
         )
 
         controler_plan_de_controle(env, sorties)
@@ -492,16 +699,19 @@ def main(argv: list[str]) -> int:
         return code
     finally:
         if arguments.garder:
+            options = " ".join(f"-var {nom}='{valeur}'" for nom, valeur in variables.items())
             print(
                 "\nplateforme conservée. La détruire avec :\n"
-                f"  python examples/stack/platform.py destroy --run-id {run_id}"
+                f"  terraform -chdir=examples/stack destroy -auto-approve {options}"
             )
         else:
             print("\n--- destruction ---", flush=True)
-            try:
-                plateforme("destroy", env, run_id)
-            except ExempleError as erreur:
-                print(f"LA DESTRUCTION A ÉCHOUÉ. Ne pas en rester là : {erreur}", file=sys.stderr)
+            if terraform("destroy", env, variables).returncode != 0:
+                print(
+                    "LA DESTRUCTION A ÉCHOUÉ. Ne pas en rester là : relancer "
+                    "`terraform -chdir=examples/stack destroy`, puis vérifier.",
+                    file=sys.stderr,
+                )
                 code = 1
             verifier = [sys.executable, str(ROOT / "scripts" / "residue.py"), "verify"]
             if lancer(verifier, env=env).returncode != 0:
@@ -509,7 +719,10 @@ def main(argv: list[str]) -> int:
                 verdict_residu = "non vérifié"
             else:
                 verdict_residu = "aucun" if not cible["emulateur"] else "aucun (émulateur)"
-        ecrit = ecrire_artefact(journal, arguments.cible, run_id, verdict_residu)
+        # Dans le `finally`, et après le contrôle de résidu : une exécution qui
+        # a échoué au milieu a quand même couvert quelque chose, et c'est cette
+        # trace-là qui manquait.
+        ecrit = ecrire_artefact(journal, arguments.cible, run_id, verdict_residu, outillage)
         if ecrit is not None:
             print(f"\ncouverture de cette exécution : {ecrit.relative_to(ROOT)}")
         if cible["emulateur"] and not adopte and not arguments.garder:

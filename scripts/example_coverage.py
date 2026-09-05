@@ -95,7 +95,15 @@ PRODUITS_SANS_CIBLE: dict[str, str] = {
 }
 
 #: Les modules qu'aucune cible ne peut exercer, un par un, avec leur raison.
-SANS_CIBLE: dict[str, str] = {}
+SANS_CIBLE: dict[str, str] = {
+    "compute_snapshot_action": (
+        "la plateforme ne porte aucun instantané d'instance : le fournisseur Terraform "
+        "0.71.0 n'a pas de ressource pour en créer un (mesuré sur la liste des ressources "
+        "du registre le 5 septembre 2026), et la collection n'en crée pas, `create-snapshot` "
+        "étant LIFECYCLE. Sans instantané, `export` n'a pas de cible ; feint 0.12.1 déclinait "
+        "d'ailleurs déjà l'export (mesuré le 5 septembre 2026)."
+    ),
+}
 
 #: Les cibles de l'exercice, dans l'ordre où leur preuve coûte cher.
 CIBLES = ("emulateur", "reel")

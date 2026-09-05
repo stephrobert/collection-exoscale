@@ -216,12 +216,12 @@ jobs:
           if-no-files-found: error
 
   exemple:
-    # La plateforme d'exemple, contre l'émulateur : elle se bâtit par le SDK,
-    # l'inventaire dynamique retrouve ce qu'elle a bâti, le playbook appelle
-    # chaque module qui a une cible, puis tout est détruit et le contrôle de
-    # résidu compare l'émulateur avant et après. C'est la seule preuve de
-    # comportement du dépôt, et c'est elle qui a trouvé une adresse orpheline
-    # et une contrainte du TPM avant tout run réel.
+    # La plateforme d'exemple, contre l'émulateur : la stack Terraform
+    # s'applique, l'inventaire dynamique retrouve ce qu'elle a déployé, le
+    # playbook appelle chaque module qui a une cible, puis tout est détruit et
+    # le contrôle de résidu compare l'émulateur avant et après. C'est la seule
+    # preuve de comportement du dépôt, et c'est elle qui a trouvé une adresse
+    # orpheline et une contrainte du TPM avant tout run réel.
     #
     # **La cible réelle n'est pas ici et ne le sera pas.** Elle crée des
     # ressources facturées sur le compte du mainteneur, et ne se lance qu'avec
@@ -240,7 +240,8 @@ jobs:
       - name: Durcir le runner
         uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
         with:
-          # Le job télécharge le binaire de l'émulateur : `audit` documente ce
+          # Terraform télécharge son fournisseur, et le job construit
+          # l'émulateur depuis le proxy des modules Go : `audit` documente ce
           # trafic au lieu de le deviner.
           egress-policy: audit
 
@@ -249,6 +250,7 @@ jobs:
         with:
           persist-credentials: false
 
+      # mise installe aussi Terraform, épinglé dans `mise.toml` comme le reste.
       - name: Installer mise
         uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
         with:
@@ -257,19 +259,28 @@ jobs:
       - name: Installer
         run: mise run setup
 
-      # Épinglé par SHA : `v1` est une référence mobile. L'action télécharge le
-      # binaire, contrôle sa somme SHA-256 contre `checksums.txt`, puis lance
-      # `feint start`. Sur le port que `scripts/example.py` attend, qui n'est
-      # ni le 4599 par défaut ni le 4877 de collection-scaleway. Le lanceur
-      # adopte un émulateur déjà en écoute et ne l'arrête pas : le cycle de vie
-      # appartient à qui l'a démarré.
-      - name: Démarrer l'émulateur
-        uses: stephrobert/setup-feint@b7eba1d4fcaccf65cf9124bf97a0d995996709b9 # v1
+      # **Construit, pas téléchargé, et c'est provisoire.** La release 0.12.1
+      # de feint refuse encore le fournisseur Terraform d'Exoscale par user
+      # agent ; le refus est levé sur `main` au commit 9074c0f, sur une mesure.
+      # Tant qu'aucune release ne le porte, la tâche `feint:install` construit
+      # ce commit-là, épinglé par SHA, avec la commande que le poste utilise.
+      # Le jour où une release le porte, revenir à `stephrobert/setup-feint`
+      # épinglé par SHA, qui contrôle la somme du binaire, et retirer Go d'ici.
+      # `cache: false` : sans `go.sum` dans ce dépôt, il n'y a rien à mettre
+      # en cache, et l'action le dirait à chaque run.
+      - name: Installer Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
-          version: "0.12.1"
-          addr: 127.0.0.1:4993
+          go-version: "1.26.x"
+          cache: false
 
-      - name: La plateforme d'exemple se bâtit, s'exploite et se détruit
+      - name: Construire l'émulateur
+        run: mise run feint:install
+
+      # Le lanceur démarre feint lui-même, sur le port que `scripts/example.py`
+      # attend, qui n'est ni le 4599 par défaut ni le 4877 de
+      # collection-scaleway, et l'arrête à la fin puisqu'il l'a démarré.
+      - name: La plateforme d'exemple se déploie, s'exploite et se détruit
         run: mise run example
 
       - name: Publier l'artefact de couverture
