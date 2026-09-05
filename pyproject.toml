@@ -81,5 +81,5 @@ files = ["generator", "scripts"]
 mypy_path = "scripts"
 
 [[tool.mypy.overrides]]
-module = "yaml"
+module = ["yaml", "exoscale.*"]
 ignore_missing_imports = true
