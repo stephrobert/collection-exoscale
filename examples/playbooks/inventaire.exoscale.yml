@@ -1,4 +1,4 @@
-# L'inventaire de la plateforme bâtie par `examples/stack/platform.py`.
+# L'inventaire de la plateforme que la stack Terraform `examples/stack` déploie.
 #
 # Il ne nomme aucune machine : c'est le plugin qui les découvre, et c'est
 # précisément ce qu'on veut prouver. Un exemple qui listerait les machines à la

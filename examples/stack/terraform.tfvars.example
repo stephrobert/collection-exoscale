@@ -1,0 +1,28 @@
+# Copier en terraform.tfvars et adapter. Tout a un défaut qui marche, sauf le
+# marqueur et la clé publique.
+#
+# **Le lanceur n'a pas besoin de ce fichier** : `mise run example` passe tout
+# par `-var`, et exporte l'environnement que `feint env exoscale` imprime.
+# Ce fichier sert à qui veut appliquer la stack à la main.
+
+# Vide pour viser la vraie organisation Exoscale, renseigné pour viser
+# l'émulateur. `/v2` compris : c'est la forme que le fournisseur attend.
+#
+# **Cette variable ne porte pas l'adresse jusqu'au fournisseur**, qui n'a
+# aucun attribut pour la recevoir : il lit `EXOSCALE_API_ENDPOINT` dans
+# l'environnement, et c'est `feint env exoscale` qui l'exporte. Elle ne fait
+# que basculer les identifiants sur la paire factice. Sans l'environnement,
+# la stack échoue en 403 sur la vraie API au lieu d'y créer quoi que ce soit.
+#
+# 4993 et non 4599 : ce dernier est le port par défaut de feint, donc celui
+# qu'occupe un poste où feint tourne déjà ; ni 4877, celui de collection-scaleway.
+endpoint = "http://127.0.0.1:4993/v2"
+
+# La zone. L'émulateur n'en sert qu'une, celle que `feint env exoscale` exporte.
+zone = "ch-dk-2"
+
+# Le marqueur de l'exécution. Le lanceur en pose un automatiquement ; le
+# renseigner à la main sert à reprendre un exercice interrompu.
+run_id = "local"
+
+ssh_public_key = "ssh-ed25519 AAAA... vous@machine"

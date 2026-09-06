@@ -350,6 +350,14 @@
       "find": "        if identifiant not in avant.get(nom, {})\n    ]\n    disparus",
       "replace": "        if identifiant not in avant.get(nom, {}) and False\n    ]\n    disparus",
       "test": "tests/unit/outillage/test_artefact_exemple.py::test_une_ressource_apparue_est_un_residu"
+    },
+    {
+      "name": "plancher-provider",
+      "why": "Sous 0.71.0, le fournisseur Terraform d'Exoscale scinde un apply entre l'émulateur et un compte payant ; la stack épingle la version, et cette garde est ce qui tient quand quelqu'un abaisse l'épingle.",
+      "file": "scripts/example.py",
+      "find": "    if sous_le_plancher(version):\n        raise ExempleError(",
+      "replace": "    if sous_le_plancher(version) and False:\n        raise ExempleError(",
+      "test": "tests/unit/outillage/test_plancher_provider.py::test_exiger_le_plancher_refuse_un_fournisseur_sous_le_plancher"
     }
   ]
 }

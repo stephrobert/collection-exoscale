@@ -225,22 +225,22 @@
         service_id: "{{ balanceur.load_balancer.services[0].id }}"
       register: service
 
+    # La plateforme ne porte aucun instantané d'instance : le fournisseur
+    # Terraform 0.71.0 n'a pas de ressource pour en créer un, et la collection
+    # n'en crée pas non plus, `create-snapshot` étant LIFECYCLE. La liste
+    # s'exerce quand même, et l'absence est affirmée plutôt que tue : un
+    # instantané oublié sur le compte se verrait ici.
     - name: Les instantanés
       stephrobert.exoscale.compute_snapshot_info:
         zone: "{{ zone }}"
       register: instantanes
 
-    - name: Un instantané, celui de worker-a
+    - name: Aucun instantané des machines de la plateforme, et c'est attendu
       ansible.builtin.assert:
         that:
-          - instantanes.snapshots | selectattr('instance.id', 'equalto', worker_a_id) | list | length == 1
+          - instantanes is not changed
+          - instantanes.snapshots | selectattr('instance.id', 'in', [worker_a_id, worker_b_id]) | list | length == 0
         quiet: true
-
-    - name: L'instantané, lu par son identifiant
-      stephrobert.exoscale.compute_snapshot_info:
-        zone: "{{ zone }}"
-        id: "{{ (instantanes.snapshots | selectattr('instance.id', 'equalto', worker_a_id) | first).id }}"
-      register: instantane
 
     - name: Les volumes Block Storage
       stephrobert.exoscale.block_storage_volume_info:
@@ -446,6 +446,18 @@
       register: tpm
       failed_when: tpm.failed and not (tolere and (tpm.msg | default('')) is search(non_servi))
 
+    # Un volume attaché ne grandit que sur une machine arrêtée, ce que le
+    # contrat du fournisseur dit en toutes lettres. C'est donc pendant l'arrêt
+    # de worker-b, qui porte le volume, que ça se joue, comme le TPM.
+    - name: Agrandir le volume de worker-b, arrêté
+      stephrobert.exoscale.block_storage_volume_action:
+        zone: "{{ zone }}"
+        action: resize
+        id: "{{ volume.block_storage_volume.id }}"
+        size: 20
+      register: agrandissement_volume
+      failed_when: agrandissement_volume.failed and not (tolere and (agrandissement_volume.msg | default('')) is search(non_servi))
+
     - name: Démarrer worker-b
       stephrobert.exoscale.compute_instance_action:
         zone: "{{ zone }}"
@@ -473,29 +485,6 @@
           - redemarrage is changed
           - redemarrage.state == 'running'
         quiet: true
-
-    - name: Arrêter worker-a pour le ramener à son instantané
-      stephrobert.exoscale.compute_instance_action:
-        zone: "{{ zone }}"
-        action: stop
-        id: "{{ worker_a_id }}"
-      register: arret_a
-
-    - name: Ramener worker-a à son instantané
-      stephrobert.exoscale.compute_instance_action:
-        zone: "{{ zone }}"
-        action: revert_to_snapshot
-        id: "{{ worker_a_id }}"
-        snapshot_id: "{{ instantane.snapshot.id }}"
-      register: retour
-      failed_when: retour.failed and not (tolere and (retour.msg | default('')) is search(non_servi))
-
-    - name: Redémarrer worker-a
-      stephrobert.exoscale.compute_instance_action:
-        zone: "{{ zone }}"
-        action: start
-        id: "{{ worker_a_id }}"
-      register: demarrage_a
 
     - name: Protéger worker-a
       stephrobert.exoscale.compute_instance_action:
@@ -606,23 +595,6 @@
       register: labels_monitoring
       failed_when: labels_monitoring.failed and not (tolere and (labels_monitoring.msg | default('')) is search(non_servi))
 
-    - name: Agrandir le volume de worker-b
-      stephrobert.exoscale.block_storage_volume_action:
-        zone: "{{ zone }}"
-        action: resize
-        id: "{{ volume.block_storage_volume.id }}"
-        size: 20
-      register: agrandissement_volume
-      failed_when: agrandissement_volume.failed and not (tolere and (agrandissement_volume.msg | default('')) is search(non_servi))
-
-    - name: Exporter l'instantané de worker-a
-      stephrobert.exoscale.compute_snapshot_action:
-        zone: "{{ zone }}"
-        action: export
-        id: "{{ instantane.snapshot.id }}"
-      register: export
-      failed_when: export.failed and not (tolere and (export.msg | default('')) is search(non_servi))
-
     # ---- Le recensement : ce qui a été prouvé, et ce qui ne l'a pas été --
 
     - name: Les routes que la cible n'a pas servies
@@ -639,7 +611,6 @@
             'compute_vpc_info': vpcs,
             'compute_instance_action.resize_disk': disque,
             'compute_instance_action.scale': gabarit,
-            'compute_instance_action.revert_to_snapshot': retour,
             'compute_instance_action.add_protection': protection,
             'compute_instance_action.remove_protection': deprotection,
             'compute_instance_action.reset_field': labels_membre,
@@ -651,7 +622,6 @@
             'compute_load_balancer_service_action': description_service,
             'compute_private_network_action': labels_monitoring,
             'block_storage_volume_action': agrandissement_volume,
-            'compute_snapshot_action': export,
           } | dict2items | selectattr('value.msg', 'defined')
             | selectattr('value.msg', 'search', non_servi) | map(attribute='key') | list }}
 
