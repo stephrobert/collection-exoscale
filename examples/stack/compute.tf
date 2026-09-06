@@ -32,9 +32,15 @@ resource "exoscale_anti_affinity_group" "app" {
 # --- le bastion, seule adresse publique -----------------------------------
 
 # L'adresse porte le préfixe dans sa description, et pas seulement dans ses
-# labels : feint ne rendait pas les labels d'une adresse, et la première
-# destruction en a laissé une derrière elle. C'est le contrôle de résidu qui
-# l'a dit, et c'est ce qui vaut à cette ressource deux marqueurs.
+# labels : feint accepte les labels d'une adresse à la création et ne les rend
+# ni à `get` ni à `list`, alors qu'il rend ceux d'un réseau privé créés de la
+# même façon (mesuré par le SDK le 5 septembre 2026, feint#703). La première
+# destruction de la plateforme SDK en avait laissé une derrière elle, et c'est
+# le contrôle de résidu qui l'a dit : deux marqueurs depuis.
+#
+# La même limite fait qu'un second `plan` contre l'émulateur veut ré-écrire
+# ces labels, et lui seul : les vingt-deux autres ressources convergent. Pas
+# d'`ignore_changes` pour le masquer, le cloud réel rend ces labels.
 resource "exoscale_elastic_ip" "bastion" {
   zone        = var.zone
   description = "${local.prefixe}-bastion"

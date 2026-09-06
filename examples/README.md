@@ -99,7 +99,13 @@ mise run coverage:check     # the gate: every shipped module is called, or decla
 Measured on 5 September 2026, against feint built from `main` at 9074c0f
 (the published 0.12.1 still refuses the provider): 23 resources applied and
 destroyed, no residue, 29 modules played, 2 idempotences proven, 9 routes
-declined by feint and named. feint serves 104 of the 374 operations of the
+declined by feint and named. The same stack driven through `feint proxy`,
+which records every host asked for: provider 0.70.0 leaves for
+`api-ch-dk-2.exoscale.com` on its first read and is refused by the floor;
+provider 0.71.0 creates and destroys its 23 resources with no host on the
+wire. One known gap: the emulator does not read back the labels of an
+elastic IP (feint#703), so a second `plan` against it wants to rewrite that
+one resource; the real API returns them. feint serves 104 of the 374 operations of the
 contract, all of compute except the VPC beta, the console and the password,
 all of block-storage, quotas, the audit trail and the organization read.
 DBaaS, SKS, AI, IAM, KMS, DNS and SOS are not served, and their modules are
