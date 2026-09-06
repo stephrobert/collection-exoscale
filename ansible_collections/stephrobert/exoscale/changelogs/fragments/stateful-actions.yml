@@ -1,9 +1,0 @@
----
-minor_changes:
-  - >-
-    An action module that leads to a known state (``start``, ``stop``) reads
-    the resource before acting and answers ``changed: false`` when the state
-    is already reached; after the asynchronous operation succeeds, it reads
-    the resource again and fails if the expected state is not observed. An
-    action that always acts (``reboot``) never reports ``changed: false``.
-    Check mode reports what would change without calling the API.
