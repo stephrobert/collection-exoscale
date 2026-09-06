@@ -1,3 +1,473 @@
 ---
 ancestor: null
-releases: {}
+releases:
+  0.1.0:
+    changes:
+      minor_changes:
+        - 'An action module that leads to a known state (``start``, ``stop``) reads
+          the resource before acting and answers ``changed: false`` when the state
+          is already reached; after the asynchronous operation succeeds, it reads
+          the resource again and fails if the expected state is not observed. An action
+          that always acts (``reboot``) never reports ``changed: false``. Check mode
+          reports what would change without calling the API.'
+        - An action that answers at once rather than with an operation returns its
+          response under ``result`` instead of ``operation``, and its documentation
+          says which actions wait and which do not.
+        - An information module without a list operation reads its resource unconditionally
+          and requires every path identifier (``organization_info``, ``compute_load_balancer_service_info``);
+          an action module accepts resources with zero or two shared identifiers (``iam_organization_policy_action``,
+          ``sks_cluster_nodepool_action``).
+        - 'Every product of the Exoscale API v2 document is now indexed, fourteen
+          root tags instead of one: ai, audit-trail, block-storage, ccm, compute,
+          dbaas, dns, general, iam, kms, organization, quotas, sks and sos. Every
+          operation of every product is classified with zero UNKNOWN; what is set
+          aside (a relation Terraform declares, a deletion, a value computed without
+          changing anything) is set aside with its reason in the generator''s overrides.'
+        - 'Module names no longer repeat the product when the API path already carries
+          it: ``sks_cluster_info`` rather than ``sks_sks_cluster_info``.'
+        - New inventory plugin ``stephrobert.exoscale.compute``. It discovers instances
+          zone by zone with one API client per zone, reads the leases of every private
+          network to give each machine its private addresses, names hosts from a chosen
+          source (``name``, ``id``, an address family or ``label:KEY``) without ever
+          letting two machines overwrite each other, chooses ``ansible_host`` by address
+          family or by a named private network, builds ``exo_*`` groups by product,
+          zone, state, label, private network, manager and instance type, and says
+          why a machine was set aside. A refused credential fails the inventory; a
+          missing permission on private networks is a warning.
+        - 'The inventory plugin gains ``default_zone`` (environment ``EXOSCALE_ZONE``),
+          the zone recorded on hosts when ``api_url`` is set and ``zones`` is empty.
+          A forced endpoint with neither fails the inventory rather than discovering
+          nothing. Label filters are applied by the plugin itself: the API refuses
+          the ``labels`` query parameter.'
+        - 'The modules and the inventory plugin read the API endpoint from ``EXOSCALE_API_URL``,
+          then from ``EXOSCALE_API_ENDPOINT``, the variable the Exoscale SDK and the
+          feint emulator already use. The value carries the ``/v2`` suffix, and it
+          replaces the zone-based host: every zone is served by that one endpoint.'
+      release_summary: 'First release of the collection. Every module is produced
+        by the generator from the versioned Exoscale API v2 contract: information
+        modules read one resource or list them, action modules trigger a one-shot
+        operation on an existing resource and wait for the asynchronous operation
+        to succeed. Nothing creates, deletes or links resources; Terraform provisions,
+        this collection operates.'
+    fragments:
+      - api-endpoint.yml
+      - dynamic-inventory.yml
+      - every-product.yml
+      - first-release.yml
+      - stateful-actions.yml
+    modules:
+      - description: Perform an action on an Exoscale ai deployment.
+        name: ai_deployment_action
+        namespace: ''
+      - description: Gather information about Exoscale ai deployments.
+        name: ai_deployment_info
+        namespace: ''
+      - description: Gather information about Exoscale ai inference engine parameters.
+        name: ai_inference_engine_parameter_info
+        namespace: ''
+      - description: Gather information about Exoscale ai instance types.
+        name: ai_instance_type_info
+        namespace: ''
+      - description: Gather information about Exoscale ai logs.
+        name: ai_log_info
+        namespace: ''
+      - description: Gather information about Exoscale ai models.
+        name: ai_model_info
+        namespace: ''
+      - description: Gather information about Exoscale ai quotas.
+        name: ai_quota_info
+        namespace: ''
+      - description: Gather information about Exoscale events.
+        name: audit_trail_event_info
+        namespace: ''
+      - description: Gather information about Exoscale block storage snapshots.
+        name: block_storage_snapshot_info
+        namespace: ''
+      - description: Perform an action on an Exoscale block storage volume.
+        name: block_storage_volume_action
+        namespace: ''
+      - description: Gather information about Exoscale block storage volumes.
+        name: block_storage_volume_info
+        namespace: ''
+      - description: Gather information about Exoscale quotas.
+        name: ccm_quota_info
+        namespace: ''
+      - description: Gather information about Exoscale anti affinity groups.
+        name: compute_anti_affinity_group_info
+        namespace: ''
+      - description: Gather information about Exoscale deploy targets.
+        name: compute_deploy_target_info
+        namespace: ''
+      - description: Perform an action on an Exoscale elastic ip.
+        name: compute_elastic_ip_action
+        namespace: ''
+      - description: Gather information about Exoscale elastic ips.
+        name: compute_elastic_ip_info
+        namespace: ''
+      - description: Perform an action on an Exoscale instance.
+        name: compute_instance_action
+        namespace: ''
+      - description: Gather information about Exoscale instance consoles.
+        name: compute_instance_console_info
+        namespace: ''
+      - description: Gather information about Exoscale instances.
+        name: compute_instance_info
+        namespace: ''
+      - description: Gather information about Exoscale instance passwords.
+        name: compute_instance_password_info
+        namespace: ''
+      - description: Perform an action on an Exoscale instance pool.
+        name: compute_instance_pool_action
+        namespace: ''
+      - description: Gather information about Exoscale instance pools.
+        name: compute_instance_pool_info
+        namespace: ''
+      - description: Gather information about Exoscale instance types.
+        name: compute_instance_type_info
+        namespace: ''
+      - description: Perform an action on an Exoscale load balancer.
+        name: compute_load_balancer_action
+        namespace: ''
+      - description: Gather information about Exoscale load balancers.
+        name: compute_load_balancer_info
+        namespace: ''
+      - description: Perform an action on an Exoscale load balancer service.
+        name: compute_load_balancer_service_action
+        namespace: ''
+      - description: Gather information about Exoscale load balancer services.
+        name: compute_load_balancer_service_info
+        namespace: ''
+      - description: Perform an action on an Exoscale private network.
+        name: compute_private_network_action
+        namespace: ''
+      - description: Gather information about Exoscale private networks.
+        name: compute_private_network_info
+        namespace: ''
+      - description: Gather information about Exoscale reverse dns elastic ips.
+        name: compute_reverse_dns_elastic_ip_info
+        namespace: ''
+      - description: Gather information about Exoscale reverse dns instances.
+        name: compute_reverse_dns_instance_info
+        namespace: ''
+      - description: Gather information about Exoscale security groups.
+        name: compute_security_group_info
+        namespace: ''
+      - description: Perform an action on an Exoscale snapshot.
+        name: compute_snapshot_action
+        namespace: ''
+      - description: Gather information about Exoscale snapshots.
+        name: compute_snapshot_info
+        namespace: ''
+      - description: Gather information about Exoscale ssh keys.
+        name: compute_ssh_key_info
+        namespace: ''
+      - description: Gather information about Exoscale templates.
+        name: compute_template_info
+        namespace: ''
+      - description: Gather information about Exoscale vpcs.
+        name: compute_vpc_info
+        namespace: ''
+      - description: Gather information about Exoscale vpc routes.
+        name: compute_vpc_route_info
+        namespace: ''
+      - description: Gather information about Exoscale vpc subnets.
+        name: compute_vpc_subnet_info
+        namespace: ''
+      - description: Gather information about Exoscale vpc subnet routes.
+        name: compute_vpc_subnet_route_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas ca certificates.
+        name: dbaas_ca_certificate_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas clickhouse acl configs.
+        name: dbaas_clickhouse_acl_config_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas clickhouses.
+        name: dbaas_clickhouse_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas clickhouse maintenance.
+        name: dbaas_clickhouse_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas clickhouse password.
+        name: dbaas_clickhouse_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas clickhouse passwords.
+        name: dbaas_clickhouse_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas clickhouse roles.
+        name: dbaas_clickhouse_role_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas clickhouse users.
+        name: dbaas_clickhouse_user_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint datadogs.
+        name: dbaas_external_endpoint_datadog_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint elasticsearches.
+        name: dbaas_external_endpoint_elasticsearch_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoints.
+        name: dbaas_external_endpoint_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint opensearches.
+        name: dbaas_external_endpoint_opensearch_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint prometheus.
+        name: dbaas_external_endpoint_prometheus_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint rsyslogs.
+        name: dbaas_external_endpoint_rsyslog_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external endpoint types.
+        name: dbaas_external_endpoint_type_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external integrations.
+        name: dbaas_external_integration_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas external integration
+          settings datadogs.
+        name: dbaas_external_integration_settings_datadog_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas grafanas.
+        name: dbaas_grafana_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas grafana maintenance.
+        name: dbaas_grafana_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas grafana password.
+        name: dbaas_grafana_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas grafana passwords.
+        name: dbaas_grafana_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas integrations.
+        name: dbaas_integration_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas integration types.
+        name: dbaas_integration_type_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas kafka acl configs.
+        name: dbaas_kafka_acl_config_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas kafkas.
+        name: dbaas_kafka_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas kafka maintenance.
+        name: dbaas_kafka_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas kafka password.
+        name: dbaas_kafka_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas migration status.
+        name: dbaas_migration_status_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas mysqls.
+        name: dbaas_mysql_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas mysql maintenance.
+        name: dbaas_mysql_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas mysql migration.
+        name: dbaas_mysql_migration_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas mysql password.
+        name: dbaas_mysql_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas mysql passwords.
+        name: dbaas_mysql_password_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas mysql write.
+        name: dbaas_mysql_write_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas opensearch acl configs.
+        name: dbaas_opensearch_acl_config_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas opensearches.
+        name: dbaas_opensearch_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas opensearch maintenance.
+        name: dbaas_opensearch_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas opensearch password.
+        name: dbaas_opensearch_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas opensearch passwords.
+        name: dbaas_opensearch_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas postgres.
+        name: dbaas_postgres_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas postgres maintenance.
+        name: dbaas_postgres_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas postgres migration.
+        name: dbaas_postgres_migration_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas postgres password.
+        name: dbaas_postgres_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas postgres passwords.
+        name: dbaas_postgres_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas services.
+        name: dbaas_service_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas service logs.
+        name: dbaas_service_log_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas service metrics.
+        name: dbaas_service_metric_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas service types.
+        name: dbaas_service_type_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings clickhouses.
+        name: dbaas_settings_clickhouse_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings grafanas.
+        name: dbaas_settings_grafana_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings kafkas.
+        name: dbaas_settings_kafka_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings mysqls.
+        name: dbaas_settings_mysql_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings opensearches.
+        name: dbaas_settings_opensearch_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings pgs.
+        name: dbaas_settings_pg_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings thanos.
+        name: dbaas_settings_thanos_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas settings valkeys.
+        name: dbaas_settings_valkey_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas tasks.
+        name: dbaas_task_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas thanos.
+        name: dbaas_thanos_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas thanos maintenance.
+        name: dbaas_thanos_maintenance_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas thanos passwords.
+        name: dbaas_thanos_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas valkeys.
+        name: dbaas_valkey_info
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas valkey maintenance.
+        name: dbaas_valkey_maintenance_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas valkey migration.
+        name: dbaas_valkey_migration_action
+        namespace: ''
+      - description: Perform an action on an Exoscale dbaas valkey password.
+        name: dbaas_valkey_password_action
+        namespace: ''
+      - description: Gather information about Exoscale dbaas valkey passwords.
+        name: dbaas_valkey_password_info
+        namespace: ''
+      - description: Gather information about Exoscale dbaas valkey users.
+        name: dbaas_valkey_user_info
+        namespace: ''
+      - description: Gather information about Exoscale dns domains.
+        name: dns_domain_info
+        namespace: ''
+      - description: Gather information about Exoscale dns domain records.
+        name: dns_domain_record_info
+        namespace: ''
+      - description: Gather information about Exoscale dns domain zones.
+        name: dns_domain_zone_info
+        namespace: ''
+      - description: Gather information about Exoscale operations.
+        name: general_operation_info
+        namespace: ''
+      - description: Gather information about Exoscale zones.
+        name: general_zone_info
+        namespace: ''
+      - description: Gather information about Exoscale api keys.
+        name: iam_api_key_info
+        namespace: ''
+      - description: Perform an action on an Exoscale iam organization policy.
+        name: iam_organization_policy_action
+        namespace: ''
+      - description: Gather information about Exoscale iam organization policies.
+        name: iam_organization_policy_info
+        namespace: ''
+      - description: Gather information about Exoscale iam roles.
+        name: iam_role_info
+        namespace: ''
+      - description: Gather information about Exoscale users.
+        name: iam_user_info
+        namespace: ''
+      - description: Perform an action on an Exoscale kms key.
+        name: kms_key_action
+        namespace: ''
+      - description: Gather information about Exoscale kms keys.
+        name: kms_key_info
+        namespace: ''
+      - description: Gather information about Exoscale kms key rotations.
+        name: kms_key_rotation_info
+        namespace: ''
+      - description: Gather information about Exoscale env impacts.
+        name: organization_env_impact_info
+        namespace: ''
+      - description: Gather information about Exoscale organizations.
+        name: organization_info
+        namespace: ''
+      - description: Gather information about Exoscale live balances.
+        name: organization_live_balance_info
+        namespace: ''
+      - description: Gather information about Exoscale usage reports.
+        name: organization_usage_report_info
+        namespace: ''
+      - description: Gather information about Exoscale quotas.
+        name: quotas_quota_info
+        namespace: ''
+      - description: Perform an action on an Exoscale sks cluster.
+        name: sks_cluster_action
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster certs.
+        name: sks_cluster_cert_info
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster deprecated resources.
+        name: sks_cluster_deprecated_resource_info
+        namespace: ''
+      - description: Gather information about Exoscale sks clusters.
+        name: sks_cluster_info
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster inspections.
+        name: sks_cluster_inspection_info
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster kubeconfigs.
+        name: sks_cluster_kubeconfig_info
+        namespace: ''
+      - description: Perform an action on an Exoscale sks cluster nodepool.
+        name: sks_cluster_nodepool_action
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster nodepools.
+        name: sks_cluster_nodepool_info
+        namespace: ''
+      - description: Gather information about Exoscale sks cluster versions.
+        name: sks_cluster_version_info
+        namespace: ''
+      - description: Gather information about Exoscale sks templates.
+        name: sks_template_info
+        namespace: ''
+      - description: Gather information about Exoscale sos bucket usages.
+        name: sos_bucket_usage_info
+        namespace: ''
+      - description: Gather information about Exoscale sos presigned urls.
+        name: sos_presigned_url_info
+        namespace: ''
+    plugins:
+      inventory:
+        - description: Exoscale compute dynamic inventory.
+          name: compute
+          namespace: null
+    release_date: '2026-09-06'

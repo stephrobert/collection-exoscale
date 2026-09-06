@@ -1,8 +1,0 @@
----
-release_summary: >-
-  First release of the collection. Every module is produced by the generator
-  from the versioned Exoscale API v2 contract: information modules read one
-  resource or list them, action modules trigger a one-shot operation on an
-  existing resource and wait for the asynchronous operation to succeed.
-  Nothing creates, deletes or links resources; Terraform provisions, this
-  collection operates.
