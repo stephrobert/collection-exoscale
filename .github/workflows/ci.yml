@@ -47,7 +47,7 @@ jobs:
       contents: read
     steps:
       - name: Durcir le runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           # `audit` et non `block` : la politique se mesure avant de se
           # fermer. Une allowlist écrite sans avoir observé le trafic réel
@@ -63,7 +63,7 @@ jobs:
       # dernière release publiée : mise installe Python et ruff et lance toutes
       # les tâches, donc le laisser flotter annulerait l'épinglage du reste.
       - name: Installer mise
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           version: 2026.2.23
 
@@ -103,7 +103,7 @@ jobs:
 
       - name: Publier les rapports
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: rapports
           path: build/reports/
@@ -136,7 +136,7 @@ jobs:
           - ">=2.21,<2.22"
     steps:
       - name: Durcir le runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -146,7 +146,7 @@ jobs:
           persist-credentials: false
 
       - name: Installer mise
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           version: 2026.2.23
 
@@ -183,7 +183,7 @@ jobs:
       contents: read
     steps:
       - name: Durcir le runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           egress-policy: audit
 
@@ -193,7 +193,7 @@ jobs:
           persist-credentials: false
 
       - name: Installer mise
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           version: 2026.2.23
 
@@ -209,7 +209,7 @@ jobs:
         run: mise run check:worktree
 
       - name: Publier l'archive
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: collection
           path: build/dist/*.tar.gz
@@ -238,7 +238,7 @@ jobs:
       contents: read
     steps:
       - name: Durcir le runner
-        uses: step-security/harden-runner@05e31511f85b41b11d1cf0ef85d0992719546e2c # v2.21.0
+        uses: step-security/harden-runner@ccd8616d44fd3846e67624a50d5aad6d37bf2d25 # v2.22.1
         with:
           # Terraform télécharge son fournisseur, et le job construit
           # l'émulateur depuis le proxy des modules Go : `audit` documente ce
@@ -252,7 +252,7 @@ jobs:
 
       # mise installe aussi Terraform, épinglé dans `mise.toml` comme le reste.
       - name: Installer mise
-        uses: jdx/mise-action@3c2e0cf82a5b2e5249f0d3635a4d83d0ae861518 # v4.2.5
+        uses: jdx/mise-action@9b200bcecbfd6303e69a4a261b2e09e3757440a7 # v5.2.0
         with:
           version: 2026.2.23
 
@@ -285,7 +285,7 @@ jobs:
 
       - name: Publier l'artefact de couverture
         if: always()
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: exemple
           path: build/example/*.json
